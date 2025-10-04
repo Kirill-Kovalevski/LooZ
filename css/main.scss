@@ -212,3 +212,20 @@ body.is-dark .c-sheet__panel{background:radial-gradient(200% 140% at 50% -20%,#1
 html[data-theme="dark"] .p-week .p-day__count{background:rgba(13,23,44,.9)}
 html[data-theme="dark"] .p-month .p-count{background:rgba(13,23,44,.92)!important;color:var(--ring-color,#60a5fa)!important;border-color:var(--ring-color,#60a5fa)!important;box-shadow:0 1px 3px rgba(0,0,0,.28)}
 html[data-theme="dark"] .p-month .p-cell__num{color:#eaf2ff}
+/* ==== LooZ: force app background to pure white (#fff) ==== */
+body { background: #fff !important; }
+
+.o-page { background: #fff !important; }
+.o-phone { background: #fff !important; }
+
+/* kill the gradient that returns in the larger-screen media query */
+@media (min-width: 420px){
+  .o-page { background: #fff !important; }
+}
+/* ==== unify app background to pure white so it matches the logo ==== */
+:root { --app-white: #ffffff; }
+
+body, .o-page, .o-phone { background: var(--app-white) !important; }
+@media (min-width: 420px){
+  .o-page { background: var(--app-white) !important; }
+}

@@ -1,0 +1,56 @@
+/* ===== centered logo bar (above the lemon), same white as app ===== */
+.looz-bar{
+  position: relative;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  background: var(--app-white);
+  padding: 6px 0 4px;
+  margin-bottom: 6px;
+}
+
+/* keep the logo small + responsive; no shadows so the white matches perfectly */
+.looz-logo{
+  width: clamp(110px, 22vw, 180px);
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: none !important;        /* <— remove halo/shadow */
+  box-shadow: none !important;    /* <— remove halo/shadow */
+  background: transparent;
+  z-index: 1;
+}
+
+/* lightning overlay (does not tint background) */
+.looz-bolt{
+  position: absolute; inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  transform: skewX(-12deg);
+  /* no filter/shadow to avoid a “box” */
+  filter: none;
+  /* diagonal streak + soft glow (only visible during animation) */
+  background:
+    radial-gradient(40% 160% at 50% 45%, rgba(255,255,255,.55), transparent 60%) no-repeat,
+    linear-gradient(100deg, transparent 35%, rgba(255,255,255,.95) 50%, transparent 65%) no-repeat;
+  background-size: 100% 100%, 18% 140%;
+  background-position: center, -30% 0%;
+}
+
+/* class added by JS for a single run */
+.looz-bar.flash-once .looz-bolt{
+  animation: loozBolt 1.05s cubic-bezier(.2,.8,.2,1) .15s 1 both;
+}
+
+@keyframes loozBolt{
+  0%   { opacity: 0;  background-position: center, -30% 0%; }
+  12%  { opacity: .95; }
+  62%  { opacity: .9; background-position: center, 120% 0%; }
+  100% { opacity: 0;  background-position: center, 140% 0%; }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce){
+  .looz-bar.flash-once .looz-bolt{ animation: none; }
+}
