@@ -1,85 +1,112 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<!-- Put this at the very top of <head> -->
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>LooZ</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>הגדרות — LooZ</title>
 
-<!-- Optional: keeps links working when the site is served from /LooZ/ on GitHub Pages -->
-<script>
-  (function () {
-    if (/github\.io$/.test(location.hostname)) {
-      var seg = (location.pathname.split('/').filter(Boolean)[0] || '');
-      var base = '/' + (seg ? seg + '/' : '');
-      var el = document.createElement('base'); el.href = base;
-      document.head.appendChild(el);
-    }
-  })();
-</script>
+  <!-- global theme (no flash) -->
+  <script src="js/theme.js"></script>
 
-<!-- IMPORTANT: use RELATIVE paths (no leading /) -->
-<link rel="stylesheet" href="css/dist/main.css" />
-<link rel="stylesheet" href="css/dist/dark-overrides.css" />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
-<script src="js/theme.js"></script>
-
+  <!-- compiled CSS (not .scss) -->
+  <link rel="stylesheet" href="css/dist/settings.css?v=2">
+  <link rel="stylesheet" href="css/dist/dark-overrides.css?v=2">
+  <script src="js/theme.js"></script>
 
 </head>
+
 <body>
+  <main class="s">
+<header class="s__header s__header--grid">
+  <!-- LEFT: back (bold chevron SVG, perfectly centered) -->
+  <a class="s__btn s__btn--chev" id="sBack" href="index.html" aria-label="חזרה" title="חזרה">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path d="M14 5L7 12l7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
 
-<main class="s">
-  <header class="s__header">
-    <button class="s__btn" id="sBack" aria-label="חזרה">←</button>
-    <h1 class="s__title"><span>LooZ</span> Settings</h1>
-    <span class="s__spacer"></span>
-  </header>
+  <!-- CENTER: title -->
+  <h1 class="s__title s__title--center">הגדרות</h1>
 
-  <section class="s__group">
-    <h2>תצוגה</h2>
-    <label class="row"><span>תצוגת פתיחה</span>
-      <select id="setDefaultView">
-        <option value="day">יום</option><option value="week">שבוע</option><option value="month">חודש</option>
-      </select>
-    </label>
-    <label class="row"><span>שבוע מתחיל ב־</span>
-      <select id="setWeekStart"><option value="sun">ראשון</option><option value="mon">שני</option></select>
-    </label>
-    <label class="row"><span>שעה: 24/12</span>
-      <select id="setTimeFmt"><option value="24">24</option><option value="12">12</option></select>
-    </label>
-    <label class="row row--switch"><span>מצב כהה</span><input type="checkbox" id="setDark" /></label>
-    <label class="row row--switch"><span>אנימציות</span><input type="checkbox" id="setAnim" checked /></label>
-  </section>
+     <!-- LOGO (dark-aware) -->
+        <a class="looz-logo" href="index.html" aria-label="LooZ">
+          <!-- light mode -->
+          <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ" />
+          <!-- dark mode -->
+          <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
+        </a>
+</header>
 
-  <section class="s__group">
-    <h2>התראות</h2>
-    <label class="row row--switch"><span>קבל התראות</span><input type="checkbox" id="setNotify" checked /></label>
-    <label class="row"><span>ברירת מחדל לתזכורת</span>
-      <select id="setReminder"><option>5 ד׳</option><option selected>15 ד׳</option><option>30 ד׳</option><option>60 ד׳</option></select>
-    </label>
-    <label class="row row--switch"><span>צלילים</span><input type="checkbox" id="setSounds" /></label>
-  </section>
 
-  <section class="s__group">
-    <h2>שפה ונתונים</h2>
-    <label class="row"><span>שפה</span>
-      <select id="setLang"><option>עברית</option><option>English</option></select>
-    </label>
-    <div class="row row--buttons">
-      <button class="btn" id="btnExport">ייצוא נתונים</button>
-      <button class="btn" id="btnImport">ייבוא נתונים</button>
-    </div>
-    <button class="btn btn--danger" id="btnReset">איפוס אפליקציה</button>
-  </section>
 
-  <footer class="s__footer">
-    <button class="btn" id="sSave">שמירה</button>
-  </footer>
-</main>
-<!-- IMPORTANT: relative path -->
-<script src="app.js" defer></script>
 
-<script src="/settings.js" defer></script>
+
+
+    <section class="s__group">
+      <!-- Your theme.js auto-syncs this checkbox (id=setDark) -->
+      <label class="row row--switch">
+        <span class="row__left">
+          <span class="ic ic-moon" aria-hidden="true"></span>
+          <span>מצב כהה</span>
+        </span>
+        <input type="checkbox" id="setDark" />
+      </label>
+
+      <button class="row row--nav" id="btnShare" type="button">
+        <span class="row__left">
+          <span class="ic ic-share" aria-hidden="true"></span>
+          <span>שתף אפליקציה</span>
+        </span>
+        <span class="chev" aria-hidden="true">›</span>
+      </button>
+
+      <button class="row row--nav" id="btnPlan" type="button">
+        <span class="row__left">
+          <span class="ic ic-star" aria-hidden="true"></span>
+          <span>בחר מנוי</span>
+        </span>
+        <span class="chev" aria-hidden="true">›</span>
+      </button>
+
+      <button class="row row--danger" id="btnLogout" type="button">
+        <span class="row__left">
+          <span class="ic ic-logout" aria-hidden="true"></span>
+          <span>התנתק</span>
+        </span>
+      </button>
+    </section>
+  </main>
+
+  <!-- Plan modal -->
+  <dialog id="planDlg" class="dlg">
+    <form method="dialog" class="dlg__panel">
+      <header class="dlg__head">
+        <h3 class="dlg__title">בחר מנוי</h3>
+        <button class="dlg__x" aria-label="סגור">✕</button>
+      </header>
+      <div class="plans">
+        <button class="plan" data-plan="free" type="button">
+          <div class="plan__name">Free</div>
+          <div class="plan__price">₪0</div>
+          <div class="plan__desc">בסיסי</div>
+        </button>
+        <button class="plan plan--pro" data-plan="pro" type="button">
+          <div class="plan__name">Premium</div>
+          <div class="plan__price">₪19<span>/חודש</span></div>
+          <div class="plan__desc">נעילות זהב, עדיפות ושיתוף</div>
+        </button>
+      </div>
+      <div class="dlg__actions">
+        <button class="btn" value="cancel">ביטול</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Logo animation (optional, uses your file) -->
+  <script src="js/logo.js" defer></script>
+
+  <!-- Page logic -->
+  <script src="js/settings.js" defer></script>
+
 </body>
 </html>
