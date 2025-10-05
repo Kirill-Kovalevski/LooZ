@@ -532,3 +532,884 @@ html.is-dark      .looz-logo .brand-logo--dark { display:block; }
 /* keep the right-side button group spacing */
 .p-weekbar__right,
 .p-monthbar__right{ display:flex; gap:.5rem; }
+/* === HOME HEADER LOGO (Fibonacci 34 → 55) =========================
+   Only targets the front page header (#appHeader). Settings uses a
+   different header, so it won't be affected.                         */
+
+#appHeader .looz-logo,
+#appHeader .looz-logo img,
+#appHeader .looz-logo .brand-logo,
+#appHeader .looz-logo .looz-mark{
+  /* 34px min, scales with viewport, capped at 55px (both Fibonacci) */
+  height: clamp(34px, 9vw, 55px);
+  width: auto;
+  display: block;
+  line-height: 0;           /* no stray line-height gap */
+}
+
+/* If your logo element itself is the <img class="looz-logo"> */
+#appHeader img.looz-logo{
+  height: clamp(34px, 9vw, 55px);
+  width: auto;
+  display: block;
+}
+/* === LooZ: smaller, uniform pills + neumorphic dark-mode =========== */
+/* One place to change sizes */
+:root{
+  --looz-pill-h: 34px;          /* height for ALL pills */
+  --looz-pill-w: 100px;         /* width for rectangular pills */
+  --looz-pill-r: 999px;
+  --looz-pill-font: 800 14px/var(--looz-pill-h) 'Rubik', system-ui, sans-serif;
+  /* glow ring (teal/blue) */
+  --looz-ring-a:#22d3ee; 
+  --looz-ring-b:#60a5fa;
+  /* light mode surface */
+  --looz-pill-surface:#f6f5f2;
+  --looz-pill-border:#e5e7eb;
+}
+
+/* Base: make all the pills identical in size */
+.c-headbtn,
+.p-weekbar__btn[data-weeknav="today"],
+.p-monthbar__btn[data-weeknav="today"]{
+  inline-size: var(--looz-pill-w) !important;
+  height: var(--looz-pill-h) !important;
+  padding: 0 !important;
+  border-radius: var(--looz-pill-r) !important;
+  font: var(--looz-pill-font) !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+/* Circular ◀ ▶ arrows */
+[data-daynav],
+.p-weekbar__btn[data-weeknav="prev"],
+.p-weekbar__btn[data-weeknav="next"],
+.p-monthbar__btn[data-weeknav="prev"],
+.p-monthbar__btn[data-weeknav="next"]{
+  inline-size: var(--looz-pill-h) !important;
+  height: var(--looz-pill-h) !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  font: var(--looz-pill-font) !important;
+}
+
+/* ---------- Light mode (keeps your look, just downsized) ----------- */
+html:not(.is-dark) .c-headbtn,
+html:not(.is-dark) .p-weekbar__btn,
+html:not(.is-dark) .p-monthbar__btn,
+html:not(.is-dark) [data-daynav]{
+  background: var(--looz-pill-surface) !important;
+  border: 1px solid var(--looz-pill-border) !important;
+  color:#0f172a !important;
+  box-shadow:
+    6px 6px 12px rgba(0,0,0,.06),
+    -6px -6px 12px rgba(255,255,255,.60) !important;  /* soft neumorph */
+}
+
+html:not(.is-dark) .c-headbtn.is-active,
+html:not(.is-dark) .p-weekbar__btn.is-active,
+html:not(.is-dark) .p-monthbar__btn.is-active{
+  background: linear-gradient(180deg,#fff6ae,#ffe77a) !important;
+  border-color:#e5c65e !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(0,0,0,.04),
+    0 6px 14px rgba(199,154,41,.18) !important;
+}
+
+/* ------------------- Dark mode (neumorphic) ------------------------ */
+:is(html,body).is-dark .c-headbtn,
+:is(html,body).is-dark .p-weekbar__btn,
+:is(html,body).is-dark .p-monthbar__btn,
+:is(html,body).is-dark [data-daynav]{
+  background:#1b2434 !important;                 /* button face */
+  border:1px solid #26354b !important;
+  color:#eaf2ff !important;
+  /* convex neumorphism */
+  box-shadow:
+    6px 6px 12px rgba(0,0,0,.45),
+    -6px -6px 12px rgba(255,255,255,.02),
+    inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+/* active/selected = subtle inner plate + glow ring */
+:is(html,body).is-dark .c-headbtn.is-active,
+:is(html,body).is-dark .p-weekbar__btn.is-active,
+:is(html,body).is-dark .p-monthbar__btn.is-active{
+  background:#141c2a !important;
+  border-color:#2a426b !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.06),
+    0 0 0 3px color-mix(in srgb, var(--looz-ring-a) 35%, transparent),
+    0 10px 18px rgba(0,0,0,.35) !important;
+}
+
+/* hover/press states (dark) */
+:is(html,body).is-dark .c-headbtn:hover,
+:is(html,body).is-dark .p-weekbar__btn:hover,
+:is(html,body).is-dark .p-monthbar__btn:hover,
+:is(html,body).is-dark [data-daynav]:hover{
+  filter: brightness(1.05);
+}
+:is(html,body).is-dark .c-headbtn:active,
+:is(html,body).is-dark .p-weekbar__btn:active,
+:is(html,body).is-dark .p-monthbar__btn:active,
+:is(html,body).is-dark [data-daynav]:active{
+  transform: translateY(1px);
+}
+
+/* chevron size inside the round buttons */
+[data-daynav] > svg,
+.p-weekbar__btn[data-weeknav] > svg,
+.p-monthbar__btn[data-weeknav] > svg{
+  width: 16px; height: 16px;
+}
+
+/* Ensure day/week/month bars keep this template everywhere */
+.p-weekbar__btn[data-weeknav="today"],
+.p-monthbar__btn[data-weeknav="today"]{
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* Home bottom CTA is static (not sticky) */
+.c-primary-cta { 
+  position: static !important;
+  display: grid;
+  justify-items: center;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* In case any old .c-bottom-cta rules remain */
+.c-bottom-cta { position: static !important; bottom: auto !important; }
+
+/* Remove the old Exit pill entirely on the home page */
+.c-exit-wrap, #btnExit { display: none !important; }
+/* Make the bottom area static, but DO NOT touch the button’s styling */
+.c-primary-cta{
+  position: static !important;
+  display: grid;
+  justify-items: center;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  margin-top: 0;                 /* keep layout tight like before */
+  background: transparent !important;
+}
+
+/* Keep the button exactly as before */
+.c-primary-cta .c-cta.c-cta--bang{
+  /* no overrides here on purpose—uses your existing gradients, size, shadow */
+}
+
+/* Remove the old exit pill on the home page */
+.c-exit-wrap, #btnExit{ display:none !important; }
+
+/* In case the old sticky wrapper lingers somewhere */
+.c-bottom-cta{ position:static !important; bottom:auto !important; }
+/* === CLEAN CONSOLIDATION (safe overrides) ========================= */
+
+/* 1) Single dark background token used everywhere */
+:root{ --looz-dark:#0f1830; }            /* matches your dark-logo tile */
+
+:is(html,body).is-dark,
+:is(html,body).is-dark body,
+:is(html,body).is-dark .o-page,
+:is(html,body).is-dark .o-phone{
+  background:var(--looz-dark) !important;
+  background-image:none !important;
+  box-shadow:none !important;
+}
+
+/* 2) Lemon ↔ date pill: keep the tighter gap */
+#lemonToggle{ margin-block:8px 10px !important; }
+.c-meta-block{ margin-top:0 !important; }
+
+/* 3) One template for date bars (Day/Week/Month) — keep current look */
+:root{
+  --bar-h:46px; --bar-r:999px; --bar-font:800 16px/1 'Rubik',system-ui,sans-serif;
+  --bar-bg:#f6f5f2; --bar-border:#e5e7eb; --bar-text:#0f172a;
+  --bar-shadow:0 .35rem .9rem rgba(15,23,42,.10);
+}
+:is(html,body).is-dark{
+  --bar-bg:#141e31; --bar-border:#2c4676; --bar-text:#e5ecf5;
+  --bar-shadow:0 .45rem 1rem rgba(0,0,0,.30);
+}
+.p-dayview__head,.p-weekbar,.p-monthbar{
+  display:grid !important; grid-template-columns:auto 1fr auto; align-items:center; gap:.5rem;
+}
+.p-dayview__title,.p-weekbar__title,.p-monthbar__title{
+  margin:0 !important; text-align:center; font:800 1.375rem/1.2 'Rubik',system-ui,sans-serif; letter-spacing:.2px; color:var(--bar-text);
+}
+.p-weekbar__btn[data-weeknav="prev"],.p-weekbar__btn[data-weeknav="next"],
+.p-monthbar__btn[data-weeknav="prev"],.p-monthbar__btn[data-weeknav="next"],
+[data-daynav="prev"],[data-daynav="next"]{
+  inline-size:var(--bar-h); height:var(--bar-h); padding:0; border-radius:var(--bar-r);
+  border:1px solid var(--bar-border); background:var(--bar-bg) !important; color:var(--bar-text);
+  display:grid; place-items:center; font:var(--bar-font); box-shadow:var(--bar-shadow);
+}
+.p-weekbar__btn[data-weeknav="today"],.p-monthbar__btn[data-weeknav="today"],[data-daynav="today"]{
+  min-width:5.6rem; height:var(--bar-h); padding:0 18px; border-radius:var(--bar-r);
+  border:1px solid var(--bar-border); background:var(--bar-bg) !important; color:var(--bar-text);
+  font:var(--bar-font); box-shadow:var(--bar-shadow); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.p-weekbar__btn > svg,.p-monthbar__btn > svg,[data-daynav] > svg{ width:18px; height:18px; }
+
+/* 4) Home bottom CTA: static (same styling), remove Exit pill */
+.c-bottom-cta{                          /* was sticky; now static */
+  position:static !important;
+  bottom:auto !important;
+  display:grid; justify-items:center;
+  padding-bottom:max(16px, env(safe-area-inset-bottom));
+  background:transparent !important;
+}
+.c-exit-wrap,#btnExit{ display:none !important; }
+
+/* 5) Logo wrapper stays chrome-less (prevents seams) */
+.looz-logo,.looz-logo *{
+  background:transparent !important; border:0 !important; box-shadow:none !important;
+}
+/* === Create New Event: cream orb replica ================================= */
+.btn-create-orb{
+  position:relative;
+  inline-size:clamp(96px,26vw,124px);
+  block-size:clamp(96px,26vw,124px);
+  border-radius:50%;
+  border:0;
+  /* warm cream → peach orb */
+  background:
+    radial-gradient(120% 110% at 38% 24%, #fff9ed 0 58%, rgba(255,255,255,0) 60%),
+    radial-gradient(140% 120% at 62% 115%, #f8d8a2 0, #f4c984 40%, #efc272 65%, #e8b861 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.90),
+    0 10px 22px rgba(0,0,0,.28),
+    0 1px 0 rgba(0,0,0,.06),
+    0 0 0 1px rgba(219,185,120,.35);
+  display:grid; place-items:center;
+  color:transparent;               /* hide any text */
+  text-indent:-9999px;             /* keep accessible name via aria-label */
+  line-height:0;
+  cursor:pointer;
+}
+
+/* golden rounded-square tile inside */
+.btn-create-orb::before{
+  content:"";
+  position:absolute;
+  width:42%; height:42%;
+  left:50%; top:50%;
+  transform:translate(-50%,-44%);  /* slightly above center */
+  border-radius:22%;
+  background:
+    radial-gradient(140% 120% at 35% 28%, rgba(255,255,255,.85), rgba(255,255,255,0) 55%),
+    linear-gradient(180deg, #f6d57a, #e6b65f);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.85),
+    0 10px 16px rgba(0,0,0,.12),
+    0 0 0 1px rgba(160,121,30,.25);
+}
+
+/* blue “+” badge on the tile’s top-right corner */
+.btn-create-orb::after{
+  content:"+";
+  position:absolute;
+  display:grid; place-items:center;
+  font:800 12px/1 'Rubik', system-ui, sans-serif;
+  color:#fff;
+  width:22%; height:22%;
+  left:60%; top:26%;
+  border-radius:50%;
+  border:2px solid #fff;
+  background:linear-gradient(180deg, #39b1ff, #1b7cff);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    0 8px 14px rgba(27,124,255,.35);
+}
+
+/* dark-mode subtle extra glow (keeps same look on dark bg) */
+:is(html,body).is-dark .btn-create-orb{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.90),
+    0 14px 28px rgba(0,0,0,.45),
+    0 0 0 1px rgba(219,185,120,.28),
+    0 0 40px rgba(255,210,120,.12);
+}
+
+/* small press effect */
+.btn-create-orb:active{ transform:translateY(1px) scale(.985); }
+/* ================================================================
+   Create New Event — exact replica of the cream orb button
+   (self-contained, won’t touch other buttons)
+   ================================================================ */
+
+.c-cta.c-cta--bang.btn-create-orb{
+  /* size: big but tasteful; tweak clamp bounds if you need */
+  inline-size: clamp(92px, 26vw, 124px) !important;
+  block-size:  clamp(92px, 26vw, 124px) !important;
+
+  /* make it a circle and neutralize default .c-cta styles */
+  border-radius: 50% !important;
+  border: 0 !important;
+  padding: 0 !important;
+  color: transparent !important;
+  text-indent: -9999px;           /* keeps aria-label, hides text */
+  line-height: 0;
+  display: grid !important;
+  place-items: center;
+
+  /* ---- orb surface (cream → peach) ---- */
+  background:
+    /* top-left soft specular highlight */
+    radial-gradient(120% 110% at 38% 22%, rgba(255,255,255,.95) 0 56%, rgba(255,255,255,0) 58%),
+    /* main body */
+    radial-gradient(140% 120% at 62% 115%, #f8d8a2 0, #f4c984 42%, #efc272 68%, #e8b861 100%) !important;
+
+  /* rim & drop shadow like the reference */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.92),
+    0 12px 24px rgba(0,0,0,.28),
+    0 1px 0 rgba(0,0,0,.06),
+    0 0 0 1px rgba(219,185,120,.42) !important;
+
+  cursor: pointer;
+}
+
+/* golden rounded-square tile */
+.c-cta.c-cta--bang.btn-create-orb::before{
+  content:"";
+  position:absolute;
+  width:42%; height:42%;
+  left:50%; top:50%;
+  transform: translate(-50%, -46%);      /* slightly above center */
+  border-radius: 22%;
+  background:
+    radial-gradient(140% 120% at 34% 28%, rgba(255,255,255,.85), rgba(255,255,255,0) 54%),
+    linear-gradient(180deg, #f6d57a, #e6b65f);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.85),
+    0 10px 16px rgba(0,0,0,.12),
+    0 0 0 1px rgba(160,121,30,.28);
+  pointer-events:none;
+}
+
+/* blue circular badge with a white plus (not a font glyph; drawn in CSS) */
+.c-cta.c-cta--bang.btn-create-orb::after{
+  content:"";
+  position:absolute;
+  width:22%; height:22%;
+  left:60%; top:26%;
+  border-radius:50%;
+  border:2px solid #fff;
+  background:
+     /* the white “+” */
+     linear-gradient(#fff 0 0) center / 62% 12% no-repeat,
+     linear-gradient(#fff 0 0) center / 12% 62% no-repeat,
+     /* the blue disc */
+     radial-gradient(120% 140% at 30% 25%, #51c7ff, #1b7cff 70%, #1560d8 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    0 8px 14px rgba(27,124,255,.35);
+  pointer-events:none;
+}
+
+/* dark-mode: keep the same look, just a touch more lift on a dark bg */
+:is(html,body).is-dark .c-cta.c-cta--bang.btn-create-orb{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.92),
+    0 16px 30px rgba(0,0,0,.45),
+    0 0 0 1px rgba(219,185,120,.32),
+    0 0 40px rgba(255,210,120,.12) !important;
+}
+
+/* press */
+.c-cta.c-cta--bang.btn-create-orb:active{
+  transform: translateY(1px) scale(.985);
+}
+/* Create-orb: slightly smaller */
+.c-cta.c-cta--bang.btn-create-orb{
+  inline-size: clamp(86px, 24vw, 112px) !important;
+  block-size:  clamp(86px, 24vw, 112px) !important;
+}
+/* ===== Unified date-nav bar (Day / Week / Month) ================== */
+/* shared metrics */
+:root{
+  --navH: 44px;                          /* pill height */
+  --navR: 999px;                         /* full pill radius */
+  --navCircle: 44px;                     /* ◀ ▶ circle size */
+  --navPadX: 18px;
+  --navFont: 800 15px/1 'Rubik',system-ui,sans-serif;
+
+  /* light */
+  --navBg:#f6f5f2;
+  --navBorder:#e5e7eb;
+  --navText:#0f172a;
+  --navShadow:0 .35rem .9rem rgba(15,23,42,.10);
+}
+body.is-dark{
+  /* dark */
+  --navBg:#141e31;
+  --navBorder:#2c4676;
+  --navText:#e5ecf5;
+  --navShadow:0 .45rem 1rem rgba(0,0,0,.30);
+}
+
+/* Make all three bars use the same 3-column layout */
+.p-dayview__head,
+.p-weekbar,
+.p-monthbar{
+  display:grid !important;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:.5rem;
+}
+
+/* Center title styling (one line, slightly smaller) */
+.p-weekbar__title,
+.p-monthbar__title,
+.p-dayview__title{
+  margin:0 !important;
+  text-align:center;
+  font: 800 clamp(1rem, 3.8vw, 1.2rem)/1.1 'Rubik',system-ui,sans-serif;
+  letter-spacing:.2px;
+  color:var(--navText);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* Day view shows title + date — put them on ONE line in the center */
+.p-dayview__title{ display:inline; margin-inline-end:.4rem !important; }
+.p-dayview__date{
+  display:inline !important;
+  margin:0 !important;
+  font:inherit !important;
+  color:var(--navText) !important;
+  opacity:1 !important;
+}
+/* Ensure both are in the middle column */
+.p-dayview__title, .p-dayview__date{ grid-column:2; justify-self:center; }
+
+/* Circular prev/next buttons — identical everywhere */
+.p-weekbar__btn[data-weeknav="prev"],
+.p-weekbar__btn[data-weeknav="next"],
+.p-monthbar__btn[data-weeknav="prev"],
+.p-monthbar__btn[data-weeknav="next"],
+[data-daynav="prev"], [data-daynav="next"]{
+  inline-size:var(--navCircle);
+  height:var(--navCircle);
+  padding:0;
+  border-radius:var(--navR);
+  border:1px solid var(--navBorder);
+  background:var(--navBg) !important;
+  color:var(--navText);
+  display:grid; place-items:center;
+  font:var(--navFont);
+  box-shadow:var(--navShadow);
+}
+.p-weekbar__btn > svg,
+.p-monthbar__btn > svg,
+[data-daynav] > svg{ width:18px; height:18px; }
+
+/* “Today” pill — same look/size across Day/Week/Month */
+.p-weekbar__btn[data-weeknav="today"],
+.p-monthbar__btn[data-weeknav="today"],
+[data-daynav="today"]{
+  height:var(--navH);
+  padding:0 var(--navPadX);
+  min-width:5.4rem;
+  border-radius:var(--navR);
+  border:1px solid var(--navBorder);
+  background:var(--navBg) !important;
+  color:var(--navText);
+  font:var(--navFont);
+  box-shadow:var(--navShadow);
+  text-overflow:ellipsis; white-space:nowrap; overflow:hidden;
+}
+
+/* Keep right-side button clusters spaced */
+.p-weekbar__right, .p-monthbar__right{ display:flex; gap:.5rem; }
+/* === One template for Day + Week bars ================================== */
+/* shared metrics */
+:root{
+  --bar-h: 46px;
+  --bar-r: 999px;
+  --bar-font: 800 16px/1 'Rubik', system-ui, sans-serif;
+  --bar-title-size: clamp(18px, 6vw, 22px);  /* same size Day & Week */
+  --bar-gap: .5rem;
+
+  /* light */
+  --bar-bg:#f6f5f2; --bar-border:#e5e7eb; --bar-text:#0f172a;
+  --bar-shadow:0 .35rem .9rem rgba(15,23,42,.10);
+}
+:is(html,body).is-dark{
+  /* dark */
+  --bar-bg:#141e31; --bar-border:#2c4676; --bar-text:#e5ecf5;
+  --bar-shadow:0 .45rem 1rem rgba(0,0,0,.30);
+}
+
+/* Use the same 4-column grid in both views: ⟨prev⟩ ⟨today⟩ ⟨title⟩ ⟨next⟩ */
+.p-weekbar,
+.p-dayview__head{
+  display:grid !important;
+  grid-template-columns:auto auto 1fr auto;
+  align-items:center;
+  gap:var(--bar-gap);
+}
+
+/* place items in the expected columns even if DOM order differs */
+.p-weekbar [data-weeknav="prev"],
+.p-dayview__head [data-daynav="prev"]{ grid-column:1; }
+.p-weekbar [data-weeknav="today"],
+.p-dayview__head [data-daynav="today"],
+.p-dayview__head .c-headbtn{ grid-column:2; }
+.p-weekbar__title,
+.p-dayview__title,
+#weekTitle,
+#dayTitle{ grid-column:3; }
+.p-weekbar [data-weeknav="next"],
+.p-dayview__head [data-daynav="next"]{ grid-column:4; }
+
+/* same visual for circular arrows everywhere */
+.p-weekbar [data-weeknav="prev"],
+.p-weekbar [data-weeknav="next"],
+.p-dayview__head [data-daynav="prev"],
+.p-dayview__head [data-daynav="next"]{
+  inline-size:var(--bar-h);
+  height:var(--bar-h);
+  padding:0;
+  border-radius:var(--bar-r);
+  border:1px solid var(--bar-border);
+  background:var(--bar-bg) !important;
+  color:var(--bar-text);
+  display:grid;place-items:center;
+  font:var(--bar-font);
+  box-shadow:var(--bar-shadow);
+}
+.p-weekbar [data-weeknav] > svg,
+.p-dayview__head [data-daynav] > svg{ width:18px; height:18px; }
+
+/* “היום” pill identical in both views */
+.p-weekbar [data-weeknav="today"],
+.p-dayview__head [data-daynav="today"],
+.p-dayview__head .c-headbtn{
+  min-width:5.6rem;
+  height:var(--bar-h);
+  padding:0 18px;
+  border-radius:var(--bar-r);
+  border:1px solid var(--bar-border);
+  background:var(--bar-bg) !important;
+  color:var(--bar-text);
+  font:var(--bar-font);
+  box-shadow:var(--bar-shadow);
+}
+
+/* title: SAME SIZE in week+day, fully visible, single line, centered */
+.p-weekbar__title,
+.p-dayview__title,
+#weekTitle,
+#dayTitle{
+  margin:0 !important;
+  text-align:center !important;
+  font-weight:800 !important;
+  font-size:var(--bar-title-size) !important;
+  color:var(--bar-text) !important;
+
+  /* make long Hebrew dates stay on one line and never ellipsize */
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+
+  /* critical for CSS Grid so text can use the full column */
+  min-width:0 !important;
+}
+
+/* dark/light colors follow the tokens above automatically */
+/* === One template for Week/Day/Month bars ======================== */
+:root{
+  --vwbar-h: 44px;                  /* circle height */
+  --vwbar-pill-w: 116px;            /* width of the "היום" pill */
+  --vwbar-r: 999px;
+  --vwbar-font: 800 16px/1 'Rubik', system-ui, sans-serif;
+
+  /* light */
+  --vwbar-bg:#f6f5f2; 
+  --vwbar-bd:#e5e7eb; 
+  --vwbar-fg:#0f172a;
+  --vwbar-shadow:0 .35rem .9rem rgba(15,23,42,.10);
+}
+:is(html,body).is-dark{
+  /* dark */
+  --vwbar-bg:#141e31; 
+  --vwbar-bd:#2c4676; 
+  --vwbar-fg:#e5ecf5;
+  --vwbar-shadow:0 .45rem 1rem rgba(0,0,0,.30);
+}
+
+/* Layout: same 3-column grid everywhere */
+.p-dayview__head,
+.p-weekbar,
+.p-monthbar{
+  display:grid !important;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:.5rem;
+}
+
+/* Center title — one line, responsive, same in week+day */
+.p-daybar__title,                /* Day view (new hook) */
+.p-dayview__title,               /* keep existing */
+.p-weekbar__title,
+.p-monthbar__title{
+  margin:0 !important;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font:800 clamp(1.25rem, 5vw, 1.55rem)/1.15 'Rubik',system-ui,sans-serif;
+  letter-spacing:.2px;
+  color:var(--vwbar-fg);
+}
+
+/* Circular ◀ ▶ arrows — identical everywhere */
+.p-weekbar__btn[data-weeknav="prev"],
+.p-weekbar__btn[data-weeknav="next"],
+.p-monthbar__btn[data-weeknav="prev"],
+.p-monthbar__btn[data-weeknav="next"],
+/* Day view arrows use data-daynav */
+[data-daynav="prev"],
+[data-daynav="next"]{
+  inline-size:var(--vwbar-h);
+  height:var(--vwbar-h);
+  padding:0;
+  border-radius:var(--vwbar-r);
+  border:1px solid var(--vwbar-bd);
+  background:var(--vwbar-bg) !important;
+  color:var(--vwbar-fg);
+  display:grid; place-items:center;
+  font:var(--vwbar-font);
+  box-shadow:var(--vwbar-shadow);
+}
+[data-daynav] > svg,
+.p-weekbar__btn[data-weeknav] > svg,
+.p-monthbar__btn[data-weeknav] > svg{ width:16px;height:16px }
+
+/* "היום" pill — EXACT same pill as week view */
+.p-weekbar__btn[data-weeknav="today"],
+.p-monthbar__btn[data-weeknav="today"],
+/* Day view: make your Today button carry data-daynav="today" */
+[data-daynav="today"]{
+  inline-size:var(--vwbar-pill-w);
+  height:var(--vwbar-h);
+  padding:0;
+  border-radius:var(--vwbar-r);
+  border:1px solid var(--vwbar-bd);
+  background:var(--vwbar-bg) !important;
+  color:var(--vwbar-fg);
+  font:var(--vwbar-font);
+  display:grid; place-items:center;
+  box-shadow:var(--vwbar-shadow);
+}
+
+/* Keep the right-side group spacing in week/month */
+.p-weekbar__right,.p-monthbar__right{ display:flex; gap:.5rem }
+
+/* Make sure no legacy styles stretch Day's Today pill */
+.p-dayview__head .c-headbtn{ all:unset }          /* neutralize if it used c-headbtn */
+.p-dayview__head [data-daynav="today"]{ all:revert-layer } /* then re-apply our rules */
+/* Day header: first row = prev | today | next, second row = date text */
+.p-weekbar--day{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  grid-template-rows:auto auto;
+  align-items:center;
+  justify-items:center;
+  column-gap:.65rem;          /* elegant spacing between buttons */
+  row-gap:.35rem;             /* space between buttons row and date row */
+  margin:.25rem 0 .5rem;      /* breathe from surroundings */
+}
+
+/* place items on the grid */
+.p-weekbar--day .p-weekbar__btn[data-daynav="prev"]{ grid-column:1; grid-row:1; }
+.p-weekbar--day .p-weekbar__today                         { grid-column:2; grid-row:1; justify-self:center; }
+.p-weekbar--day .p-weekbar__btn[data-daynav="next"]{ grid-column:3; grid-row:1; }
+.p-weekbar--day .p-weekbar__title{
+  grid-column:1 / -1; grid-row:2;
+  margin:0;
+  text-align:center;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; /* single neat line */
+  font:800 1.25rem/1.2 'Rubik',system-ui,sans-serif;
+  color:var(--bar-text); /* uses your light/dark tokens */
+}
+
+/* keep “today” pill identical across views (inherits your pill styles) */
+.p-weekbar--day .p-weekbar__today{
+  min-width:5.6rem; height:var(--bar-h);
+  padding:0 18px; border-radius:var(--bar-r);
+  border:1px solid var(--bar-border);
+  background:var(--bar-bg) !important; color:var(--bar-text);
+  font:var(--bar-font); box-shadow:var(--bar-shadow);
+}
+/* ===== stacked header: prev | today | next (row 1), title (row 2) ===== */
+.p-bar--stack{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  grid-template-rows:auto auto;
+  align-items:center;
+  justify-items:center;
+  column-gap:.65rem;      /* elegant spacing between buttons */
+  row-gap:.35rem;         /* space between buttons row and title row */
+  margin:.25rem 0 .5rem;
+}
+
+/* place items in the grid */
+.p-bar--stack [data-daynav="prev"],
+.p-bar--stack [data-weeknav="prev"],
+.p-bar--stack [data-monthnav="prev"]{ grid-column:1; grid-row:1; }
+
+.p-bar--stack [data-daynav="today"],
+.p-bar--stack [data-weeknav="today"],
+.p-bar--stack [data-monthnav="today"]{
+  grid-column:2; grid-row:1; justify-self:center;
+}
+
+.p-bar--stack [data-daynav="next"],
+.p-bar--stack [data-weeknav="next"],
+.p-bar--stack [data-monthnav="next"]{ grid-column:3; grid-row:1; }
+
+/* single-line centered title (row 2) */
+.p-bar--stack .p-weekbar__title,
+.p-bar--stack .p-monthbar__title{
+  grid-column:1/-1; grid-row:2;
+  margin:0; text-align:center;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-weight:800;
+  font-size:clamp(1rem,3.5vw,1.35rem);
+  color:var(--bar-text);
+}
+
+/* “היום” pill — same size and style across all views */
+.p-bar--stack [data-daynav="today"],
+.p-bar--stack [data-weeknav="today"],
+.p-bar--stack [data-monthnav="today"]{
+  min-width:5.6rem;
+  height:var(--bar-h);
+  padding:0 18px;
+  border-radius:var(--bar-r);
+  border:1px solid var(--bar-border);
+  background:var(--bar-bg) !important;
+  color:var(--bar-text);
+  font:var(--bar-font);
+  box-shadow:var(--bar-shadow);
+}
+/* --- One stacked header for Day/Week/Month ----------------------- */
+.p-bar--stack{
+  display:grid;
+  grid-template-columns:auto 1fr auto;   /* ‹ | היום | › */
+  grid-template-rows:auto auto;          /* row 1 = buttons, row 2 = title */
+  align-items:center;
+  justify-items:center;
+  column-gap:.65rem;
+  row-gap:.35rem;
+  margin:.25rem 0 .5rem;                 /* elegant margins */
+}
+
+/* ensure old margins don't fight this */
+.p-weekbar, .p-monthbar { margin:0; }
+
+/* place items in grid */
+.p-bar--stack [data-daynav="prev"],
+.p-bar--stack [data-weeknav="prev"],
+.p-bar--stack [data-monthnav="prev"]{ grid-column:1; grid-row:1; }
+
+.p-bar--stack [data-daynav="today"],
+.p-bar--stack [data-weeknav="today"],
+.p-bar--stack [data-monthnav="today"]{ grid-column:2; grid-row:1; }
+
+.p-bar--stack [data-daynav="next"],
+.p-bar--stack [data-weeknav="next"],
+.p-bar--stack [data-monthnav="next"]{ grid-column:3; grid-row:1; }
+
+.p-bar--stack .p-weekbar__title,
+.p-bar--stack .p-monthbar__title{
+  grid-column:1/-1; grid-row:2;
+  margin:0; text-align:center;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-weight:800; font-size:clamp(1rem,3.5vw,1.35rem);
+  color:var(--bar-text);
+}
+
+/* “היום” pill uses the same size/style everywhere */
+.p-bar--stack [data-daynav="today"],
+.p-bar--stack [data-weeknav="today"],
+.p-bar--stack [data-monthnav="today"]{
+  min-width:5.6rem;
+  height:var(--bar-h);
+  padding:0 18px;
+  border-radius:var(--bar-r);
+  border:1px solid var(--bar-border);
+  background:var(--bar-bg) !important;
+  color:var(--bar-text);
+  font:var(--bar-font);
+  box-shadow:var(--bar-shadow);
+}
+/* === IDENTICAL week-style header for Day/Week/Month ================= */
+:root{
+  --bar-h:46px;                 /* button height */
+  --bar-r:999px;
+  --bar-font:800 16px/1 'Rubik',system-ui,sans-serif;
+
+  /* light */
+  --bar-bg:#f6f5f2;
+  --bar-border:#e5e7eb;
+  --bar-text:#0f172a;
+  --bar-shadow:0 .35rem .9rem rgba(15,23,42,.10);
+}
+:is(html,body).is-dark{
+  /* dark */
+  --bar-bg:#141e31;
+  --bar-border:#2c4676;
+  --bar-text:#e5ecf5;
+  --bar-shadow:0 .45rem 1rem rgba(0,0,0,.30);
+}
+
+/* Layout: two rows (row1 = buttons, row2 = title), same everywhere */
+.p-weekbar.p-bar--stack{
+  display:grid;
+  grid-template-columns:auto 1fr auto;   /* ‹ | היום | › */
+  grid-template-rows:auto auto;
+  align-items:center; justify-items:center;
+  column-gap:.65rem; row-gap:.35rem;
+  margin:.25rem 0 .5rem;
+}
+
+/* Put items in their exact grid spots */
+.p-weekbar.p-bar--stack [data-nav="prev"]  { grid-column:1; grid-row:1; }
+.p-weekbar.p-bar--stack [data-nav="today"] { grid-column:2; grid-row:1; }
+.p-weekbar.p-bar--stack [data-nav="next"]  { grid-column:3; grid-row:1; }
+
+.p-weekbar__title{
+  grid-column:1/-1; grid-row:2;
+  margin:0; text-align:center;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-weight:800; font-size:clamp(1rem,3.5vw,1.35rem);
+  color:var(--bar-text);
+}
+
+/* Buttons (circles) */
+.p-weekbar__btn{
+  inline-size:var(--bar-h);
+  height:var(--bar-h);
+  padding:0;
+  border-radius:50%;
+  border:1px solid var(--bar-border);
+  background:var(--bar-bg) !important;
+  color:var(--bar-text);
+  display:grid; place-items:center;
+  font:var(--bar-font);
+  box-shadow:var(--bar-shadow);
+}
+
+/* “היום” pill (rectangle) — same size everywhere */
+.p-weekbar__btn[data-nav="today"]{
+  inline-size:auto; min-width:5.6rem;
+  border-radius:var(--bar-r);
+  padding:0 18px;
+}

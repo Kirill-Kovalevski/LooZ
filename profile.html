@@ -3,332 +3,313 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>LooZ — פרופיל</title>
+
+  <!-- מצב כהה לפני הצביעה -->
+  <script src="js/theme.js"></script>
+
+  <!-- בסיס ל-GitHub Pages (אופציונלי) -->
+  <script>
+    (function () {
+      if (/github\.io$/.test(location.hostname)) {
+        var seg = (location.pathname.split('/').filter(Boolean)[0] || '');
+        var base = '/' + (seg ? seg + '/' : '');
+        var el = document.createElement('base'); el.href = base;
+        document.head.appendChild(el);
+      }
+    })();
+  </script>
+
+  <!-- CSS גלובלי של האפליקציה -->
+  <link rel="stylesheet" href="css/dist/main.css" />
+  <link rel="stylesheet" href="css/dist/settings.css" />
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet" />
 
-  <title>LooZ פרופיל</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet" />
   <style>
-    :root{
-      --wrap:24.375rem; --space:14px; --radius:16px;
-      --bg0:#eef3ff; --bg1:#f9fbff;
-      --fg:#0f172a; --muted:#475569;
-      --card:#fff; --border:#e6ecf4; --chip:#f8fafc; --chip-b:#e5e7eb;
-      --acc1:#7c3aed; --acc2:#22d3ee; --gold:#e8c65c;
-      --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+    /* ===== Profile — נראה/היררכיה כמו Settings, מיושר היטב ===== */
+
+    :root{ --pr-radius:18px; }
+
+    /* מעטפת 'כרטיס' כמו קבוצות בהגדרות */
+    .pr-shell{
+      background:var(--bg);
+      border:1px solid var(--line);
+      border-radius:var(--pr-radius);
+      box-shadow:var(--shadow);
+      padding:14px;
     }
-    body.is-dark{
-      --bg0:#0b1120; --bg1:#0d1730;
-      --fg:#eaf2ff; --muted:#a3b1c6;
-      --card:#15233b; --border:#2a3a5a; --chip:#0f1b32; --chip-b:#334867;
-      --acc1:#9b8cff; --acc2:#22d3ee; --gold:#ffd86a;
+
+    /* כיסוי (קאבר) מעוגל */
+    .pr-cover{
+      position:relative;
+      height:176px;
+      border-radius:16px;
+      overflow:hidden;
+      background:radial-gradient(120% 160% at 50% -20%,#bcd2ff,#89a8ff 45%,#6f86d9 90%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:'Rubik',system-ui,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg0));color:var(--fg)}
-    .p{min-height:100dvh;max-width:var(--wrap);margin:auto;display:flex;flex-direction:column;gap:var(--space);
-       padding:calc(env(safe-area-inset-top)+12px) 12px calc(env(safe-area-inset-bottom)+12px)}
+    .pr-cover::after{
+      content:""; position:absolute; inset:0;
+      background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,0) 40%,rgba(0,0,0,.22));
+    }
 
-    /* header row */
-    .hdr{display:grid;grid-template-columns:auto 1fr auto;align-items:center}
-    .hdr__btn{inline-size:2.4rem;block-size:2.4rem;border-radius:.8rem;border:1px solid var(--border);background:var(--chip);display:grid;place-items:center;cursor:pointer}
-    .title{margin:0;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.02em}
-    .title b{background:linear-gradient(90deg,#5e4e2e,#c79a29,#e9d8a6,#5e4e2e);-webkit-background-clip:text;background-clip:text;color:transparent}
+    /* אוואטר */
+    .pr-avatar{
+      width:110px; height:110px; border-radius:50%;
+      margin:-55px auto 6px; /* חצי גובה כדי 'לשבת' על הקאבר */
+      border:4px solid var(--bg);
+      background:#fff url('images/avatar.jpg') center/cover no-repeat;
+      box-shadow:0 10px 26px rgba(15,23,42,.12);
+    }
 
-    /* cards */
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space)}
-    .glow{box-shadow:0 14px 32px rgba(124,58,237,.10)}
+    .pr-name{ margin:6px 0 2px; text-align:center; font:800 24px/1.2 'Rubik',system-ui,sans-serif; letter-spacing:.2px; }
+    .pr-handle{ margin:0; text-align:center; color:var(--muted); font-weight:600; }
+    .pr-loc{ margin:8px 0 2px; display:flex; gap:8px; align-items:center; justify-content:center; color:var(--muted); font-weight:600; }
+    .pr-loc svg{ opacity:.75 }
 
-    /* hero */
-    .hero{position:relative; padding-top:86px; text-align:center;
-      background:radial-gradient(160% 130% at 50% -25%, #fff7df, #fff); border-color:rgba(197,154,33,.25)}
-    body.is-dark .hero{background:linear-gradient(180deg,#0f1b32,#10203a)}
-    .avatar-wrap{position:absolute; inset-inline:0; top:-56px; display:grid; place-items:center}
-    .avatar{inline-size:120px; block-size:120px; border-radius:50%; background:#ffe38a center/cover no-repeat;
-            border:5px solid var(--card); box-shadow:0 12px 28px rgba(199,154,41,.22); cursor:pointer}
-    .name{margin:.35rem 0 0; font-size:1.18rem; font-weight:800}
-    .status{margin:.1rem 0 0; color:var(--muted)}
-    .row{display:flex; gap:.4rem; justify-content:center; margin-top:.5rem; flex-wrap:wrap}
-    .pill{border:1px solid var(--border); background:var(--chip); border-radius:999px; padding:.25rem .65rem; font-weight:700}
-    .btn{border:0;border-radius:999px;padding:.4rem .8rem;cursor:pointer}
-    .btn--like{background:linear-gradient(90deg,#f43f5e,#fb7185);color:#fff}
-    .btn--sub{background:linear-gradient(90deg,var(--acc1),var(--acc2));color:#fff}
-    .btn--ghost{background:var(--chip);border:1px solid var(--border)}
+    /* כפתורי פעולה – אותו לוק כמו בהגדרות/כפתורי pills */
+    .pr-actions{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin:12px 0 8px; }
+    .pr-btn{
+      height:42px; border-radius:999px; border:1px solid var(--line); background:var(--bg);
+      font-weight:800; letter-spacing:.2px; box-shadow:var(--shadow);
+    }
+    .pr-btn--primary{
+      background:linear-gradient(90deg,#0ea5e9,#2563eb); color:#fff; border:0;
+      box-shadow:0 .8rem 1.6rem rgba(37,99,235,.30);
+    }
 
-    /* metrics */
-    .two{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
-    .metric{display:grid;gap:2px;place-items:center;background:var(--chip);border:1px solid var(--border);border-radius:12px;padding:.6rem .3rem}
-    .metric__n{font-weight:900}
-    .metric__l{font-size:.85rem;color:var(--muted)}
+    /* סטטיסטיקות — 4 אריחים (כולל עוקבים), 2×2 במסכים צרים */
+    .pr-stats{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:8px 0 6px; }
+    @media (min-width:420px){ .pr-stats{ grid-template-columns:repeat(4,1fr); } }
 
-    /* task summary */
-    .tri{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
-    .box{display:grid;gap:2px;place-items:center;background:linear-gradient(180deg,#ffffff,var(--chip));border:1px solid var(--border);border-radius:12px;padding:.6rem .3rem;cursor:pointer}
-    .box__n{font-weight:900}
-    .box__l{font-size:.85rem;color:var(--muted)}
+    .pr-stat{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 10px;
+      text-align:center;
+      box-shadow:0 8px 18px rgba(15,23,42,.08);
+    }
+    .pr-stat strong{ display:block; font:800 18px/1 'Rubik',system-ui,sans-serif; }
+    .pr-stat span{ display:block; margin-top:4px; font-size:12px; color:var(--muted); font-weight:700; }
 
-    /* stats */
-    .stats{display:grid;gap:.6rem}
-    .statrow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.5rem}
-    .statrow__title{margin:0;font-weight:900}
-    .tiny{width:100%;height:36px;display:block}
-    .tag{padding:.18rem .5rem;border-radius:999px;background:var(--chip);border:1px solid var(--chip-b);font-size:.8rem}
+    /* ביו */
+    .pr-bio{
+      margin:10px 0 6px;
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      text-align:center; color:#374151;
+      box-shadow:0 8px 18px rgba(15,23,42,.08);
+    }
+    .pr-bio em{ font-style:normal; color:#111827; }
 
-    /* streak */
-    .streak__row{display:flex;gap:.3rem;justify-content:center;flex-wrap:wrap}
-    .v{font-weight:900;color:#cbd5e1}
-    .v--gold{color:var(--gold); text-shadow:0 0 10px rgba(232,198,92,.45)}
+    .pr-h{ margin:12px 0 8px; font:800 16px/1 'Rubik',system-ui,sans-serif; color:var(--ink); }
 
-    /* modal list */
-    .ov{position:fixed;inset:0;background:rgba(15,23,42,.35);backdrop-filter:blur(2px);display:none;align-items:flex-end;justify-content:center;z-index:60}
-    .ov.is-on{display:flex}
-    .panel{width:100%;max-width:var(--wrap);max-height:70dvh;overflow:auto;border-radius:16px 16px 0 0;background:var(--card);border:1px solid var(--border);padding:12px}
-    .list{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
-    .li{display:grid;grid-template-columns:auto 1fr auto;gap:.6rem;align-items:center;border:1px solid var(--border);border-radius:12px;padding:.55rem}
-    .li__t{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .li__m{font-size:.85rem;color:var(--muted)}
+    .pr-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .pr-thumb{ aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:#eef2f7; border:1px solid var(--line); box-shadow:0 6px 14px rgba(15,23,42,.06) }
+    .pr-thumb img{ width:100%; height:100%; object-fit:cover; display:block }
+
+    /* כהה – אותו סגנון של Settings */
+    :is(html,body).is-dark .pr-shell{ background:var(--bg); border-color:var(--line); box-shadow:var(--shadow); }
+    :is(html,body).is-dark .pr-avatar{ border-color:var(--bg); }
+    :is(html,body).is-dark .pr-stat,
+    :is(html,body).is-dark .pr-bio{
+      background:var(--surface);
+      border-color:var(--line);
+      box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04);
+      color:var(--ink);
+    }
+    :is(html,body).is-dark .pr-h{ color:var(--ink); }
+    :is(html,body).is-dark .pr-thumb{ background:#0f1b32; border-color:#2a4674; }
+
+    /* זהב לכפתור החזרה (אם לא כבר הוגדר ב-main.css) */
+    .s__btn--gold{
+      border:0 !important;
+      background:
+        radial-gradient(140% 120% at 35% 30%, rgba(255,255,255,.08) 0%, rgba(255,255,255,.05) 45%, rgba(255,255,255,0) 70%),
+        linear-gradient(180deg,#FFF7C9,#FFDF75) !important;
+      color:#0e1424 !important;
+      box-shadow:0 .4rem 1rem rgba(245,215,115,.25), 0 0 0 8px rgba(245,215,115,.10);
+    }
+    .s__btn--gold svg{ filter:drop-shadow(0 1px 0 rgba(255,255,255,.45)); }
+    /* === Profile topbar: make it identical to Settings ================== */
+:root{
+  /* single source of truth for header metrics */
+  --topbar-pad-y: 12px;
+  --topbar-pad-x: 18px;
+  --topbtn-size: 42px;     /* circular button */
+  --logo-height: 46px;     /* same logo height as Settings */
+}
+
+#profileHeader.s__header{
+  padding: var(--topbar-pad-y) var(--topbar-pad-x);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+/* grid + centering already handled by .s__header--grid; just enforce sizes */
+#profileHeader .looz-logo{ display:inline-flex; align-items:center; }
+#profileHeader .looz-logo .brand-logo{
+  height: var(--logo-height) !important;
+  width: auto !important;
+  display: block;
+  line-height: 0;
+}
+
+/* back button circle size */
+#profileHeader .s__btn{
+  inline-size: var(--topbtn-size);
+  block-size:  var(--topbtn-size);
+  border-radius: 999px;
+}
+
+/* gold style (matches the one you liked on Profile) */
+#profileHeader .s__btn--gold{
+  border:0 !important;
+  background:
+    radial-gradient(140% 120% at 35% 30%,rgba(255,255,255,.08) 0%,rgba(255,255,255,.05) 45%,rgba(255,255,255,0) 70%),
+    linear-gradient(180deg,#FFF7C9,#FFDF75) !important;
+  color:#0e1424 !important;
+  box-shadow:0 .4rem 1rem rgba(245,215,115,.25),0 0 0 8px rgba(245,215,115,.10);
+}
+#profileHeader .s__btn--gold svg{ filter: drop-shadow(0 1px 0 rgba(255,255,255,.45)); }
+
+/* small screens: keep logo from shrinking too far */
+@media (max-width:360px){
+  #profileHeader .looz-logo .brand-logo{ height: 42px !important; }
+}
+
   </style>
 </head>
+
 <body>
-  <main class="p">
-    <!-- header -->
-    <div class="hdr">
-      <button id="btnEdit" class="hdr__btn" title="עריכה">✎</button>
-      <h1 class="title"><b>LooZ</b> פרופיל</h1>
-      <button id="btnDark" class="hdr__btn" title="מצב כהה">🌙</button>
+<header id="profileHeader" class="s__header s__header--grid">
+  <a class="looz-logo" href="index.html" aria-label="LooZ">
+    <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ" />
+    <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
+  </a>
+
+  <h1 class="s__title s__title--center">פרופיל</h1>
+
+  <button class="s__btn s__btn--gold" type="button" aria-label="חזרה" onclick="history.back()">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="o-page">
+    <div class="o-phone o-inner">
+      <section class="pr-shell">
+        <!-- קאבר + אוואטר -->
+        <div class="pr-cover" id="prCover"></div>
+        <div class="pr-avatar" id="prAvatar" aria-hidden="true"></div>
+
+        <!-- טקסטים -->
+        <h2 class="pr-name" id="prName">שם משתמש</h2>
+        <p class="pr-handle" id="prHandle">@user</p>
+        <div class="pr-loc" id="prLocation">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Zm0-9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="currentColor"/>
+          </svg>
+          <span>תל-אביב, ישראל</span>
+        </div>
+
+        <!-- פעולות -->
+        <div class="pr-actions">
+          <button id="btnFollow" class="pr-btn pr-btn--primary" type="button">עקוב</button>
+          <button class="pr-btn" type="button" onclick="location.href='settings.html'">הודעה</button>
+        </div>
+
+        <!-- סטטיסטיקות (כולל עוקבים) -->
+        <div class="pr-stats">
+          <div class="pr-stat"><strong id="stFollowers">0</strong><span>עוקבים</span></div>
+          <div class="pr-stat"><strong id="stDone">0</strong><span>משימות שבוצעו</span></div>
+          <div class="pr-stat"><strong id="stEvents">0</strong><span>אירועים בסה״כ</span></div>
+          <div class="pr-stat"><strong id="stDays">0</strong><span>ימים פעילים</span></div>
+        </div>
+
+        <!-- ביו -->
+        <p class="pr-bio" id="prBio">“<em> משפט כלשהו שהמשתמש בוחר</em>  </p>
+
+        <!-- פעילות אחרונה -->
+        <h3 class="pr-h">פעילות אחרונה</h3>
+        <div class="pr-grid">
+          <div class="pr-thumb"><img src="images/recent-1.jpg" alt="" /></div>
+          <div class="pr-thumb"><img src="images/recent-2.jpg" alt="" /></div>
+          <div class="pr-thumb"><img src="images/recent-3.jpg" alt="" /></div>
+        </div>
+      </section>
     </div>
-
-    <!-- hero -->
-    <section class="card hero glow">
-      <div class="avatar-wrap">
-        <div id="avatar" class="avatar" title="העלה תמונה"></div>
-        <input id="avatarFile" type="file" accept="image/*" style="display:none" />
-      </div>
-      <h2 id="name" class="name">—</h2>
-      <p id="status" class="status">תיאור קצר/סטטוס כאן</p>
-      <div class="row">
-        <button id="btnLike" class="btn btn--like">❤️ לייק</button>
-        <span class="pill">לייקים: <b id="likesNum">0</b></span>
-        <button id="btnSub" class="btn btn--sub">הירשם</button>
-      </div>
-    </section>
-
-    <!-- followers / following -->
-    <section class="card glow">
-      <div class="two">
-        <div class="metric"><div class="metric__n" id="followersNum">0</div><div class="metric__l">עוקבים</div></div>
-        <div class="metric"><div class="metric__n" id="followingNum">0</div><div class="metric__l">נעקבים</div></div>
-      </div>
-    </section>
-
-    <!-- task summary -->
-    <section class="card glow">
-      <div class="tri">
-        <button class="box" id="btnDone"><div class="box__n" id="sumDone">0</div><div class="box__l">הושלמו</div></button>
-        <button class="box" id="btnRemoved"><div class="box__n" id="sumRemoved">0</div><div class="box__l">נמחקו</div></button>
-        <button class="box" id="btnOpen"><div class="box__n" id="sumOpen">0</div><div class="box__l">פתוחות</div></button>
-      </div>
-    </section>
-
-    <!-- stats -->
-    <section class="card glow">
-      <div class="stats">
-        <div class="statrow">
-          <h3 class="statrow__title">היום</h3>
-          <svg id="chartDay" class="tiny" viewBox="0 0 120 36" preserveAspectRatio="none"></svg>
-          <span id="pillDay" class="tag">0/0</span>
-        </div>
-        <div class="statrow">
-          <h3 class="statrow__title">השבוע</h3>
-          <svg id="chartWeek" class="tiny" viewBox="0 0 120 36" preserveAspectRatio="none"></svg>
-          <span id="pillWeek" class="tag">0%</span>
-        </div>
-        <div class="statrow">
-          <h3 class="statrow__title">החודש</h3>
-          <svg id="chartMonth" class="tiny" viewBox="0 0 120 36" preserveAspectRatio="none"></svg>
-          <span id="pillMonth" class="tag">0%</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- streak -->
-    <section class="card glow">
-      <h3 style="margin:0 0 .4rem;font-weight:900">רצף ימים שהושלמו</h3>
-      <div id="streakRow" class="streak__row"></div>
-    </section>
   </main>
 
-  <!-- modal list -->
-  <div id="modal" class="ov" aria-hidden="true">
-    <div class="panel">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
-        <h3 id="modalTitle" style="margin:0;font-weight:900"></h3>
-        <button id="modalClose" class="btn btn--ghost">סגור</button>
-      </div>
-      <ul id="modalList" class="list"></ul>
-    </div>
-  </div>
-
   <script>
-  (function(){
-    // ---- keys ----
-    const K = {
-      PROFILE: 'profile.meta', AVATAR:'profile.avatar', DARK:'profile.dark',
-      LIKES:'profile.likes', FOLLOWERS:'profile.followers', FOLLOWING:'profile.following',
-      STATS:'loozStats', // {doneTotal, removedTotal}
-      TASKS: ['plannerTasks','events','loozEvents']
-    };
+    // ===== מילוי דינמי + Follow + עוקבים =====
+    (function () {
+      const $id = (id)=>document.getElementById(id);
 
-    // ---- profile state ----
-    const meta = read(K.PROFILE, {name:'דניאלה', status:'תיאור קצר/סטטוס כאן'});
-    const likes = +read(K.LIKES, 0);
-    const followers = read(K.FOLLOWERS, []); // array of ids/names
-    const following = read(K.FOLLOWING, []);
-    const agg = read(K.STATS, {doneTotal:0, removedTotal:0}); // updated by app.js patch
-    if (read(K.DARK,false)) document.body.classList.add('is-dark');
+      // פרטי משתמש
+      function getAuth(){ try{ const raw=localStorage.getItem('authUser')||localStorage.getItem('auth.user'); return raw?JSON.parse(raw):null; }catch{return null;} }
+      function getProfile(){ try{ return JSON.parse(localStorage.getItem('profile')||'{}'); }catch{return {};} }
 
-    // ---- DOM ----
-    const nameEl = document.getElementById('name');
-    const statusEl = document.getElementById('status');
-    const likesEl = document.getElementById('likesNum');
-    const follEl = document.getElementById('followersNum');
-    const wingEl = document.getElementById('followingNum');
-    nameEl.textContent = meta.name; statusEl.textContent = meta.status; likesEl.textContent = likes;
-    follEl.textContent = followers.length; wingEl.textContent = following.length;
+      const prof = getProfile();
+      const auth = getAuth() || {};
+      const name   = prof.firstName || prof.name || auth.firstName || auth.name || 'דניאלה';
+      const handle = (auth.email ? '@'+auth.email.split('@')[0] : (prof.handle || '@user'));
 
-    const savedAvatar = localStorage.getItem(K.AVATAR); if (savedAvatar) setAvatar(savedAvatar);
-
-    // ---- tasks ----
-    const tasks = readTasks();
-    // open = current items; done/removed = stored aggregates
-    paintCounts();
-    chartsAndStreak();
-
-    // ---- buttons ----
-    document.getElementById('btnDark').onclick = () => {
-      document.body.classList.toggle('is-dark');
-      write(K.DARK, document.body.classList.contains('is-dark'));
-    };
-    document.getElementById('btnEdit').onclick = () => {
-      const n = prompt('שם להצגה:', nameEl.textContent.trim());
-      if (n!==null && n.trim()){ meta.name=n.trim(); write(K.PROFILE, meta); nameEl.textContent=meta.name; }
-      const s = prompt('סטטוס/תיאור:', statusEl.textContent.trim());
-      if (s!==null){ meta.status=s.trim(); write(K.PROFILE, meta); statusEl.textContent=meta.status; }
-    };
-    document.getElementById('btnLike').onclick = () => {
-      const v = (+localStorage.getItem(K.LIKES)||0) + 1;
-      localStorage.setItem(K.LIKES, v); likesEl.textContent = v;
-    };
-    // subscribe (toggle following-this-profile from this browser)
-    document.getElementById('btnSub').onclick = () => {
-      // Demo: pretend current viewer is "localUser"
-      const me = read('authName', 'localUser');
-      const arr = read(K.FOLLOWERS, []);
-      const i = arr.indexOf(me);
-      if (i === -1) arr.push(me); else arr.splice(i,1);
-      write(K.FOLLOWERS, arr);
-      document.getElementById('followersNum').textContent = arr.length;
-      // Visual toggle text
-      document.getElementById('btnSub').textContent = (i===-1) ? 'מנוי ✓' : 'הירשם';
-    };
-
-    // avatar upload
-    const a = document.getElementById('avatar'), f = document.getElementById('avatarFile');
-    a.onclick = ()=> f.click();
-    f.onchange = () => { const file = f.files && f.files[0]; if(!file) return; const r=new FileReader(); r.onload=e=>{ setAvatar(e.target.result); localStorage.setItem(K.AVATAR, e.target.result);}; r.readAsDataURL(file); };
-
-    // task modal actions
-    document.getElementById('btnOpen').onclick    = ()=> openList('פתוחות',      tasks.filter(t=>!t.removed && !t.done));
-    document.getElementById('btnDone').onclick    = ()=> openList('הושלמו (מצטבר)', makeFakeList('הושלמה', agg.doneTotal));
-    document.getElementById('btnRemoved').onclick = ()=> openList('נמחקו (מצטבר)', makeFakeList('נמחקה', agg.removedTotal));
-
-    document.getElementById('modalClose').onclick = closeModal;
-    document.getElementById('modal').addEventListener('click', e=>{ if (e.target.id==='modal') closeModal(); });
-
-    // ---- helpers ----
-    function read(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback }catch{ return fallback } }
-    function write(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
-    function setAvatar(dataUrl){ document.getElementById('avatar').style.backgroundImage = `url("${dataUrl}")`; }
-
-    function readTasks(){
-      for (const k of K.TASKS){
-        const raw = localStorage.getItem(k); if (!raw) continue;
-        try{
-          const arr = JSON.parse(raw)||[]; if (!Array.isArray(arr)) continue;
-          // normalize
-          return arr.map(t=>({ title:t.title||t.name||'ללא כותרת', date:t.date||t.day||t.d||'', time:t.time||t.t||'', done:!!t.done, removed:!!t.removed }));
-        }catch{}
+      $id('prName').textContent   = name;
+      $id('prHandle').textContent = handle;
+      if (prof.city || prof.country) {
+        $id('prLocation').lastElementChild.textContent = (prof.city||'') + (prof.country ? ', ' + prof.country : '');
       }
-      return [];
-    }
 
-    function paintCounts(){
-      const open = tasks.filter(t=>!t.removed && !t.done).length;
-      document.getElementById('sumOpen').textContent = open;
-      document.getElementById('sumDone').textContent = agg.doneTotal || 0;
-      document.getElementById('sumRemoved').textContent = agg.removedTotal || 0;
-    }
+      // סטטיסטיקות מה-localStorage
+      let stats = {doneTotal:0, removedTotal:0};
+      try { stats = Object.assign(stats, JSON.parse(localStorage.getItem('loozStats')||'{}')); } catch {}
+      const tasks = (()=>{ try{ return JSON.parse(localStorage.getItem('plannerTasks')||'[]'); }catch{return []} })();
+      const daysSet = new Set(tasks.map(t=>t.date));
 
-    function chartsAndStreak(){
-      const today = new Date().toISOString().slice(0,10);
-      const day = countFor(today);
-      paintBars(document.getElementById('chartDay'), [day.done, Math.max(0,day.total-day.done)], ['#10b981','#e5e7eb']);
-      document.getElementById('pillDay').textContent = `${day.done}/${day.total}`;
+      $id('stDone').textContent   = stats.doneTotal || 0;
+      $id('stEvents').textContent = tasks.length;
+      $id('stDays').textContent   = daysSet.size;
 
-      const week = backRange(today,6);
-      const wp = week.map(d=> ratio(countFor(d)));
-      paintSpark(document.getElementById('chartWeek'), wp, '#7c3aed');
-      document.getElementById('pillWeek').textContent = Math.round(avg(wp))+'%';
+      // עוקבים + כפתור עקוב
+      const FKEY='looz:followed';
+      const CKEY='looz:followers';  // נשמור/נקרא מכאן
+      const btnFollow = $id('btnFollow');
 
-      const month = backRange(today,29);
-      const mp = month.map(d=> ratio(countFor(d)));
-      paintSpark(document.getElementById('chartMonth'), mp, '#22d3ee');
-      document.getElementById('pillMonth').textContent = Math.round(avg(mp))+'%';
-
-      // streak (gold V if all tasks for that day are done AND total>0)
-      const host = document.getElementById('streakRow'); host.innerHTML='';
-      const days = 14;
-      for (let i=0;i<days;i++){
-        const d = shift(today,-i); const c = countFor(d);
-        const ok = c.total>0 && c.done===c.total;
-        const s = document.createElement('span'); s.className='v'+(ok?' v--gold':''); s.textContent='V'; s.title=`${d} · ${c.done}/${c.total}`;
-        host.appendChild(s);
+      if (localStorage.getItem(CKEY) == null) {
+        localStorage.setItem(CKEY, String((getProfile().followers || 0)));
       }
-    }
+      function followers(){ return parseInt(localStorage.getItem(CKEY)||'0',10) || 0; }
+      function setFollowers(n){ localStorage.setItem(CKEY, String(Math.max(0, n|0))); $id('stFollowers').textContent = followers(); }
 
-    function countFor(iso){
-      const list = tasks.filter(t=>t.date===iso && !t.removed);
-      return {total:list.length, done:list.filter(t=>t.done).length};
-    }
-    function shift(iso,delta){ const d=new Date(iso); d.setDate(d.getDate()+delta); return d.toISOString().slice(0,10); }
-    function backRange(endISO,n){ const a=[]; for(let i=n;i>=0;i--) a.push(shift(endISO,-i)); return a; }
-    const ratio = x => x.total?Math.round(100*x.done/x.total):0;
-    const avg = a => a.length? a.reduce((s,x)=>s+x,0)/a.length : 0;
+      function setFollowUI(on){
+        btnFollow.textContent = on ? 'עוקבים ✓' : 'עקוב';
+        btnFollow.classList.toggle('pr-btn--primary', !on);
+      }
 
-    // charts
-    function rect(x,y,w,h,rx,fill){const el=document.createElementNS('http://www.w3.org/2000/svg','rect');el.setAttribute('x',x);el.setAttribute('y',y);el.setAttribute('width',Math.max(0,w));el.setAttribute('height',h);el.setAttribute('rx',rx);el.setAttribute('fill',fill);return el;}
-    function outline(svg){const o=document.createElementNS('http://www.w3.org/2000/svg','rect');o.setAttribute('x',.5);o.setAttribute('y',.5);o.setAttribute('width',119);o.setAttribute('height',35);o.setAttribute('rx',6);o.setAttribute('fill','none');o.setAttribute('stroke','var(--border)');svg.appendChild(o);}
-    function paintBars(svg, values, colors){const tot=Math.max(1,values.reduce((s,x)=>s+x,0)); let x=0; svg.innerHTML=''; values.forEach((v,i)=>{const w=120*(v/tot); svg.appendChild(rect(x,6,w,24,6,colors[i]||'#999')); x+=w;}); outline(svg);}
-    function paintSpark(svg, arr, color){svg.innerHTML=''; const n=arr.length,g=2,bw=(120-(n-1)*g)/n; arr.forEach((v,i)=>{const h=(v/100)*30; const r=rect(i*(bw+g),36-h,bw,h,3,color); r.setAttribute('opacity',String(0.35+0.65*(v/100))); svg.appendChild(r);}); outline(svg);}
+      setFollowers(followers());
+      const isFollowing = localStorage.getItem(FKEY) === '1';
+      setFollowUI(isFollowing);
 
-    // modal list
-    function openList(title, list){
-      document.getElementById('modalTitle').textContent = title;
-      const ul = document.getElementById('modalList'); ul.innerHTML='';
-      if (!list.length){ const li=document.createElement('li'); li.className='li'; li.textContent='אין נתונים'; ul.appendChild(li); }
-      list.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.time||'').localeCompare(b.time||''));
-      list.forEach(x=>{ const li=document.createElement('li'); li.className='li';
-        li.innerHTML = `<span class="li__m">${x.time||''}</span><span class="li__t">${escape(String(x.title||''))}</span><span class="li__m">${x.date||''}</span>`;
-        ul.appendChild(li);
+      btnFollow.addEventListener('click', ()=>{
+        const cur = localStorage.getItem(FKEY) === '1';
+        localStorage.setItem(FKEY, cur ? '0' : '1');
+        setFollowUI(!cur);
+        setFollowers(followers() + (cur ? -1 : 1));
       });
-      document.getElementById('modal').classList.add('is-on');
-      document.getElementById('modal').setAttribute('aria-hidden','false');
-    }
-    function closeModal(){ const m=document.getElementById('modal'); m.classList.remove('is-on'); m.setAttribute('aria-hidden','true'); }
-    function escape(s){return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
-  })();
-  </script>
-  <!-- Global theme (no-flash) -->
-<script src="js/theme.js"></script>
 
+      // ברירות מחדל ויזואליות
+      const cover = document.getElementById('prCover');
+      const avatar = document.getElementById('prAvatar');
+      cover.style.background = cover.style.background || 'radial-gradient(120% 160% at 50% -20%,#bcd2ff,#89a8ff 45%,#6f86d9 90%)';
+      avatar.style.background = avatar.style.background || '#fff';
+    })();
+  </script>
 </body>
 </html>

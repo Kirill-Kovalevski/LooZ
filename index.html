@@ -20,12 +20,10 @@
     })();
   </script>
 
-  <!-- Styles (relative paths) -->
+  <!-- Styles -->
   <link rel="stylesheet" href="css/dist/main.css" />
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
-  <!-- If you already added global logo styles to main.css you can remove this next line -->
   <link rel="stylesheet" href="css/dist/settings.css" />
-
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 
@@ -60,7 +58,7 @@
           <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
         </a>
 
-        <!-- Lemon button -->
+        <!-- Lemon button (menu toggle) -->
         <button id="lemonToggle" class="c-icon-btn c-icon-btn--lemon" type="button"
                 aria-label="פתח/סגור תפריט" aria-expanded="false" aria-controls="appNav">
           <span id="lemonIcon" class="lemon-host" aria-hidden="true"></span>
@@ -147,28 +145,9 @@
       <!-- planner -->
       <section id="planner" class="c-planner o-inner" aria-live="polite"></section>
 
-      <!-- bottom CTA -->
-      <div class="c-bottom-cta o-inner">
-        <button id="addEventBtn" class="c-cta c-cta--bang" type="button" aria-label="יצירת אירוע חדש">יצירת אירוע חדש</button>
-      </div>
-
-      <!-- Exit button (bottom center) -->
-      <div class="c-exit-wrap o-inner">
-        <button id="btnExit" class="exit-pill" aria-label="התנתקות">
-          <svg viewBox="0 0 28 28" class="exit-pill__svg" aria-hidden="true">
-            <defs>
-              <linearGradient id="exDoor" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#F4D27A"/><stop offset="100%" stop-color="#C8A043"/>
-              </linearGradient>
-              <linearGradient id="exArrow" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#22D3EE"/><stop offset="100%" stop-color="#60A5FA"/>
-              </linearGradient>
-            </defs>
-            <rect x="4" y="6" width="10" height="16" rx="2" fill="url(#exDoor)" stroke="#9A7A2E"/>
-            <circle cx="11" cy="14" r="1" fill="#7C5B13"/>
-            <path d="M14 14h8m0 0-3-3m3 3-3 3" fill="none" stroke="url(#exArrow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+      <!-- Primary CTA at the bottom (static) -->
+      <div class="c-primary-cta o-inner">
+        <button class="c-cta c-cta--bang btn-create-orb" aria-label="Create new event"></button>
       </div>
 
       <!-- Bottom Sheet: Event -->
@@ -238,7 +217,7 @@
     </div>
   </main>
 
-  <!-- Scripts (relative paths) -->
+  <!-- Scripts -->
   <script src="app.js" defer></script>
   <script src="js/logo.js" defer></script>
 </body>
