@@ -349,3 +349,51 @@ body.is-dark :focus-visible {
     opacity: 0;
   }
 }
+/* css/dark-overrides.scss (compile to css/dist/dark-overrides.css) */
+:is(html, body).is-dark {
+  color-scheme: dark;
+  /* Site-wide base changes */
+  background: #0b1220;
+}
+
+.is-dark .card {
+  background: #0f1a2b;
+  border-color: #1b2a43;
+}
+
+.is-dark .nav {
+  background: #0f1a2b;
+  border-color: #1b2a43;
+}
+
+/* === LooZ dark tweaks =================================== */
+/* Logo background in dark */
+.is-dark #brandIcon,
+.is-dark .brand-badge,
+.is-dark .logo-card,
+.is-dark .logo-box,
+.is-dark [data-role=logo] {
+  background: #0f1a2b;
+  border-color: #1b2a43;
+}
+
+/* Small pills and icon buttons */
+.is-dark .c-topbtn,
+.is-dark .c-icon-btn,
+.is-dark .c-nav-arrow,
+.is-dark .btn-pill {
+  background: #141e31;
+  color: #e5ecf5;
+  border-color: #1b2a43;
+}
+
+/* Ensure the segmented control always looks crisp in dark */
+.is-dark .c-headbtn {
+  color: #e5ecf5;
+  border-color: #1b2a43;
+}
+
+.is-dark .c-headbtn.is-active {
+  color: #fff;
+  border-color: transparent;
+}

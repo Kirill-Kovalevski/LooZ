@@ -1,3 +1,5 @@
+@charset "UTF-8";
+/* ========== Base =================================================== */
 * {
   box-sizing: border-box;
 }
@@ -22,6 +24,7 @@ body {
   --phone-h:52.75rem;
 }
 
+/* ========== Layout ================================================= */
 .o-inner {
   margin-inline: auto;
   width: 100%;
@@ -58,6 +61,7 @@ body {
     padding: 18px;
   }
 }
+/* ========== Header ================================================= */
 .o-header {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -121,20 +125,26 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 10px 20px rgba(199, 154, 41, 0.18);
 }
 
+/* Lemon button (final, single source of truth) */
 .c-icon-btn--lemon {
-  inline-size: 3.1rem;
-  block-size: 3.1rem;
+  inline-size: clamp(3.25rem, 11vw, 4.25rem);
+  block-size: clamp(3.25rem, 11vw, 4.25rem);
   border-radius: 1rem;
   border: 1px solid rgba(0, 0, 0, 0.06);
   display: grid;
   place-items: center;
-  background: radial-gradient(140% 120% at 35% 30%, #fff 0%, rgba(255, 255, 255, 0.35) 45%, rgba(255, 255, 255, 0) 70%), linear-gradient(180deg, #FFF7D1, #FFE48A);
-  box-shadow: inset 0 0 0.5rem rgba(255, 255, 255, 0.75), 0 0.3rem 0.85rem rgba(0, 0, 0, 0.1), 0 0 0 8px rgba(255, 231, 122, 0.15);
+  background: radial-gradient(140% 120% at 35% 30%, #fff 0%, rgba(255, 255, 255, 0.25) 45%, rgba(255, 255, 255, 0) 70%), linear-gradient(180deg, #FFF7C9, #FFDF75);
+  box-shadow: inset 0 0 0.45rem rgba(255, 255, 255, 0.7), 0 0.35rem 0.95rem rgba(0, 0, 0, 0.12), 0 0 0 8px rgba(255, 231, 122, 0.12);
 }
 
 .c-icon-btn--lemon .lemon-svg {
-  width: 92%;
-  height: 92%;
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+}
+
+.c-icon-btn--lemon:active {
+  transform: translateY(1px) scale(0.98);
 }
 
 #lemonToggle.c-icon-btn--lemon {
@@ -143,6 +153,12 @@ body {
   justify-self: center;
 }
 
+#lemonToggle {
+  margin-block: 14px 22px;
+}
+
+/* more vertical space around lemon */
+/* ========== Top nav (search row) ================================== */
 .c-nav {
   grid-column: 1/-1;
   grid-row: 3;
@@ -336,6 +352,7 @@ body {
   border: 0;
 }
 
+/* ========== Hero / meta ========================================== */
 .c-meta-block {
   grid-column: 1/-1;
   grid-row: 4;
@@ -360,6 +377,7 @@ body {
   font-weight: 800;
 }
 
+/* ========== View switch + planner area ============================ */
 .c-cta-wrap {
   display: grid;
   justify-items: center;
@@ -390,6 +408,7 @@ body {
   margin: 0.35rem 0 4.75rem;
 }
 
+/* Day view cards */
 .p-dayview {
   display: grid;
   gap: 0.6rem;
@@ -463,6 +482,7 @@ body {
   padding: 0.4rem;
 }
 
+/* Week / Month bars + nav arrows */
 .p-weekbar, .p-monthbar {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -503,6 +523,7 @@ body {
   height: 36px;
 }
 
+/* Week grid */
 .p-week {
   display: grid;
   gap: 0.55rem;
@@ -607,6 +628,7 @@ body {
   border-color: rgba(124, 58, 237, 0.4);
 }
 
+/* Tasks in week card */
 .p-task {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 84px auto;
@@ -649,6 +671,7 @@ body {
   font-size: 0.84rem;
 }
 
+/* Month grid */
 .p-month {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -722,6 +745,7 @@ body {
   pointer-events: none;
 }
 
+/* CTA & Exit */
 .c-bottom-cta {
   position: sticky;
   bottom: max(12px, env(safe-area-inset-bottom));
@@ -795,6 +819,7 @@ body {
   box-shadow: 0 0.8rem 1.6rem rgba(37, 99, 235, 0.3);
 }
 
+/* Bottom sheet */
 .c-sheet {
   position: fixed;
   inset: 0;
@@ -888,6 +913,7 @@ body {
   transform: translateY(1px);
 }
 
+/* Form */
 .f-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -948,6 +974,7 @@ body {
   letter-spacing: 0.02em;
 }
 
+/* Quick pick */
 .qp {
   margin-top: 0.4rem;
   display: grid;
@@ -985,6 +1012,7 @@ body {
   transform: translateY(1px);
 }
 
+/* Effects */
 .is-scratching {
   position: relative;
   overflow: hidden;
@@ -1043,6 +1071,7 @@ body {
     opacity: 0;
   }
 }
+/* Search results overlay */
 .s-results {
   margin-top: 0.45rem;
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -1180,10 +1209,12 @@ body {
   padding: 0.6rem;
 }
 
+/* Utility */
 .u-hidden {
   display: none !important;
 }
 
+/* ========== Dark mode tokens + surfaces (keep) ===================== */
 body.is-dark {
   --dm-bg0:#0a1222;
   --dm-bg1:#0f1930;
@@ -1318,36 +1349,389 @@ html[data-theme=dark] .p-month .p-cell__num {
   color: #eaf2ff;
 }
 
-/* ==== LooZ: force app background to pure white (#fff) ==== */
-body {
-  background: #fff !important;
-}
-
-.o-page {
-  background: #fff !important;
-}
-
-.o-phone {
-  background: #fff !important;
-}
-
-/* kill the gradient that returns in the larger-screen media query */
+/* Keep light bg on wide screens (as before) */
 @media (min-width: 420px) {
   .o-page {
     background: #fff !important;
   }
 }
-/* ==== unify app background to pure white so it matches the logo ==== */
+/* ========== Global dark background override (#0c1220) ============= */
+:is(html,body).is-dark body,
+:is(html,body).is-dark .o-page,
+:is(html,body).is-dark .o-phone {
+  background: #0c1220 !important;
+  box-shadow: none;
+}
+
+/* ========== Logo (supports inline SVG and image toggle) ============ */
+.looz-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  text-decoration: none;
+  color: inherit;
+}
+
+.looz-logo .looz-mark {
+  height: clamp(44px, 9vw, 64px);
+  width: auto;
+  display: block;
+  color: #0f172a;
+}
+
+:is(html,body).is-dark .looz-logo .looz-mark {
+  color: #fff;
+}
+
 :root {
-  --app-white: #ffffff;
+  --logo-accent:#E7C267;
 }
 
-body, .o-page, .o-phone {
-  background: var(--app-white) !important;
+/* used inside SVG if present */
+/* Image-based fallback (if still used anywhere) */
+.looz-logo .brand-logo {
+  display: none;
+  height: clamp(40px, 8vw, 56px);
+  width: auto;
 }
 
-@media (min-width: 420px) {
-  .o-page {
-    background: var(--app-white) !important;
-  }
+html:not(.is-dark) .looz-logo .brand-logo--light,
+body:not(.is-dark) .looz-logo .brand-logo--light {
+  display: block;
+}
+
+html.is-dark .looz-logo .brand-logo--dark,
+body.is-dark .looz-logo .brand-logo--dark {
+  display: block;
+}
+
+/* ========== Dark readability for date nav arrows =================== */
+:is(html,body).is-dark .p-weekbar__btn,
+:is(html,body).is-dark .p-monthbar__btn,
+:is(html,body).is-dark .c-nav-arrow,
+:is(html,body).is-dark [data-daynav] {
+  background: #141e31 !important;
+  color: #e5ecf5 !important;
+  border: 1px solid #2c4676 !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+:is(html,body).is-dark .p-weekbar__btn:focus-visible,
+:is(html,body).is-dark .p-monthbar__btn:focus-visible,
+:is(html,body).is-dark .c-nav-arrow:focus-visible,
+:is(html,body).is-dark [data-daynav]:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* ========== Dark top buttons → golden (match “new event”) ========= */
+:is(html,body).is-dark .c-topbtn {
+  background: radial-gradient(140% 120% at 35% 30%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0) 70%), linear-gradient(180deg, #FFF7C9, #FFDF75);
+  border: 0;
+  box-shadow: 0 0.4rem 1rem rgba(245, 215, 115, 0.25), 0 0 0 8px rgba(245, 215, 115, 0.1);
+  color: #0e1424;
+}
+
+:is(html,body).is-dark .c-topbtn svg {
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.45));
+}
+
+/* === NAV ARROWS — one style everywhere (kills yellow block) ======= */
+:root {
+  --pill-h: 46px;
+  --pill-px: 18px;
+  --pill-r: 999px;
+  --pill-font: 800 16px/1 "Rubik", system-ui, sans-serif;
+  /* light */
+  --pill-surface:#f6f5f2;
+  --pill-border:#e5e7eb;
+  --pill-text:#0f172a;
+  --pill-shadow:0 .35rem .9rem rgba(15,23,42,.10);
+}
+
+body.is-dark {
+  /* dark */
+  --pill-surface:#141e31;
+  --pill-border:#2c4676;
+  --pill-text:#eaf2ff;
+  --pill-shadow:0 .45rem 1rem rgba(0,0,0,.30);
+}
+
+/* circular arrows: day/week/month prev/next */
+[data-daynav],
+.p-weekbar__btn[data-weeknav],
+.p-monthbar__btn[data-weeknav] {
+  inline-size: var(--pill-h);
+  height: var(--pill-h);
+  padding: 0;
+  border-radius: var(--pill-r);
+  border: 1px solid var(--pill-border);
+  background: var(--pill-surface) !important;
+  background-image: none !important;
+  /* <-- kills the yellow slab */
+  color: var(--pill-text);
+  display: grid;
+  place-items: center;
+  font: var(--pill-font);
+  box-shadow: var(--pill-shadow);
+}
+
+/* make sure nothing adds inner decorations */
+[data-daynav]::before,
+.p-weekbar__btn[data-weeknav]::before,
+.p-monthbar__btn[data-weeknav]::before {
+  content: none !important;
+}
+
+/* center any SVG/text chevron */
+[data-daynav] > svg,
+.p-weekbar__btn[data-weeknav] > svg,
+.p-monthbar__btn[data-weeknav] > svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* TODAY pill in bars: same family size (rectangular) */
+.p-weekbar__btn[data-weeknav=today],
+.p-monthbar__btn[data-weeknav=today] {
+  min-width: 5.6rem;
+  height: var(--pill-h);
+  border-radius: var(--pill-r);
+  border: 1px solid var(--pill-border);
+  background: var(--pill-surface);
+  color: var(--pill-text);
+  font: var(--pill-font);
+}
+
+/* extra: more air above/below the lemon icon on the home page */
+#lemonToggle {
+  margin-block: 18px 28px;
+}
+
+/* === LOGO: no wrapper bg/border; swap by theme; bigger on index ==== */
+.looz-logo,
+.looz-bar,
+.logo-card {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.looz-logo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.looz-logo .brand-logo {
+  display: none;
+  height: 56px;
+  width: auto;
+}
+
+html:not(.is-dark) .looz-logo .brand-logo--light {
+  display: block;
+}
+
+html.is-dark .looz-logo .brand-logo--dark {
+  display: block;
+}
+
+/* make the app & logo areas use the exact same dark tone */
+:is(html,body).is-dark body,
+:is(html,body).is-dark .o-page,
+:is(html,body).is-dark .o-phone {
+  background: #0c1220 !important;
+}
+
+/* --- 1) Settings dark background: scope to Settings only (no global body override) --- */
+:is(html,body).is-dark .s,
+:is(html,body).is-dark .s__header {
+  background: #0c1220 !important;
+  background-image: none !important;
+  box-shadow: none;
+}
+
+/* If you previously added a rule like :is(html,body).is-dark body { background: ... } in settings.css,
+   you can remove it. This scoped block replaces it. */
+/* --- 2) Main page logo: eliminate the color seam in dark mode ------------------------ */
+/* Keeps your logo wrapper background transparent; we draw a 1px "blend ring" behind it
+   that matches the page color exactly, so the image edge disappears. */
+:is(html,body).is-dark .o-header .looz-logo {
+  position: relative;
+}
+
+:is(html,body).is-dark .o-header .looz-logo::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  /* tiny halo */
+  background: #0c1220;
+  /* exact app dark */
+  border-radius: 4px;
+  /* soft edge; adjust if your logo is square */
+  z-index: -1;
+  /* sits behind the image */
+}
+
+/* keep logos themselves free of borders/backgrounds */
+.o-header .looz-logo,
+.o-header .looz-logo * {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ==== LooZ: force a single dark background everywhere (match logo) ==== */
+:root {
+  --looz-dark: #0f1830;
+}
+
+/* the color behind your dark logo */
+/* 1) Replace any gradients on the page/body/app shells */
+:is(html,body).is-dark,
+:is(html,body).is-dark body,
+:is(html,body).is-dark .o-page,
+:is(html,body).is-dark .o-phone,
+:is(html,body).is-dark .s {
+  background: var(--looz-dark) !important;
+  background-image: none !important;
+  /* nuke radial-gradients */
+  box-shadow: none !important;
+}
+
+/* 2) Settings theme tokens: make the page surface the same color */
+:is(html,body).is-dark {
+  --bg: var(--looz-dark);
+  /* page background */
+  /* keep your existing card tones */
+  --surface:#0f1a2b;
+  --line:#1b2a43;
+}
+
+/* 3) Headers/topbars in settings: transparent so the page color shows */
+:is(html,body).is-dark .s__header,
+:is(html,body).is-dark .settings-header,
+:is(html,body).is-dark .settings-topbar,
+:is(html,body).is-dark .settings-appbar,
+:is(html,body).is-dark header[role=banner] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* 4) Make any full-width wrappers under the header transparent too */
+:is(html,body).is-dark .settings-shell,
+:is(html,body).is-dark .settings-wrap,
+:is(html,body).is-dark .s-wrap {
+  background: transparent !important;
+}
+
+/* ====== 1) Lemon ↔ date pill: reduce vertical gap ================== */
+#lemonToggle {
+  /* the lemon button */
+  margin-block-start: 8px !important;
+  margin-block-end: 10px !important;
+  /* was taller before */
+}
+
+.c-meta-block {
+  margin-top: 0 !important;
+}
+
+/* ====== 2) One template for all date bars (Day/Week/Month) ========= */
+/* shared metrics */
+:root {
+  --bar-h:46px;
+  --bar-r:999px;
+  --bar-font:800 16px/1 "Rubik",system-ui,sans-serif;
+  /* light */
+  --bar-bg:#f6f5f2;
+  --bar-border:#e5e7eb;
+  --bar-text:#0f172a;
+  --bar-shadow:0 .35rem .9rem rgba(15,23,42,.10);
+}
+
+:is(html,body).is-dark {
+  /* dark */
+  --bar-bg:#141e31;
+  --bar-border:#2c4676;
+  --bar-text:#e5ecf5;
+  --bar-shadow:0 .45rem 1rem rgba(0,0,0,.30);
+}
+
+/* layout: make Day’s header match Week/Month (3 columns) */
+.p-dayview__head,
+.p-weekbar,
+.p-monthbar {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* title style (center column) — same across views */
+.p-dayview__title,
+.p-weekbar__title,
+.p-monthbar__title {
+  margin: 0 !important;
+  text-align: center;
+  font: 800 1.375rem/1.2 "Rubik", system-ui, sans-serif;
+  letter-spacing: 0.2px;
+  color: var(--bar-text);
+}
+
+/* circular arrow pills (prev/next) — identical everywhere */
+.p-weekbar__btn[data-weeknav=prev],
+.p-weekbar__btn[data-weeknav=next],
+.p-monthbar__btn[data-weeknav=prev],
+.p-monthbar__btn[data-weeknav=next],
+[data-daynav=prev],
+[data-daynav=next] {
+  inline-size: var(--bar-h);
+  height: var(--bar-h);
+  padding: 0;
+  border-radius: var(--bar-r);
+  border: 1px solid var(--bar-border);
+  background: var(--bar-bg) !important;
+  color: var(--bar-text);
+  display: grid;
+  place-items: center;
+  font: var(--bar-font);
+  box-shadow: var(--bar-shadow);
+}
+
+/* “היום” pill — same size/family across Day/Week/Month */
+.p-weekbar__btn[data-weeknav=today],
+.p-monthbar__btn[data-weeknav=today],
+[data-daynav=today] {
+  min-width: 5.6rem;
+  height: var(--bar-h);
+  padding: 0 18px;
+  border-radius: var(--bar-r);
+  border: 1px solid var(--bar-border);
+  background: var(--bar-bg) !important;
+  color: var(--bar-text);
+  font: var(--bar-font);
+  box-shadow: var(--bar-shadow);
+}
+
+/* make sure icons/chevrons are centered consistently */
+.p-weekbar__btn > svg,
+.p-monthbar__btn > svg,
+[data-daynav] > svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* keep the right-side button group spacing */
+.p-weekbar__right,
+.p-monthbar__right {
+  display: flex;
+  gap: 0.5rem;
 }

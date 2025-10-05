@@ -1,3 +1,32 @@
+@charset "UTF-8";
+/* ============================
+   LooZ Settings Styles
+   ============================ */
+/* --- Variables --- */
+:root {
+  --bg:#fff;
+  --surface:#f1f5f9;
+  --ink:#0f172a;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --accent:#4f46e5;
+  --danger:#e11d48;
+  --switch:#e5e7eb;
+  --radius:16px;
+  --shadow:0 10px 30px rgba(2,6,23,.08);
+}
+
+:is(html, body).is-dark {
+  --bg:#0b1220;
+  --surface:#0f1a2b;
+  --ink:#e5ecf5;
+  --muted:#9fb0c6;
+  --line:#1b2a43;
+  --switch:#1c2540;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+}
+
+/* --- Base --- */
 * {
   box-sizing: border-box;
 }
@@ -8,162 +37,820 @@ html, body {
 
 body {
   margin: 0;
-  font-family: "Rubik", system-ui, sans-serif;
-  background: linear-gradient(180deg, #f7f7fb, #f0f3f8);
-  color: #0f172a;
+  font-family: Rubik, system-ui, Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
 }
 
+/* --- Frame --- */
 .s {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 390px;
   min-height: 100dvh;
-  max-width: 24.375rem;
-  margin: 0 auto;
-  padding: 16px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
 }
 
+/* --- Header --- */
 .s__header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
+  gap: 0.5rem;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
 }
 
 .s__btn {
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
-  border-radius: 0.7rem;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: linear-gradient(145deg, #F8F5EF, #EDE7DC);
-  box-shadow: inset 0 0 0.25rem rgba(255, 255, 255, 0.55), 0 0.15rem 0.35rem rgba(0, 0, 0, 0.08);
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .s__title {
   margin: 0;
-  text-align: center;
-  font-family: "Cormorant Garamond", serif;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.s__title span {
-  background: linear-gradient(90deg, #5e4e2e, #c79a29, #e9d8a6, #5e4e2e);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .s__spacer {
-  width: 2.25rem;
+  flex: 1;
 }
 
-.s__group {
-  border: 1px solid #edf2f7;
-  border-radius: 16px;
-  background: #fff;
-  padding: 0.8rem;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
-}
-
-.s__group h2 {
-  margin: 0.1rem 0 0.6rem;
-  font-size: 1rem;
-}
-
-.row {
+/* --- Brand / Logo --- */
+.brand-badge {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  margin: 0.5rem 0;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  margin-inline-start: 6px;
 }
 
-.row select {
-  block-size: 2.4rem;
-  border-radius: 0.6rem;
-  border: 1px solid #e5e7eb;
-  padding: 0 0.6rem;
-  background: #fff;
+.brand__icon {
+  inline-size: 22px;
+  block-size: 22px;
+  display: inline-block;
 }
 
-.row--switch input[type=checkbox] {
-  inline-size: 2.1rem;
-  block-size: 1.2rem;
-  appearance: none;
-  background: #e5e7eb;
-  border-radius: 999px;
-  position: relative;
-  outline: none;
+.brand__name {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* --- Group --- */
+.s__group {
+  margin: 12px;
+  padding: 6px;
+  border-radius: var(--radius);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Rows --- */
+.row {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.row--nav {
   cursor: pointer;
+}
+
+.row--danger {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.row__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ic {
+  inline-size: 22px;
+  block-size: 22px;
+  display: inline-block;
+}
+
+.ic::before {
+  content: "";
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  mask-size: cover;
+  -webkit-mask-size: cover;
+  background: currentColor;
+}
+
+/* --- Icons (inline SVG masks) --- */
+.ic-moon::before {
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>') no-repeat center;
+}
+
+.ic-share::before {
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M13 5.1 20 12l-7 6.9V14H8a7 7 0 0 1-6-6.9V6a1 1 0 0 1 1-1h4v2H4a5 5 0 0 0 4 5h5V5.1z"/></svg>') no-repeat center;
+}
+
+.ic-star::before {
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="m12 17.3-5.1 3 1-5.9-4.3-4.2 6-1 2.7-5.4 2.7 5.4 6 1-4.3 4.2 1 5.9z"/></svg>') no-repeat center;
+}
+
+.ic-logout::before {
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M10 17v-2h4v-2h-4V9L5 12l5 5zm4-12H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8v-2H6V7h8V5zm4 3h-3v2h3v4h-3v2h3a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"/></svg>') no-repeat center;
+}
+
+/* Chevron */
+.chev {
+  margin-inline-start: auto;
+  font-size: 24px;
+  color: var(--muted);
+}
+
+/* --- Switch (iOS-style) --- */
+.row--switch input[type=checkbox] {
+  appearance: none;
+  inline-size: 46px;
+  block-size: 28px;
+  border-radius: 999px;
+  background: var(--switch);
+  border: 1px solid var(--line);
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .row--switch input[type=checkbox]::after {
   content: "";
   position: absolute;
-  inset-block: 2px;
-  inset-inline-start: 2px;
-  inline-size: 1rem;
-  block-size: 1rem;
-  background: #fff;
+  inset: 2px;
+  inline-size: 24px;
+  block-size: 24px;
   border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transform: translateX(0);
   transition: transform 0.2s ease;
 }
 
+.is-dark .row--switch input[type=checkbox]::after {
+  background: #0b1220;
+}
+
 .row--switch input[type=checkbox]:checked {
-  background: #111827;
+  background: linear-gradient(90deg, #06b6d4, #6366f1);
 }
 
 .row--switch input[type=checkbox]:checked::after {
-  transform: translateX(0.9rem);
+  transform: translateX(-18px);
 }
 
-.row--buttons {
-  gap: 0.4rem;
+/* RTL */
+/* --- Dialog / Plans --- */
+.dlg {
+  border: none;
+  padding: 0;
+  background: transparent;
 }
 
-.btn {
-  padding: 0.55rem 0.9rem;
-  border-radius: 0.625rem;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+.dlg::backdrop {
+  background: rgba(2, 6, 23, 0.5);
 }
 
-.btn--danger {
-  background: #ffe5e5;
-  border-color: #fecaca;
-  color: #991b1b;
+.dlg__panel {
+  width: min(420px, 90vw);
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px;
 }
 
-.s__footer {
+.dlg__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.dlg__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dlg__x {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.plans {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+
+.plan {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+  background: var(--surface);
+  cursor: pointer;
+  transition: transform 0.08s ease;
+}
+
+.plan:active {
+  transform: translateY(1px);
+}
+
+.plan--pro {
+  outline: 2px solid var(--accent);
+}
+
+.plan__name {
+  font-weight: 700;
+}
+
+.plan__price {
+  font-size: 22px;
+  margin-top: 4px;
+}
+
+.plan__price span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.plan__desc {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.dlg__actions {
   display: flex;
   justify-content: flex-end;
 }
 
-/* Make sub-pages pick the global dark tokens */
-body.is-dark {
-  --bg: #0b1220;
-  --fg: #e8f0ff;
-  --card: #15233b;
-  --border:#2a3a5a;
-  --muted:#aabbcf;
-}
-
-body.is-dark {
+.btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
   background: var(--bg);
-  color: var(--fg);
+  color: var(--ink);
+  cursor: pointer;
 }
 
-body.is-dark .card {
-  background: var(--card);
-  border-color: var(--border);
+.s__btn:link,
+.s__btn:visited {
+  color: inherit;
+  text-decoration: none;
 }
 
-body.is-dark .card__title {
-  color: #f6fbff;
+/* === Settings: logo badge dark-aware ======================= */
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
 }
 
-body.is-dark .chip, body.is-dark .btn, body.is-dark input, body.is-dark select {
-  background: #101a2c;
-  color: var(--fg);
-  border: 1px solid var(--border);
+.brand__icon {
+  inline-size: 22px;
+  block-size: 22px;
+  display: inline-block;
+}
+
+.brand__img {
+  inline-size: 22px;
+  block-size: 22px;
+  display: inline-block;
+}
+
+.brand__name {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.is-dark .brand-badge {
+  background: #0f1a2b;
+  border-color: #1b2a43;
+}
+
+/* === Logo badge + dark-mode swap ========================= */
+.brand-badge.looz-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  /* light surface */
+  border: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Logo images size */
+.brand-logo {
+  display: block;
+  height: 28px;
+  width: auto;
+}
+
+.brand-logo--dark {
+  display: none;
+}
+
+/* default: light logo */
+/* Dark mode: show dark logo and remove light background from badge */
+.is-dark .brand-badge.looz-logo {
+  background: transparent;
+  /* let the dark logo’s own bg show */
+  border-color: transparent;
+}
+
+.is-dark .brand-logo--light {
+  display: none;
+}
+
+.is-dark .brand-logo--dark {
+  display: block;
+}
+
+/* ===== Settings header layout ===== */
+.s__header--grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  /* left = logo, center = title, right = back */
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.s__header--grid .looz-logo {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.s__header--grid .s__title--center {
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
+  margin: 0;
+}
+
+.s__header--grid .s__btn {
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* ===== Logo badge + dark swap ===== */
+.looz-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-logo {
+  display: block;
+  height: 24px;
+  width: auto;
+}
+
+.brand-logo--dark {
+  display: none;
+}
+
+/* default = light */
+:is(html,body).is-dark .looz-logo {
+  background: #0f1a2b;
+  /* dark surface */
+  border-color: #1b2a43;
+}
+
+:is(html,body).is-dark .brand-logo--light {
+  display: none;
+}
+
+:is(html,body).is-dark .brand-logo--dark {
+  display: block;
+}
+
+/* SETTINGS header layout (logo left, title center, back right) */
+.s__header--grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.s__header--swap .looz-logo {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.s__header--swap .s__title--center {
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
+  margin: 0;
+}
+
+.s__header--swap .s__btn {
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* Logo badge + dark swap */
+.looz-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-logo {
+  display: block;
+  height: 24px;
+  width: auto;
+}
+
+.brand-logo--dark {
+  display: none;
+}
+
+/* default = light */
+:is(html,body).is-dark .looz-logo {
+  background: #0f1a2b;
+  border-color: #1b2a43;
+}
+
+:is(html,body).is-dark .brand-logo--light {
+  display: none;
+}
+
+:is(html,body).is-dark .brand-logo--dark {
+  display: block;
+}
+
+/* ===== LooZ logo: show the right image, no pill background, bigger ===== */
+/* Nuke any old pill styles that might be lingering */
+.looz-bar,
+.o-header .looz-logo {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Base size + hide both by default (we'll reveal one below) */
+.looz-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.looz-logo .brand-logo {
+  display: none;
+  /* hidden until the rule below picks one */
+  height: clamp(32px, 7vw, 42px);
+  /* bigger logo */
+  width: auto;
+}
+
+/* Light mode: show light, hide dark */
+html:not(.is-dark) .looz-logo .brand-logo--light,
+body:not(.is-dark) .looz-logo .brand-logo--light {
+  display: block;
+}
+
+html:not(.is-dark) .looz-logo .brand-logo--dark,
+body:not(.is-dark) .looz-logo .brand-logo--dark {
+  display: none !important;
+}
+
+/* Dark mode: show dark, hide light */
+html.is-dark .looz-logo .brand-logo--dark,
+body.is-dark .looz-logo .brand-logo--dark {
+  display: block;
+}
+
+html.is-dark .looz-logo .brand-logo--light,
+body.is-dark .looz-logo .brand-logo--light {
+  display: none !important;
+}
+
+/* === Settings header grid + invert ================================= */
+.s__header--grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  /* [left] [center] [right] in RTL layout */
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.s__header--grid .s__title--center {
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
+  margin: 0;
+}
+
+/* Default (logo left, back right) — if you ever need it */
+/* .s__header--grid .looz-logo{grid-column:1; justify-self:start}
+   .s__header--grid .s__btn{grid-column:3; justify-self:end} */
+/* Invert = swap logo/back (as requested) */
+.s__header--invert .looz-logo {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.s__header--invert .s__btn {
+  grid-column: 1;
+  justify-self: start;
+}
+
+/* Remove any pill/chrome around logos on settings too */
+.s__header .looz-logo {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Dark-aware logo on settings (same behavior as index) */
+.s__header .looz-logo .brand-logo {
+  display: none;
+  height: clamp(34px, 7vw, 46px);
+  width: auto;
+}
+
+html:not(.is-dark) .s__header .looz-logo .brand-logo--light,
+body:not(.is-dark) .s__header .looz-logo .brand-logo--light {
+  display: block;
+}
+
+html.is-dark .s__header .looz-logo .brand-logo--dark,
+body.is-dark .s__header .looz-logo .brand-logo--dark {
+  display: block;
+}
+
+/* === Settings header: 3-column line (back | title | logo) ========= */
+.s__header--grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.s__header--grid .s__btn {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.s__header--grid .s__title--center {
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
+  margin: 0;
+}
+
+.s__header--grid .looz-logo {
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* Logos: no background/border; dark-aware swap */
+.looz-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.looz-logo .brand-logo {
+  display: none;
+  height: clamp(34px, 7vw, 46px);
+  width: auto;
+}
+
+html:not(.is-dark) .looz-logo .brand-logo--light,
+body:not(.is-dark) .looz-logo .brand-logo--light {
+  display: block;
+}
+
+html.is-dark .looz-logo .brand-logo--dark,
+body.is-dark .looz-logo .brand-logo--dark {
+  display: block;
+}
+
+/* header = back | centered title | logo (one line) */
+.s__header--grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.s__header--grid .s__btn {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.s__header--grid .s__title--center {
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
+  margin: 0;
+}
+
+.s__header--grid .looz-logo {
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* Back button = bold chevron, perfectly centered */
+.s__btn {
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+.s__btn.s__btn--chev {
+  background: radial-gradient(140% 140% at 40% 30%, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)), linear-gradient(180deg, #121a2e, #0f172a);
+  border: 1px solid #2c4676;
+  color: #e5ecf5;
+}
+
+/* Logo wrapper: no bg/border; SVG scales */
+.looz-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.looz-logo .looz-mark {
+  height: clamp(34px, 7vw, 46px);
+  width: auto;
+  display: block;
+  color: #0f172a;
+}
+
+:is(html,body).is-dark .looz-logo .looz-mark {
+  color: #fff;
+}
+
+:root {
+  --logo-accent:#E7C267;
+}
+
+/* === Settings: unify dark background with the app (exact #0c1220) === */
+:root {
+  --looz-dark: #0c1220;
+}
+
+/* Page surface */
+:is(html,body).is-dark .o-page,
+:is(html,body).is-dark .o-phone {
+  background: var(--looz-dark) !important;
+  box-shadow: none;
+}
+
+/* Settings wrappers/appbar that were adding a slightly different gradient */
+:is(html,body).is-dark .settings-header,
+:is(html,body).is-dark .settings-topbar,
+:is(html,body).is-dark .settings-appbar,
+:is(html,body).is-dark .s-header,
+:is(html,body).is-dark .s-topbar,
+:is(html,body).is-dark header[role=banner] {
+  background: transparent !important;
+  /* let the page color show through */
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Any full-width containers just under the header */
+:is(html,body).is-dark .settings-shell,
+:is(html,body).is-dark .settings-wrap,
+:is(html,body).is-dark .s-wrap {
+  background: transparent !important;
+}
+
+/* Keep cards/rows as they were (no visual change), but ensure they don't
+   reintroduce a different page background behind them */
+:is(html,body).is-dark .settings-card,
+:is(html,body).is-dark .settings-list,
+:is(html,body).is-dark .settings-group,
+:is(html,body).is-dark .s-card,
+:is(html,body).is-dark .s-row {
+  background-color: inherit;
+  /* use their own color; does not affect your styles */
+}
+
+/* ==== LooZ: force a single dark background everywhere (match logo) ==== */
+:root {
+  --looz-dark: #0f1830;
+}
+
+/* the color behind your dark logo */
+/* 1) Replace any gradients on the page/body/app shells */
+:is(html,body).is-dark,
+:is(html,body).is-dark body,
+:is(html,body).is-dark .o-page,
+:is(html,body).is-dark .o-phone,
+:is(html,body).is-dark .s {
+  background: var(--looz-dark) !important;
+  background-image: none !important;
+  /* nuke radial-gradients */
+  box-shadow: none !important;
+}
+
+/* 2) Settings theme tokens: make the page surface the same color */
+:is(html,body).is-dark {
+  --bg: var(--looz-dark);
+  /* page background */
+  /* keep your existing card tones */
+  --surface:#0f1a2b;
+  --line:#1b2a43;
+}
+
+/* 3) Headers/topbars in settings: transparent so the page color shows */
+:is(html,body).is-dark .s__header,
+:is(html,body).is-dark .settings-header,
+:is(html,body).is-dark .settings-topbar,
+:is(html,body).is-dark .settings-appbar,
+:is(html,body).is-dark header[role=banner] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* 4) Make any full-width wrappers under the header transparent too */
+:is(html,body).is-dark .settings-shell,
+:is(html,body).is-dark .settings-wrap,
+:is(html,body).is-dark .s-wrap {
+  background: transparent !important;
 }

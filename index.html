@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <!-- Put this at the very top of <head> -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>LooZ</title>
 
-  <!-- Optional: keeps links working when the site is served from /LooZ/ on GitHub Pages -->
+  <!-- Global theme (add first so dark mode applies before paint) -->
+  <script src="js/theme.js"></script>
+
+  <!-- Optional: base for GitHub Pages -->
   <script>
     (function () {
       if (/github\.io$/.test(location.hostname)) {
@@ -18,13 +20,15 @@
     })();
   </script>
 
-  <!-- IMPORTANT: use RELATIVE paths (no leading /) -->
+  <!-- Styles (relative paths) -->
   <link rel="stylesheet" href="css/dist/main.css" />
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
-  <link rel="stylesheet" href="css/dist/logo.css">
+  <!-- If you already added global logo styles to main.css you can remove this next line -->
+  <link rel="stylesheet" href="css/dist/settings.css" />
+
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
-  <script src="js/theme.js"></script>
 </head>
+
 <body>
   <main class="o-page">
     <div class="o-phone">
@@ -39,39 +43,40 @@
           </svg>
         </button>
 
-
-
-        <!-- 3-dots (settings) -->
+        <!-- 3-dots (settings/menu) -->
         <button id="btnMenu" class="c-topbtn c-topbtn--right" type="button" aria-label="הגדרות">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle>
+            <circle cx="12" cy="5" r="2"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+            <circle cx="12" cy="19" r="2"></circle>
           </svg>
         </button>
-<div class="looz-bar">
-  <img class="looz-logo" src="icons/main-logo.png" alt="LooZ">
-  <span class="looz-bolt" aria-hidden="true"></span>
-</div>
 
+        <!-- LOGO (dark-aware) -->
+        <a class="looz-logo" href="index.html" aria-label="LooZ">
+          <!-- light mode -->
+          <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ" />
+          <!-- dark mode -->
+          <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
+        </a>
 
-
-        <!-- Lemon toggle (opens/closes nav, pushes content down) -->
+        <!-- Lemon button -->
         <button id="lemonToggle" class="c-icon-btn c-icon-btn--lemon" type="button"
                 aria-label="פתח/סגור תפריט" aria-expanded="false" aria-controls="appNav">
           <span id="lemonIcon" class="lemon-host" aria-hidden="true"></span>
-
-          <!-- EXACT LEMON FROM INTRO ANIMATION -->
-          <svg class="lemon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg class="lemon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
             <defs>
-              <radialGradient id="introLemBody" cx="50%" cy="40%" r="75%">
-                <stop offset="0%" stop-color="#FFF8C6"/>
-                <stop offset="50%" stop-color="#FFE36E"/>
+              <radialGradient id="lemBody" cx="50%" cy="42%" r="75%">
+                <stop offset="0%"  stop-color="#FFF6B8"/>
+                <stop offset="48%" stop-color="#FFE067"/>
                 <stop offset="100%" stop-color="#F7C843"/>
               </radialGradient>
             </defs>
-            <g>
+            <g transform="translate(0,0) scale(1.05)">
               <path d="M19 7c-3-3-8-3-11 0-2 2.3-2 6 0 8 2.2 2.1 5.8 2.4 8 0 2.2-2.1 2.6-5.4 1-7.6"
-                    fill="url(#introLemBody)" stroke="#C59A21" stroke-width="1.1"/>
-              <path d="M18 6c.9-.9 1.7-1.8 2.3-2.8" stroke="#6FA14D" stroke-linecap="round" stroke-width="1.2"/>
+                    fill="url(#lemBody)" stroke="#B8860B" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M18 6c.9-.9 1.7-1.8 2.3-2.8"
+                    stroke="#2E7D32" stroke-linecap="round" stroke-width="2"/>
             </g>
           </svg>
         </button>
@@ -82,7 +87,8 @@
             <div class="c-nav__row">
               <button class="c-icon-btn" aria-label="קטגוריות" id="btnCategories" title="קטגוריות">
                 <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                  <rect x="3" y="4" width="8" height="16" rx="2"></rect><rect x="13" y="4" width="8" height="16" rx="2"></rect>
+                  <rect x="3" y="4" width="8" height="16" rx="2"></rect>
+                  <rect x="13" y="4" width="8" height="16" rx="2"></rect>
                 </svg>
               </button>
 
@@ -173,67 +179,66 @@
             <h3 id="sheetTitle" class="c-sheet__title">אירוע חדש</h3>
             <button class="c-icon-btn c-icon-btn--ghost" type="button" data-close aria-label="סגור">✕</button>
           </header>
-<form id="sheetForm" class="c-sheet__form">
-  <label class="f-field">
-    <span class="f-label">כותרת</span>
-    <input id="evtTitle" class="f-input" type="text" placeholder="שם האירוע" required>
-  </label>
 
-  <div class="f-grid">
-    <label class="f-field f-field--icon f-field--elevated">
-      <span class="f-label">שעה</span>
-      <input id="evtTime" class="f-input f-input--big" type="time" required>
-      <span class="f-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="18" height="18">
-          <circle cx="12" cy="13" r="7" fill="none" stroke="currentColor"></circle>
-          <path d="M12 13V9M12 13l3 3" stroke="currentColor" stroke-linecap="round"></path>
-        </svg>
-      </span>
-    </label>
+          <form id="sheetForm" class="c-sheet__form">
+            <label class="f-field">
+              <span class="f-label">כותרת</span>
+              <input id="evtTitle" class="f-input" type="text" placeholder="שם האירוע" required>
+            </label>
 
-    <label class="f-field f-field--icon f-field--elevated">
-      <span class="f-label">תאריך</span>
-      <input id="evtDate" class="f-input f-input--big" type="date" required>
-      <span class="f-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="18" height="18">
-          <rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor"></rect>
-          <path d="M3 9h18" stroke="currentColor"></path>
-          <path d="M8 3v4M16 3v4" stroke="currentColor"></path>
-        </svg>
-      </span>
-    </label>
-  </div>
+            <div class="f-grid">
+              <label class="f-field f-field--icon f-field--elevated">
+                <span class="f-label">שעה</span>
+                <input id="evtTime" class="f-input f-input--big" type="time" required>
+                <span class="f-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18">
+                    <circle cx="12" cy="13" r="7" fill="none" stroke="currentColor"></circle>
+                    <path d="M12 13V9M12 13l3 3" stroke="currentColor" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+              </label>
 
-  <div class="qp">
-    <div class="qp__row">
-      <span class="qp__label">תאריך מהיר:</span>
-      <button class="qp__chip" type="button" data-date="today">היום</button>
-      <button class="qp__chip" type="button" data-date="tomorrow">מחר</button>
-      <button class="qp__chip" type="button" data-date="+2">בעוד יומיים</button>
-      <button class="qp__chip" type="button" data-date="nextweek">שבוע הבא</button>
-    </div>
-    <div class="qp__row">
-      <span class="qp__label">שעה מהירה:</span>
-      <button class="qp__chip" type="button" data-time="now+30">+30 דק׳</button>
-      <button class="qp__chip" type="button" data-time="now+60">+ שעה</button>
-      <button class="qp__chip" type="button" data-time="12:00">12:00</button>
-      <button class="qp__chip" type="button" data-time="20:00">20:00</button>
-    </div>
-  </div>
+              <label class="f-field f-field--icon f-field--elevated">
+                <span class="f-label">תאריך</span>
+                <input id="evtDate" class="f-input f-input--big" type="date" required>
+                <span class="f-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18">
+                    <rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor"></rect>
+                    <path d="M3 9h18" stroke="currentColor"></path>
+                    <path d="M8 3v4M16 3v4" stroke="currentColor"></path>
+                  </svg>
+                </span>
+              </label>
+            </div>
 
-  <div class="c-sheet__actions">
-    <!-- אין ביטול — ה־X למעלה סוגר -->
-    <button class="c-btn c-btn--primary" type="submit">הוסף</button>
-  </div>
-</form>
+            <div class="qp">
+              <div class="qp__row">
+                <span class="qp__label">תאריך מהיר:</span>
+                <button class="qp__chip" type="button" data-date="today">היום</button>
+                <button class="qp__chip" type="button" data-date="tomorrow">מחר</button>
+                <button class="qp__chip" type="button" data-date="+2">בעוד יומיים</button>
+                <button class="qp__chip" type="button" data-date="nextweek">שבוע הבא</button>
+              </div>
+              <div class="qp__row">
+                <span class="qp__label">שעה מהירה:</span>
+                <button class="qp__chip" type="button" data-time="now+30">+30 דק׳</button>
+                <button class="qp__chip" type="button" data-time="now+60">+ שעה</button>
+                <button class="qp__chip" type="button" data-time="12:00">12:00</button>
+                <button class="qp__chip" type="button" data-time="20:00">20:00</button>
+              </div>
+            </div>
 
+            <div class="c-sheet__actions">
+              <button class="c-btn c-btn--primary" type="submit">הוסף</button>
+            </div>
+          </form>
         </div>
       </section>
 
     </div>
   </main>
 
-  <!-- IMPORTANT: relative path -->
+  <!-- Scripts (relative paths) -->
   <script src="app.js" defer></script>
   <script src="js/logo.js" defer></script>
 </body>
