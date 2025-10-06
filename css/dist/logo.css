@@ -12,7 +12,7 @@
 
 /* keep the logo small + responsive; no shadows so the white matches perfectly */
 .looz-logo {
-  width: clamp(110px, 12vw, 180px);
+  width: 200px;
   height: auto;
   display: block;
   object-fit: contain;

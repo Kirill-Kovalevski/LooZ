@@ -2799,3 +2799,56 @@ body.is-dark {
   border-radius: var(--bar-r);
   padding: 0 18px;
 }
+
+/* --- WEEK CARDS: counter dead-center; date on left; name on right --- */
+.p-week .p-day {
+  position: relative;
+}
+
+/* header row inside each day card: [date | name] */
+.p-week .p-day__head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  /* date | name */
+  align-items: center;
+  padding: 0 0.6rem;
+  column-gap: 0.5rem;
+}
+
+/* numeric DD.MM on the LEFT edge */
+.p-week .p-day__date {
+  justify-self: start;
+  margin: 0;
+  font-weight: 800;
+}
+
+/* weekday name on the RIGHT edge */
+.p-week .p-day__name {
+  justify-self: end;
+  margin: 0;
+  font-weight: 700;
+}
+
+/* task counter button: absolute, perfectly centered in the card */
+.p-week .p-day__count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 800 12px/1 "Rubik", system-ui, sans-serif;
+  background: #fff;
+  border: 1.5px solid var(--ring-color, #e5e7eb);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  z-index: 2;
+}
+
+/* dark mode center badge */
+html[data-theme=dark] .p-week .p-day__count {
+  background: rgba(13, 23, 44, 0.92);
+  border-color: var(--ring-color, #2a4674);
+}
