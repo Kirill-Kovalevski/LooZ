@@ -469,6 +469,7 @@ function renderMonth(){
     }
     setTimeout(()=>layer.remove(),1600);
   }
+  
 
   // Update injected style (kept lean; adds single-line titles)
   const prev = document.getElementById('looz-fixes-v12'); if (prev) prev.remove();
