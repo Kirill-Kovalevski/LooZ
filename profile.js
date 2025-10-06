@@ -1,219 +1,278 @@
 (function () {
   'use strict';
 
-  // ---------- NAV ----------
-  const back = document.getElementById('pBack');
-  if (back) back.addEventListener('click', () => {
-    window.history.length > 1 ? history.back() : (window.location.href = '/Calendar/index.html');
-  });
+  /* ===== helpers ===== */
+  const $   = (sel, root=document) => root.querySelector(sel);
+  const $id = (id) => document.getElementById(id);
+  const num = (k, d=0) => {
+    const n = parseInt(localStorage.getItem(k)||'', 10);
+    return Number.isFinite(n) ? n : d;
+  };
+  const setNum = (k, v) => localStorage.setItem(k, String(Math.max(0, v|0)));
 
-  // ---------- THEME ----------
-  // Sync checkbox to current theme (theme.js handles the apply + storage)
-  function syncDarkToggle() {
-    const cb = document.getElementById('pDark');
-    if (cb) cb.checked = window.__loozTheme && window.__loozTheme.isDark();
+  /* ===== auth/profile data (from your app) ===== */
+  function getAuth(){
+    try {
+      const raw = localStorage.getItem('authUser') || localStorage.getItem('auth.user');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
   }
-  syncDarkToggle();
-  window.addEventListener('looz-theme', syncDarkToggle);
+  function getProfile(){
+    try { return JSON.parse(localStorage.getItem('profile')||'{}'); }
+    catch { return {}; }
+  }
 
-  // ---------- PROFILE / STATUS ----------
-  const nameNode   = document.getElementById('pName');
-  const statusNode = document.getElementById('pStatus');
-  const fullInput  = document.getElementById('fFullName');
+  const prof = getProfile();
+  const auth = getAuth() || {};
+  const name   = prof.firstName || prof.name || auth.firstName || auth.name || 'דניאלה';
+  const handle = (auth.email ? '@'+auth.email.split('@')[0] : (prof.handle || '@user'));
 
-  // load profile basics
-  (function loadProfile() {
-    let display = 'דניאלה';
-    try {
-      const p = JSON.parse(localStorage.getItem('profile') || '{}');
-      if (p.name) display = p.name;
-      if (p.status) statusNode.textContent = p.status;
-      if (p.email)  (document.getElementById('fEmail') || {}).value  = p.email;
-      if (p.phone)  (document.getElementById('fPhone') || {}).value  = p.phone;
-    } catch(e){}
+  if ($id('prName'))   $id('prName').textContent   = name;
+  if ($id('prHandle')) $id('prHandle').textContent = handle;
 
-    // fallbacks from auth
-    try {
-      const au = localStorage.getItem('authUser');
-      if (au) {
-        const o = JSON.parse(au);
-        if (!display && o) display = o.name || o.displayName || o.firstName || display;
-      }
-      const alt = localStorage.getItem('authName');
-      if (alt) display = alt;
-    } catch(e){}
+  if (prof.city || prof.country) {
+    const locEl = $('#prLocation span');
+    if (locEl) locEl.textContent = (prof.city||'') + (prof.country ? ', ' + prof.country : '');
+  }
 
-    nameNode.textContent = display;
-    if (fullInput) fullInput.value = display;
+  /* ===== Cover (background) upload ===== */
+  const coverBtn  = $id('prCoverBtn');
+  const coverFile = $id('prCoverFile');
 
-    // avatar
-    const a = localStorage.getItem('profileAvatar');
-    if (a) setAvatar(a);
+  function setCover(dataUrl){
+    if (!coverBtn) return;
+    coverBtn.style.backgroundImage   = `url("${dataUrl}")`;
+    coverBtn.style.backgroundSize    = 'cover';
+    coverBtn.style.backgroundPosition= 'center';
+  }
+  (function loadCover(){
+    const saved = localStorage.getItem('profileCover');
+    if (saved) setCover(saved);
   })();
-
-  // edit button: status (and optional name) quick edit
-  const editBtn = document.getElementById('pEdit');
-  if (editBtn) editBtn.addEventListener('click', () => {
-    const newStatus = prompt('עדכן/י סטטוס (מתחת לשם):', statusNode.textContent.trim());
-    if (newStatus != null) {
-      statusNode.textContent = newStatus.trim();
-      persistProfile();
-    }
-  });
-
-  // save footer button
-  const saveBtn = document.getElementById('pSave');
-  if (saveBtn) saveBtn.addEventListener('click', () => {
-    persistProfile();
-    alert('נשמר בהצלחה!');
-  });
-
-  function persistProfile() {
-    const data = {
-      name:  (document.getElementById('fFullName') || {}).value || nameNode.textContent.trim(),
-      email: (document.getElementById('fEmail')    || {}).value || '',
-      phone: (document.getElementById('fPhone')    || {}).value || '',
-      status: statusNode.textContent.trim()
-    };
-    localStorage.setItem('profile', JSON.stringify(data));
-    nameNode.textContent = data.name || '—';
+  if (coverBtn && coverFile){
+    coverBtn.addEventListener('click', ()=> coverFile.click());
+    coverFile.addEventListener('change', ()=>{
+      const f = coverFile.files && coverFile.files[0]; if(!f) return;
+      const rd = new FileReader();
+      rd.onload = e => {
+        const dataUrl = e.target.result;
+        setCover(dataUrl);
+        localStorage.setItem('profileCover', dataUrl);
+      };
+      rd.readAsDataURL(f);
+    });
   }
 
-  // logout
-  const logoutBtn = document.getElementById('pLogout');
-  if (logoutBtn) logoutBtn.addEventListener('click', () => {
-    ['authUser','token','authName'].forEach(k => localStorage.removeItem(k));
-    window.location.href = '/Calendar/index.html';
-  });
+  /* ===== Avatar upload ===== */
+  const avatarBtn  = $id('prAvatarBtn');
+  const avatarImg  = $id('prAvatar');
+  const avatarFile = $id('prAvatarFile');
 
-  // ---------- AVATAR ----------
-  const avatarBtn  = document.getElementById('pAvatarBtn');
-  const avatarImg  = document.getElementById('pAvatar');
-  const avatarFile = document.getElementById('pAvatarFile');
-
-  function setAvatar(dataUrl) {
-    avatarImg.style.backgroundImage = `url("${dataUrl}")`;
+  function setAvatar(dataUrl){
+    if (avatarImg) avatarImg.style.backgroundImage = `url("${dataUrl}")`;
   }
-
-  if (avatarBtn && avatarFile) {
-    avatarBtn.addEventListener('click', () => avatarFile.click());
-    avatarFile.addEventListener('change', () => {
-      const f = avatarFile.files && avatarFile.files[0];
-      if (!f) return;
-      const reader = new FileReader();
-      reader.onload = e => {
+  (function loadAvatar(){
+    const saved = localStorage.getItem('profileAvatar');
+    if (saved) setAvatar(saved);
+  })();
+  if (avatarBtn && avatarFile){
+    avatarBtn.addEventListener('click', ()=> avatarFile.click());
+    avatarFile.addEventListener('change', ()=>{
+      const f = avatarFile.files && avatarFile.files[0]; if(!f) return;
+      const rd = new FileReader();
+      rd.onload = e => {
         const dataUrl = e.target.result;
         setAvatar(dataUrl);
         localStorage.setItem('profileAvatar', dataUrl);
       };
-      reader.readAsDataURL(f);
+      rd.readAsDataURL(f);
     });
   }
 
-  // ---------- TASKS ----------
-  function loadEvents() {
-    // Try multiple keys to be compatible with previous versions
-    const raw = localStorage.getItem('events') || localStorage.getItem('loozEvents') || '[]';
-    try { return JSON.parse(raw) || []; } catch(e) { return []; }
+  /* ===== Social: follow/followers/etc ===== */
+  const KEY_FOLLOWED   = 'looz:isFollowing';
+  const KEY_FOLLOWERS  = 'looz:followers';
+  const KEY_FOLLOWING  = 'looz:following';
+  const KEY_SUBSCRIBES = 'looz:subscribers';
+  const KEY_POSTS      = 'looz:posts';
+
+  if (localStorage.getItem(KEY_FOLLOWERS)  == null) setNum(KEY_FOLLOWERS,  9);
+  if (localStorage.getItem(KEY_FOLLOWING)  == null) setNum(KEY_FOLLOWING,  1);
+  if (localStorage.getItem(KEY_SUBSCRIBES) == null) setNum(KEY_SUBSCRIBES, 0);
+  if (localStorage.getItem(KEY_POSTS)      == null) setNum(KEY_POSTS,      3);
+
+  function renderSocial(){
+    const f = $id('stFollowers');   if (f) f.textContent = num(KEY_FOLLOWERS);
+    const g = $id('stFollowing');   if (g) g.textContent = num(KEY_FOLLOWING);
+    const s = $id('stSubscribers'); if (s) s.textContent = num(KEY_SUBSCRIBES);
+    const p = $id('stPosts');       if (p) p.textContent = num(KEY_POSTS);
+  }
+  renderSocial();
+
+  const btnFollow = $id('btnFollow');
+  function setFollowUI(on){
+    if (!btnFollow) return;
+    btnFollow.textContent = on ? 'עוקבים ✓' : 'עקוב';
+    btnFollow.classList.toggle('pr-btn--primary', !on);
+    btnFollow.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+  let isFollowing = localStorage.getItem(KEY_FOLLOWED) === '1';
+  setFollowUI(isFollowing);
+
+  if (btnFollow){
+    btnFollow.addEventListener('click', ()=>{
+      isFollowing = !isFollowing;
+      localStorage.setItem(KEY_FOLLOWED, isFollowing ? '1' : '0');
+      setFollowUI(isFollowing);
+      setNum(KEY_FOLLOWERS, num(KEY_FOLLOWERS) + (isFollowing ? 1 : -1));
+      renderSocial();
+    });
   }
 
-  function dateKey(d) {
-    return String(d).slice(0,10); // expects ISO date, or 'YYYY-MM-DD'
+  const btnMsg = $id('btnMessage');
+  if (btnMsg){
+    btnMsg.addEventListener('click', ()=>{
+      if (auth.email) {
+        location.href = `mailto:${auth.email}?subject=${encodeURIComponent('הודעה מהפרופיל שלך ב-LooZ')}`;
+      } else {
+        alert('הודעות ישירות — בקרוב ♥');
+      }
+    });
   }
 
-  function buildTasks() {
-    const events = loadEvents();
-    const open   = [];
-    const done   = [];
+  /* ===== Tasks & stats ===== */
+  function loadEvents(){
+    const raw =
+      localStorage.getItem('events') ||
+      localStorage.getItem('loozEvents') ||
+      localStorage.getItem('plannerTasks') ||
+      '[]';
+    try { return JSON.parse(raw) || []; } catch { return []; }
+  }
 
-    for (const ev of events) {
-      const item = {
-        title: ev.title || ev.name || 'ללא כותרת',
-        date:  ev.date || ev.day  || ev.d,
-        time:  ev.time || ev.t || '',
-        done:  !!ev.done
-      };
-      (item.done ? done : open).push(item);
+  function completionsLastDays(events, days=14){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const arr = Array.from({length:days}, ()=>0);
+    for (const ev of events){
+      if (!(ev.done || ev.completed)) continue;
+      const d = new Date(ev.date || ev.day || ev.d || Date.now()); d.setHours(0,0,0,0);
+      const diff = Math.round((today - d) / 86400000);
+      if (diff>=0 && diff<days) arr[days-1-diff]++;
+    }
+    return arr;
+  }
+
+  function streakDays(events){
+    const has = new Set(events.filter(e=>e.done||e.completed).map(e=>String(e.date||e.day||e.d).slice(0,10)));
+    let s=0, d=new Date(); d.setHours(0,0,0,0);
+    for (;;){
+      const key = d.toISOString().slice(0,10);
+      if (has.has(key)) { s++; d.setDate(d.getDate()-1); }
+      else break;
+    }
+    return s;
+  }
+
+  function buildTaskStats(){
+    const evs = loadEvents();
+    const open = []; const done = [];
+    const days = new Set();
+
+    for (const ev of evs){
+      const isDone = !!(ev.done || ev.completed);
+      (isDone ? done : open).push(ev);
+      const d = ev.date || ev.day || ev.d;
+      if (d) days.add(String(d).slice(0,10));
     }
 
-    // stats
-    document.getElementById('stOpen').textContent  = open.length;
-    document.getElementById('stDone').textContent  = done.length;
-    document.getElementById('stTotal').textContent = open.length + done.length;
+    if ($id('stOpen'))        $id('stOpen').textContent       = open.length;
+    if ($id('stDone'))        $id('stDone').textContent       = done.length;
+    if ($id('stTotal'))       $id('stTotal').textContent      = evs.length;
+    if ($id('stActiveDays'))  $id('stActiveDays').textContent = days.size;
 
-    // lists
-    fillList('openList', open, false);
-    fillList('doneList', done,  true );
-
-    const emptyDone = document.getElementById('doneEmpty');
-    if (emptyDone) emptyDone.style.display = done.length ? 'none' : '';
+    drawChart(completionsLastDays(evs, 14));
+    renderBadges({done: done.length, days: days.size, streak: streakDays(evs)});
   }
 
-  function fillList(id, arr, muted) {
-    const ul = document.getElementById(id);
-    ul.innerHTML = '';
-    arr.sort((a,b) => (a.date||'').localeCompare(b.date||'') || (a.time||'').localeCompare(b.time||''));
-    arr.forEach(ev => {
+  /* ===== Chart (responsive + DPR) ===== */
+  const canvas = $id('prChart');
+  const ctx = canvas ? canvas.getContext('2d') : null;
+  let DPR = 1;
+
+  function fitCanvas(){
+    if (!canvas || !ctx) return;
+    const box = canvas.parentElement.getBoundingClientRect();
+    DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2)); // חד בלי להכביד
+    canvas.style.width  = Math.round(box.width) + 'px';
+    canvas.style.height = '220px';
+    canvas.width  = Math.round(box.width * DPR);
+    canvas.height = Math.round(220 * DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0); // מציירים ביחידות CSS-פיזיות
+  }
+
+  function drawChart(values){
+    if (!canvas || !ctx) return;
+    fitCanvas();
+    const W = canvas.width  / DPR;
+    const H = canvas.height / DPR;
+    const pad = 22;
+
+    ctx.clearRect(0,0,W,H);
+
+    const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--line') || '#cbd5e1';
+    ctx.strokeStyle = lineCol.trim();
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, H-pad);
+    ctx.moveTo(pad, pad);   ctx.lineTo(pad, H-pad);
+    ctx.stroke();
+
+    const max = Math.max(1, ...values);
+    const stepX = (W - pad*2) / (values.length - 1);
+
+    ctx.beginPath();
+    for (let i=0;i<values.length;i++){
+      const x = pad + i*stepX;
+      const y = H - pad - (values[i]/max)*(H - pad*2);
+      i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    }
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#2563eb';
+    ctx.stroke();
+
+    const grad = ctx.createLinearGradient(0, pad, 0, H-pad);
+    grad.addColorStop(0, 'rgba(37,99,235,.25)');
+    grad.addColorStop(1, 'rgba(37,99,235,0)');
+    ctx.lineTo(W-pad, H-pad); ctx.lineTo(pad, H-pad); ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+
+    ctx.fillStyle = 'rgba(15,23,42,.08)';
+    for (let i=0;i<values.length;i++){
+      const x = pad + i*stepX;
+      ctx.fillRect(x-1, H-pad-4, 2, 4);
+    }
+  }
+
+  /* ===== Achievements ===== */
+  function renderBadges({done, days, streak}){
+    const list = $id('prBadges'); if (!list) return;
+    list.innerHTML = '';
+    const items = [];
+    if (streak>=3)  items.push({icon:'🔥', label:`רצף ${streak} ימים`});
+    if (done>=10)   items.push({icon:'🏅', label:'10 משימות הושלמו'});
+    if (done>=25)   items.push({icon:'🥈', label:'25 משימות הושלמו'});
+    if (done>=50)   items.push({icon:'🥇', label:'50 משימות הושלמו'});
+    if (days>=7)    items.push({icon:'📆', label:'שבוע פעיל'});
+    if (!items.length) items.push({icon:'✨', label:'בדרך להישג הראשון!'});
+
+    for (const b of items){
       const li = document.createElement('li');
-      li.className = 'trow';
-      li.innerHTML = `
-        <span class="trow__tag">${muted ? 'הושלם' : 'פתוח'}</span>
-        <span class="trow__title">${escapeHtml(ev.title)}</span>
-        <span class="trow__meta">${escapeHtml(ev.date || '')}${ev.time ? ' · ' + escapeHtml(ev.time) : ''}</span>
-      `;
-      li.addEventListener('click', () => {
-        // pass the chosen date to the app
-        if (ev.date) localStorage.setItem('goToDate', dateKey(ev.date));
-        window.location.href = '/Calendar/index.html';
-      });
-      ul.appendChild(li);
-    });
+      li.innerHTML = `<div class="badge__icon" aria-hidden="true">${b.icon}</div><div class="badge__txt">${b.label}</div>`;
+      list.appendChild(li);
+    }
   }
 
-  function escapeHtml(s){
-    return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
-
-  buildTasks();
-
-  // ---------- SOCIAL LINKS ----------
-  const icons = document.getElementById('socialIcons');
-  const addBtn = document.getElementById('btnLink');
-  const input  = document.getElementById('socialHandle');
-  const select = document.getElementById('socialSelect');
-
-  const LINKS_KEY = 'socialLinks';
-
-  function readLinks(){
-    try { return JSON.parse(localStorage.getItem(LINKS_KEY) || '{}'); } catch(e){ return {}; }
-  }
-  function writeLinks(o){ localStorage.setItem(LINKS_KEY, JSON.stringify(o)); }
-
-  function openLink(net){
-    const map = readLinks();
-    const url = map[net];
-    if (url) window.open(url, '_blank');
-    else alert('אין קישור שמור לרשת זו. הוסף קישור למטה.');
-  }
-
-  if (icons) {
-    icons.addEventListener('click', (e) => {
-      const b = e.target.closest('.sicon');
-      if (!b) return;
-      openLink(b.dataset.net);
-    });
-  }
-
-  if (addBtn) {
-    addBtn.addEventListener('click', () => {
-      const v = input.value.trim();
-      if (!v) return;
-      const map = readLinks();
-      map[select.value] = v.startsWith('http') ? v : ('https://' + v.replace(/^@/, ''));
-      writeLinks(map);
-      input.value = '';
-      alert('הקישור נשמר!');
-    });
-  }
-
+  /* ===== init ===== */
+  window.addEventListener('resize', ()=> drawChart(completionsLastDays(loadEvents(), 14)));
+  buildTaskStats();
 })();

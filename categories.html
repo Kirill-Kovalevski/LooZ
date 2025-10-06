@@ -1,111 +1,214 @@
 <!DOCTYPE html>
-<html lang="הי" dir="rtl">
+<html lang="he" dir="rtl">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>LooZ • קטגוריות</title>
-<!-- Theme FIRST (prevents flash), then page CSS -->
-<script src="/Calendar/js/theme.js"></script>
-<link rel="stylesheet" href="/Calendar/css/dist/categories.css" />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
+  <title>קטגוריות — LooZ</title>
 
-<!-- Optional small, page-agnostic dark tweaks (numbers/labels contrast) -->
-<link rel="stylesheet" href="/Calendar/css/dist/dark-overrides.css" />
+  <!-- Base styles -->
+  <link rel="stylesheet" href="css/dist/settings.css" />
+  <link rel="stylesheet" href="css/dist/categories.css" />
 
-
-  <link rel="stylesheet" href="/Calendar/css/dist/categories.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- MUST be last so it can override for dark -->
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
 
+  <!-- Initialize theme on this page too -->
+  <script defer src="js/theme.js"></script>
 </head>
+
 <body>
+  <main class="s">
 
-<main class="c">
-  <header class="c__header">
-    <button class="c__btn" id="cBack" aria-label="חזרה">←</button>
-    <h1 class="c__title"><span>LooZ</span> קטגוריות</h1>
-    <span class="c__spacer"></span>
-  </header>
+    <!-- HEADER: same DOM/classes as Settings; only the title text changed -->
+    <header class="s__header s__header--grid">
+      <a class="s__btn s__btn--gold s__btn--chev" href="index.html" aria-label="חזרה">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M14 5L7 12l7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <h1 class="s__title s__title--center">קטגוריות</h1>
+      <a class="looz-logo" href="index.html" aria-label="LooZ">
+        <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ" />
+        <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
+      </a>
+    </header>
 
-  <!-- your categories markup unchanged -->
-  <section class="c__grid">
-    <article class="card">
-      <h2 class="card__title">עונות</h2>
-      <div class="chips" data-key="season">
-        <button class="chip">סתיו</button>
-        <button class="chip">קיץ</button>
-        <button class="chip">אביב</button>
-        <button class="chip">חורף</button>
+    <!-- Gradient hero / intro -->
+    <section class="hero">
+      <div class="hero__text">
+        <h2>מצאו את ההרפתקה הבאה</h2>
+        <p>סננו רעיונות לפי זמן, מקום, מזג אוויר, מצב רוח ועוד.</p>
       </div>
-    </article>
+    </section>
 
-    <article class="card">
-      <h2 class="card__title">זמן ביום</h2>
-      <div class="chips" data-key="timeofday">
-        <button class="chip" data-time="21:00">לילה</button>
-        <button class="chip" data-time="16:00">אחר הצהריים</button>
-        <button class="chip" data-time="12:00">צהריים</button>
-        <button class="chip" data-time="08:00">בוקר</button>
+    <!-- Pills toolbar (inspiration: your screenshot) -->
+    <nav class="pills" aria-label="מסננים מהירים">
+      <button type="button" class="pill is-on" data-fast="timeline">ציר זמן</button>
+      <button type="button" class="pill" data-fast="distance">מרחק</button>
+      <button type="button" class="pill" data-fast="budget">תקציב</button>
+      <button type="button" class="pill" data-fast="indoor">בפנים</button>
+      <button type="button" class="pill" data-fast="outdoor">בחוץ</button>
+    </nav>
+
+    <!-- Selected tags -->
+    <div class="tags" id="pickedTags" aria-live="polite"></div>
+
+    <!-- Groups form -->
+    <form class="cat__form card" id="catForm" autocomplete="off">
+      <!-- חלק ביום -->
+      <fieldset class="grp">
+        <legend class="grp__title">חלק ביום</legend>
+        <div class="chips" data-group="timeOfDay">
+          <button type="button" class="chip" data-key="בוקר">🌅 בוקר</button>
+          <button type="button" class="chip" data-key="צהריים">☀️ צהריים</button>
+          <button type="button" class="chip" data-key="אחה״צ">🌤️ אחה״צ</button>
+          <button type="button" class="chip" data-key="ערב">🌇 ערב</button>
+          <button type="button" class="chip" data-key="לילה">🌙 לילה</button>
+          <button type="button" class="chip" data-key="סופ״ש">🗓️ סופ״ש / חופשה</button>
+        </div>
+      </fieldset>
+
+      <!-- מיקום -->
+      <fieldset class="grp">
+        <legend class="grp__title">מיקום</legend>
+        <div class="chips" data-group="location">
+          <button type="button" class="chip" data-key="בבית">🏠 בבית</button>
+          <button type="button" class="chip" data-key="בחוץ">🌳 בחוץ</button>
+          <button type="button" class="chip" data-key="בעיר">🏙️ בעיר</button>
+          <button type="button" class="chip" data-key="בטבע">⛰️ בטבע</button>
+          <button type="button" class="chip" data-key="במים">🌊 במים</button>
+          <button type="button" class="chip" data-key="בנסיעה">🚗 בנסיעה</button>
+        </div>
+      </fieldset>
+
+      <!-- מזג אוויר -->
+      <fieldset class="grp">
+        <legend class="grp__title">מזג אוויר</legend>
+        <div class="chips" data-group="weather">
+          <button type="button" class="chip" data-key="שמשי">☀️ שמשי</button>
+          <button type="button" class="chip" data-key="מעונן">⛅ מעונן</button>
+          <button type="button" class="chip" data-key="גשום">🌧️ גשום</button>
+          <button type="button" class="chip" data-key="קריר">🥶 קריר</button>
+          <button type="button" class="chip" data-key="חם">🥵 חם</button>
+          <button type="button" class="chip" data-key="רוח">🌬️ רוחי</button>
+        </div>
+      </fieldset>
+
+      <!-- מצב רוח -->
+      <fieldset class="grp">
+        <legend class="grp__title">מצב רוח</legend>
+        <div class="chips" data-group="mood">
+          <button type="button" class="chip" data-key="רגוע">🫧 רגוע</button>
+          <button type="button" class="chip" data-key="רומנטי">💞 רומנטי</button>
+          <button type="button" class="chip" data-key="ספורטיבי">💪 ספורטיבי</button>
+          <button type="button" class="chip" data-key="יצירתי">🎨 יצירתי</button>
+          <button type="button" class="chip" data-key="חברתי">🗣️ חברתי</button>
+          <button type="button" class="chip" data-key="אתגרי">🧗 אתגרי</button>
+        </div>
+      </fieldset>
+
+      <!-- משתתפים -->
+      <fieldset class="grp">
+        <legend class="grp__title">מספר משתתפים</legend>
+        <div class="chips" data-group="people">
+          <button type="button" class="chip" data-key="לבד">👤 לבד</button>
+          <button type="button" class="chip" data-key="זוג">👥 זוג</button>
+          <button type="button" class="chip" data-key="משפחה">👨‍👩‍👧‍👦 משפחה</button>
+          <button type="button" class="chip" data-key="חברים">👯 חברים</button>
+          <button type="button" class="chip" data-key="קבוצה">👥 קבוצה</button>
+        </div>
+      </fieldset>
+
+      <!-- מדינה/עונה/מגבלות -->
+      <fieldset class="grp">
+        <legend class="grp__title">מדינה / עונה / מגבלות</legend>
+        <div class="chips" data-group="country">
+          <button type="button" class="chip" data-key="ישראל">🇮🇱 ישראל</button>
+          <button type="button" class="chip" data-key="חו״ל קרוב">🧭 חו״ל קרוב</button>
+          <button type="button" class="chip" data-key="חו״ל רחוק">🗺️ חו״ל רחוק</button>
+        </div>
+        <div class="chips" data-group="season">
+          <button type="button" class="chip" data-key="אביב">🌸 אביב</button>
+          <button type="button" class="chip" data-key="קיץ">🏖️ קיץ</button>
+          <button type="button" class="chip" data-key="סתיו">🍁 סתיו</button>
+          <button type="button" class="chip" data-key="חורף">❄️ חורף</button>
+        </div>
+        <div class="chips" data-group="constraints">
+          <button type="button" class="chip" data-key="קצר">⏱️ קצר</button>
+          <button type="button" class="chip" data-key="בינוני">⌛ בינוני</button>
+          <button type="button" class="chip" data-key="ארוך">🕰️ ארוך</button>
+          <button type="button" class="chip" data-key="חינם">💸 חינם</button>
+          <button type="button" class="chip" data-key="תקציב נמוך">💰 תקציב נמוך</button>
+          <button type="button" class="chip" data-key="פרימיום">💎 פרימיום</button>
+        </div>
+      </fieldset>
+
+      <!-- ספורט ותנועה -->
+<fieldset class="grp">
+  <legend class="grp__title">ספורט ותנועה</legend>
+  <div class="chips" data-group="sport">
+    <button type="button" class="chip" data-key="יוגה">🧘 יוגה</button>
+    <button type="button" class="chip" data-key="פילאטיס">🧘‍♀️ פילאטיס</button>
+    <button type="button" class="chip" data-key="מדיטציה-נשימה">😮‍💨 מדיטציה / נשימה</button>
+    <button type="button" class="chip" data-key="הליכה">🚶‍♀️ הליכה</button>
+    <button type="button" class="chip" data-key="ריצה">🏃‍♂️ ריצה</button>
+    <button type="button" class="chip" data-key="אופניים">🚴‍♂️ אופניים</button>
+    <button type="button" class="chip" data-key="שחייה">🏊‍♀️ שחייה</button>
+    <button type="button" class="chip" data-key="HIIT">⚡ HIIT</button>
+    <button type="button" class="chip" data-key="טיפוס">🧗 טיפוס</button>
+    <button type="button" class="chip" data-key="גלישה">🏄 גלישה</button>
+    <button type="button" class="chip" data-key="סקי">🎿 סקי</button>
+    <button type="button" class="chip" data-key="סנובורד">🏂 סנובורד</button>
+    <button type="button" class="chip" data-key="כדורגל">⚽ כדורגל</button>
+    <button type="button" class="chip" data-key="כדורסל">🏀 כדורסל</button>
+    <button type="button" class="chip" data-key="טניס">🎾 טניס</button>
+    <button type="button" class="chip" data-key="בדמינטון">🏸 בדמינטון</button>
+    <button type="button" class="chip" data-key="כדורעף">🏐 כדורעף</button>
+    <button type="button" class="chip" data-key="חדר-כושר">🏋️ חדר כושר</button>
+    <button type="button" class="chip" data-key="ריקוד">💃 ריקוד</button>
+    <button type="button" class="chip" data-key="זומבה">🎶 זומבה</button>
+    <button type="button" class="chip" data-key="קיאקים">🛶 קיאקים</button>
+  </div>
+</fieldset>
+
+<!-- אווירה -->
+<fieldset class="grp">
+  <legend class="grp__title">אווירה</legend>
+  <div class="chips" data-group="vibe">
+    <button type="button" class="chip" data-key="שקט">🤫 שקט</button>
+    <button type="button" class="chip" data-key="חי-ותוסס">🎉 חי ותוסס</button>
+    <button type="button" class="chip" data-key="משפחתי">👨‍👩‍👧‍👦 משפחתי</button>
+    <button type="button" class="chip" data-key="יוקרתי">💎 יוקרתי</button>
+    <button type="button" class="chip" data-key="אותנטי">🏺 אותנטי</button>
+    <button type="button" class="chip" data-key="מוזיקה-חיה">🎸 מוזיקה חיה</button>
+  </div>
+</fieldset>
+
+<!-- נגישות / ציוד -->
+<fieldset class="grp">
+  <legend class="grp__title">נגישות / ציוד</legend>
+  <div class="chips" data-group="access">
+    <button type="button" class="chip" data-key="נגישות-כיסא-גלגלים">♿ נגישות</button>
+    <button type="button" class="chip" data-key="ידידותי-עגלות">🍼 ידידותי לעגלות</button>
+    <button type="button" class="chip" data-key="עם-כלב">🐶 עם כלב</button>
+    <button type="button" class="chip" data-key="מקורה">🏠 מקורה</button>
+    <button type="button" class="chip" data-key="ממוזג">❄️ ממוזג</button>
+    <button type="button" class="chip" data-key="ללא-ציוד">🧩 ללא ציוד</button>
+    <button type="button" class="chip" data-key="צריך-רכב">🚗 צריך רכב</button>
+  </div>
+</fieldset>
+
+    </form>
+
+    <!-- Summary + Results -->
+    <div class="cat__summary" id="catSummary"></div>
+    <section class="results" id="results"></section>
+     <div class="cat__actions">
+        <button type="button" id="clearCats" class="btn btn--ghost">נקה</button>
+        <button type="submit" class="btn btn--gold">הצג תוצאות</button>
       </div>
-    </article>
+  </main>
 
-    <article class="card">
-      <h2 class="card__title">מדינה / מקום</h2>
-      <div class="chips" data-key="country">
-        <button class="chip">יפן</button>
-        <button class="chip">איטליה</button>
-        <button class="chip">ארה״ב</button>
-        <button class="chip">ישראל</button>
-      </div>
-    </article>
-
-    <article class="card">
-      <h2 class="card__title">אנשים</h2>
-      <div class="chips" data-key="people">
-        <button class="chip">קבוצה</button>
-        <button class="chip">משפחה</button>
-        <button class="chip">שניים</button>
-        <button class="chip">סולו</button>
-      </div>
-    </article>
-
-    <article class="card">
-      <h2 class="card__title">מצב רוח</h2>
-      <div class="chips" data-key="mood">
-        <button class="chip">חברתי</button>
-        <button class="chip">פעיל</button>
-        <button class="chip">יצירתי</button>
-        <button class="chip">רגוע</button>
-      </div>
-    </article>
-
-    <article class="card">
-      <h2 class="card__title">בפנים / בחוץ</h2>
-      <div class="chips" data-key="place">
-        <button class="chip">בחוץ</button>
-        <button class="chip">בפנים</button>
-      </div>
-    </article>
-
-    <article class="card card--templates">
-      <h2 class="card__title">תבניות מהירות</h2>
-      <div class="tpls">
-        <button class="tpl" data-title="שעת למידה" data-time="20:00">📚 שעת למידה</button>
-        <button class="tpl" data-title="ריצה בבוקר" data-time="06:30">🏃 ריצה בבוקר</button>
-        <button class="tpl" data-title="ארוחת ערב משפחתית" data-time="19:30">🍽️ ארוחת ערב</button>
-        <button class="tpl" data-title="קפה עם חבר/ה" data-time="10:30">☕ קפה</button>
-      </div>
-    </article>
-  </section>
-
-  <footer class="c__footer">
-    <button class="btn" id="cApply">צור מאירוע שנבחר</button>
-  </footer>
-</main>
-<script src="app.js" defer></script>
-<script src="/categories.js" defer></script>
-<!-- Global theme (no-flash) -->
-<script src="js/theme.js"></script>
-
+  <script src="js/categories.js" defer></script>
 </body>
 </html>

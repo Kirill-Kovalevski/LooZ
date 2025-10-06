@@ -81,6 +81,45 @@
 
     apply(isDark());
     syncToggles();
-  });
+  }); // js/theme.js
+
+  (function () {
+    var KEY = "loozTheme"; // 'light' | 'dark' | 'system'
+
+    var root = document.documentElement;
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+
+    function apply(theme) {
+      var mode = theme === "system" ? mq.matches ? "dark" : "light" : theme;
+      root.setAttribute("data-theme", mode);
+      root.style.colorScheme = mode; // form controls, etc.
+    }
+
+    function load() {
+      return localStorage.getItem(KEY) || "system";
+    }
+
+    function save(theme) {
+      localStorage.setItem(KEY, theme);
+    } // react to system changes only if in "system" mode
+
+
+    mq.addEventListener("change", function () {
+      if (load() === "system") apply("system");
+    }); // optional header toggle (cycles: system → dark → light → system)
+
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest("#themeToggle");
+      if (!btn) return;
+      var curr = load();
+      var next = curr === "system" ? "dark" : curr === "dark" ? "light" : "system";
+      save(next);
+      apply(next);
+      btn.setAttribute("aria-label", "\u05DE\u05E6\u05D1 \u05E6\u05D1\u05E2: ".concat(next));
+    }); // boot
+
+    apply(load());
+  })();
+
   window.addEventListener('looz:theme', syncToggles);
 })();

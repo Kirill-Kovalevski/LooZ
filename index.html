@@ -25,41 +25,6 @@
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
   <link rel="stylesheet" href="css/dist/settings.css" />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
-
-  <!-- 🔒 Hard guarantee: logo == create button size -->
-  <style>
-    :root{
-      /* change once – both logo and create-orb follow this */
-      --orb-size: 56px;
-    }
-    /* Create button (in case CSS elsewhere doesn't already size it) */
-    .c-cta.c-cta--bang,
-    .btn-create-orb{
-      inline-size: var(--orb-size);
-      block-size: var(--orb-size);
-    }
-    /* Header logo anchor has exact same dimensions */
-    .o-header .looz-logo{
-      inline-size: var(--orb-size);
-      block-size: var(--orb-size);
-      display: grid;
-      place-items: center;
-    }
-    /* The <img> inside fills the square neatly */
-    .o-header .looz-logo .brand-logo{
-      inline-size: 100%;
-      block-size: 100%;
-      object-fit: contain;
-      display: block;
-      filter: none !important;
-      box-shadow: none !important;
-      background: transparent;
-    }
-    /* Light/Dark asset switching (if not already handled in your CSS) */
-    .brand-logo--dark{ display: none; }
-    [data-theme="dark"] .brand-logo--light{ display: none; }
-    [data-theme="dark"] .brand-logo--dark{ display: block; }
-  </style>
 </head>
 
 <body>

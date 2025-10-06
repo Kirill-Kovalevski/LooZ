@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>LooZ — פרופיל</title>
 
-  <!-- מצב כהה לפני הצביעה -->
+  <!-- מצב כהה נטען לפני צביעה -->
   <script src="js/theme.js"></script>
 
   <!-- בסיס ל-GitHub Pages (אופציונלי) -->
@@ -20,199 +20,53 @@
     })();
   </script>
 
-  <!-- CSS גלובלי של האפליקציה -->
+  <!-- CSS גלובלי -->
   <link rel="stylesheet" href="css/dist/main.css" />
   <link rel="stylesheet" href="css/dist/settings.css" />
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet" />
-
-  <style>
-    /* ===== Profile — נראה/היררכיה כמו Settings, מיושר היטב ===== */
-
-    :root{ --pr-radius:18px; }
-
-    /* מעטפת 'כרטיס' כמו קבוצות בהגדרות */
-    .pr-shell{
-      background:var(--bg);
-      border:1px solid var(--line);
-      border-radius:var(--pr-radius);
-      box-shadow:var(--shadow);
-      padding:14px;
-    }
-
-    /* כיסוי (קאבר) מעוגל */
-    .pr-cover{
-      position:relative;
-      height:176px;
-      border-radius:16px;
-      overflow:hidden;
-      background:radial-gradient(120% 160% at 50% -20%,#bcd2ff,#89a8ff 45%,#6f86d9 90%);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
-    }
-    .pr-cover::after{
-      content:""; position:absolute; inset:0;
-      background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,0) 40%,rgba(0,0,0,.22));
-    }
-
-    /* אוואטר */
-    .pr-avatar{
-      width:110px; height:110px; border-radius:50%;
-      margin:-55px auto 6px; /* חצי גובה כדי 'לשבת' על הקאבר */
-      border:4px solid var(--bg);
-      background:#fff url('images/avatar.jpg') center/cover no-repeat;
-      box-shadow:0 10px 26px rgba(15,23,42,.12);
-    }
-
-    .pr-name{ margin:6px 0 2px; text-align:center; font:800 24px/1.2 'Rubik',system-ui,sans-serif; letter-spacing:.2px; }
-    .pr-handle{ margin:0; text-align:center; color:var(--muted); font-weight:600; }
-    .pr-loc{ margin:8px 0 2px; display:flex; gap:8px; align-items:center; justify-content:center; color:var(--muted); font-weight:600; }
-    .pr-loc svg{ opacity:.75 }
-
-    /* כפתורי פעולה – אותו לוק כמו בהגדרות/כפתורי pills */
-    .pr-actions{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin:12px 0 8px; }
-    .pr-btn{
-      height:42px; border-radius:999px; border:1px solid var(--line); background:var(--bg);
-      font-weight:800; letter-spacing:.2px; box-shadow:var(--shadow);
-    }
-    .pr-btn--primary{
-      background:linear-gradient(90deg,#0ea5e9,#2563eb); color:#fff; border:0;
-      box-shadow:0 .8rem 1.6rem rgba(37,99,235,.30);
-    }
-
-    /* סטטיסטיקות — 4 אריחים (כולל עוקבים), 2×2 במסכים צרים */
-    .pr-stats{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:8px 0 6px; }
-    @media (min-width:420px){ .pr-stats{ grid-template-columns:repeat(4,1fr); } }
-
-    .pr-stat{
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 10px;
-      text-align:center;
-      box-shadow:0 8px 18px rgba(15,23,42,.08);
-    }
-    .pr-stat strong{ display:block; font:800 18px/1 'Rubik',system-ui,sans-serif; }
-    .pr-stat span{ display:block; margin-top:4px; font-size:12px; color:var(--muted); font-weight:700; }
-
-    /* ביו */
-    .pr-bio{
-      margin:10px 0 6px;
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      text-align:center; color:#374151;
-      box-shadow:0 8px 18px rgba(15,23,42,.08);
-    }
-    .pr-bio em{ font-style:normal; color:#111827; }
-
-    .pr-h{ margin:12px 0 8px; font:800 16px/1 'Rubik',system-ui,sans-serif; color:var(--ink); }
-
-    .pr-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-    .pr-thumb{ aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:#eef2f7; border:1px solid var(--line); box-shadow:0 6px 14px rgba(15,23,42,.06) }
-    .pr-thumb img{ width:100%; height:100%; object-fit:cover; display:block }
-
-    /* כהה – אותו סגנון של Settings */
-    :is(html,body).is-dark .pr-shell{ background:var(--bg); border-color:var(--line); box-shadow:var(--shadow); }
-    :is(html,body).is-dark .pr-avatar{ border-color:var(--bg); }
-    :is(html,body).is-dark .pr-stat,
-    :is(html,body).is-dark .pr-bio{
-      background:var(--surface);
-      border-color:var(--line);
-      box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04);
-      color:var(--ink);
-    }
-    :is(html,body).is-dark .pr-h{ color:var(--ink); }
-    :is(html,body).is-dark .pr-thumb{ background:#0f1b32; border-color:#2a4674; }
-
-    /* זהב לכפתור החזרה (אם לא כבר הוגדר ב-main.css) */
-    .s__btn--gold{
-      border:0 !important;
-      background:
-        radial-gradient(140% 120% at 35% 30%, rgba(255,255,255,.08) 0%, rgba(255,255,255,.05) 45%, rgba(255,255,255,0) 70%),
-        linear-gradient(180deg,#FFF7C9,#FFDF75) !important;
-      color:#0e1424 !important;
-      box-shadow:0 .4rem 1rem rgba(245,215,115,.25), 0 0 0 8px rgba(245,215,115,.10);
-    }
-    .s__btn--gold svg{ filter:drop-shadow(0 1px 0 rgba(255,255,255,.45)); }
-    /* === Profile topbar: make it identical to Settings ================== */
-:root{
-  /* single source of truth for header metrics */
-  --topbar-pad-y: 12px;
-  --topbar-pad-x: 18px;
-  --topbtn-size: 42px;     /* circular button */
-  --logo-height: 46px;     /* same logo height as Settings */
-}
-
-#profileHeader.s__header{
-  padding: var(--topbar-pad-y) var(--topbar-pad-x);
-  border-bottom: 1px solid var(--line);
-  background: var(--bg);
-}
-
-/* grid + centering already handled by .s__header--grid; just enforce sizes */
-#profileHeader .looz-logo{ display:inline-flex; align-items:center; }
-#profileHeader .looz-logo .brand-logo{
-  height: var(--logo-height) !important;
-  width: auto !important;
-  display: block;
-  line-height: 0;
-}
-
-/* back button circle size */
-#profileHeader .s__btn{
-  inline-size: var(--topbtn-size);
-  block-size:  var(--topbtn-size);
-  border-radius: 999px;
-}
-
-/* gold style (matches the one you liked on Profile) */
-#profileHeader .s__btn--gold{
-  border:0 !important;
-  background:
-    radial-gradient(140% 120% at 35% 30%,rgba(255,255,255,.08) 0%,rgba(255,255,255,.05) 45%,rgba(255,255,255,0) 70%),
-    linear-gradient(180deg,#FFF7C9,#FFDF75) !important;
-  color:#0e1424 !important;
-  box-shadow:0 .4rem 1rem rgba(245,215,115,.25),0 0 0 8px rgba(245,215,115,.10);
-}
-#profileHeader .s__btn--gold svg{ filter: drop-shadow(0 1px 0 rgba(255,255,255,.45)); }
-
-/* small screens: keep logo from shrinking too far */
-@media (max-width:360px){
-  #profileHeader .looz-logo .brand-logo{ height: 42px !important; }
-}
-
-  </style>
+  <!-- פרופיל (קומפייל מ-SCSS לקובץ הבא) -->
+  <link rel="stylesheet" href="css/dist/profile.css" />
 </head>
 
 <body>
-<header id="profileHeader" class="s__header s__header--grid">
-  <a class="looz-logo" href="index.html" aria-label="LooZ">
-    <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ" />
-    <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
+<header class="topbar">
+  <a class="topbar__brand" href="index.html" aria-label="LooZ">
+    <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ">
+    <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ">
   </a>
+  <h1 class="topbar__title">פרופיל</h1>
+ <button class="topbar__back" type="button" aria-label="חזרה" onclick="history.back()">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+  </svg>
+</button>
 
-  <h1 class="s__title s__title--center">פרופיל</h1>
-
-  <button class="s__btn s__btn--gold" type="button" aria-label="חזרה" onclick="history.back()">
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </button>
 </header>
 
 
-  <main class="o-page">
-    <div class="o-phone o-inner">
-      <section class="pr-shell">
-        <!-- קאבר + אוואטר -->
-        <div class="pr-cover" id="prCover"></div>
-        <div class="pr-avatar" id="prAvatar" aria-hidden="true"></div>
+<main class="o-page">
+  <div class="o-phone o-inner">
+    <section class="pr-shell">
 
-        <!-- טקסטים -->
-        <h2 class="pr-name" id="prName">שם משתמש</h2>
-        <p class="pr-handle" id="prHandle">@user</p>
-        <div class="pr-loc" id="prLocation">
+      <!-- קאבר: לחיץ להעלאה -->
+      <button class="pr-cover pr-cover--click" id="prCoverBtn" type="button" aria-label="העלה תמונת רקע">
+        <input id="prCoverFile" type="file" accept="image/*" hidden>
+      </button>
+
+      <!-- אוואטר: לחיץ להעלאה -->
+      <button class="pr-avatar" id="prAvatarBtn" aria-label="עדכון תמונת פרופיל">
+        <span id="prAvatar" class="pr-avatar__img" aria-hidden="true"></span>
+        <input id="prAvatarFile" type="file" accept="image/*" hidden>
+      </button>
+
+      <!-- ...המשך העמוד ללא שינוי... -->
+
+
+        <!-- שם/ניק/מיקום -->
+        <h2 class="pr-name"   id="prName">שם משתמש</h2>
+        <p  class="pr-handle" id="prHandle">@user</p>
+        <div class="pr-loc"   id="prLocation">
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Zm0-9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="currentColor"/>
           </svg>
@@ -220,23 +74,44 @@
         </div>
 
         <!-- פעולות -->
-        <div class="pr-actions">
-          <button id="btnFollow" class="pr-btn pr-btn--primary" type="button">עקוב</button>
-          <button class="pr-btn" type="button" onclick="location.href='settings.html'">הודעה</button>
+        <div class="pr-actions" role="group" aria-label="פעולות משתמש">
+          <button id="btnFollow"    class="pr-btn pr-btn--primary" type="button" aria-pressed="false">עקוב</button>
+          <button id="btnMessage"   class="pr-btn" type="button">הודעה</button>
         </div>
 
-        <!-- סטטיסטיקות (כולל עוקבים) -->
+        <!-- חברתי: עוקבים/נעקבים/מנויים -->
         <div class="pr-stats">
           <div class="pr-stat"><strong id="stFollowers">0</strong><span>עוקבים</span></div>
-          <div class="pr-stat"><strong id="stDone">0</strong><span>משימות שבוצעו</span></div>
-          <div class="pr-stat"><strong id="stEvents">0</strong><span>אירועים בסה״כ</span></div>
-          <div class="pr-stat"><strong id="stDays">0</strong><span>ימים פעילים</span></div>
+          <div class="pr-stat"><strong id="stFollowing">0</strong><span>נעקבים</span></div>
+          <div class="pr-stat"><strong id="stSubscribers">0</strong><span>מנויים</span></div>
+          <div class="pr-stat"><strong id="stPosts">0</strong><span>פוסטים</span></div>
         </div>
 
-        <!-- ביו -->
-        <p class="pr-bio" id="prBio">“<em> משפט כלשהו שהמשתמש בוחר</em>  </p>
+        <!-- משימות: סה״כ/פתוחות/הושלמו -->
+        <h3 class="pr-h">משימות</h3>
+        <div class="pr-stats">
+          <div class="pr-stat"><strong id="stTotal">0</strong><span>סה״כ משימות</span></div>
+          <div class="pr-stat"><strong id="stOpen">0</strong><span>פתוחות</span></div>
+          <div class="pr-stat"><strong id="stDone">0</strong><span>הושלמו</span></div>
+          <div class="pr-stat"><strong id="stActiveDays">0</strong><span>ימים פעילים</span></div>
+        </div>
 
-        <!-- פעילות אחרונה -->
+        <!-- גרף התקדמות -->
+        <h3 class="pr-h">התקדמות (14 ימים)</h3>
+        <div class="pr-chartbox">
+          <canvas id="prChart" width="600" height="220" aria-label="גרף התקדמות שבועי"></canvas>
+        </div>
+
+        <!-- הישגים -->
+        <h3 class="pr-h">הישגים</h3>
+        <ul class="pr-badges" id="prBadges" aria-label="הישגים">
+          <!-- ימולאו דינמית -->
+        </ul>
+
+        <!-- ביו -->
+        <p class="pr-bio" id="prBio">“<em>משפט שהמשתמש בוחר</em>”</p>
+
+        <!-- פעילות אחרונה (דוגמאות) -->
         <h3 class="pr-h">פעילות אחרונה</h3>
         <div class="pr-grid">
           <div class="pr-thumb"><img src="images/recent-1.jpg" alt="" /></div>
@@ -247,69 +122,8 @@
     </div>
   </main>
 
-  <script>
-    // ===== מילוי דינמי + Follow + עוקבים =====
-    (function () {
-      const $id = (id)=>document.getElementById(id);
-
-      // פרטי משתמש
-      function getAuth(){ try{ const raw=localStorage.getItem('authUser')||localStorage.getItem('auth.user'); return raw?JSON.parse(raw):null; }catch{return null;} }
-      function getProfile(){ try{ return JSON.parse(localStorage.getItem('profile')||'{}'); }catch{return {};} }
-
-      const prof = getProfile();
-      const auth = getAuth() || {};
-      const name   = prof.firstName || prof.name || auth.firstName || auth.name || 'דניאלה';
-      const handle = (auth.email ? '@'+auth.email.split('@')[0] : (prof.handle || '@user'));
-
-      $id('prName').textContent   = name;
-      $id('prHandle').textContent = handle;
-      if (prof.city || prof.country) {
-        $id('prLocation').lastElementChild.textContent = (prof.city||'') + (prof.country ? ', ' + prof.country : '');
-      }
-
-      // סטטיסטיקות מה-localStorage
-      let stats = {doneTotal:0, removedTotal:0};
-      try { stats = Object.assign(stats, JSON.parse(localStorage.getItem('loozStats')||'{}')); } catch {}
-      const tasks = (()=>{ try{ return JSON.parse(localStorage.getItem('plannerTasks')||'[]'); }catch{return []} })();
-      const daysSet = new Set(tasks.map(t=>t.date));
-
-      $id('stDone').textContent   = stats.doneTotal || 0;
-      $id('stEvents').textContent = tasks.length;
-      $id('stDays').textContent   = daysSet.size;
-
-      // עוקבים + כפתור עקוב
-      const FKEY='looz:followed';
-      const CKEY='looz:followers';  // נשמור/נקרא מכאן
-      const btnFollow = $id('btnFollow');
-
-      if (localStorage.getItem(CKEY) == null) {
-        localStorage.setItem(CKEY, String((getProfile().followers || 0)));
-      }
-      function followers(){ return parseInt(localStorage.getItem(CKEY)||'0',10) || 0; }
-      function setFollowers(n){ localStorage.setItem(CKEY, String(Math.max(0, n|0))); $id('stFollowers').textContent = followers(); }
-
-      function setFollowUI(on){
-        btnFollow.textContent = on ? 'עוקבים ✓' : 'עקוב';
-        btnFollow.classList.toggle('pr-btn--primary', !on);
-      }
-
-      setFollowers(followers());
-      const isFollowing = localStorage.getItem(FKEY) === '1';
-      setFollowUI(isFollowing);
-
-      btnFollow.addEventListener('click', ()=>{
-        const cur = localStorage.getItem(FKEY) === '1';
-        localStorage.setItem(FKEY, cur ? '0' : '1');
-        setFollowUI(!cur);
-        setFollowers(followers() + (cur ? -1 : 1));
-      });
-
-      // ברירות מחדל ויזואליות
-      const cover = document.getElementById('prCover');
-      const avatar = document.getElementById('prAvatar');
-      cover.style.background = cover.style.background || 'radial-gradient(120% 160% at 50% -20%,#bcd2ff,#89a8ff 45%,#6f86d9 90%)';
-      avatar.style.background = avatar.style.background || '#fff';
-    })();
-  </script>
+  <!-- סקריפטים -->
+  <script src="js/logo.js" defer></script>
+  <script src="profile.js" defer></script>
 </body>
 </html>
