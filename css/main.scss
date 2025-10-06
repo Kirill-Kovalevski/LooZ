@@ -1863,7 +1863,6 @@ height: 10px;
 #planner .c-week .row.is-today {
   position: relative;
   background: rgba(232, 193, 90, 0.16) !important;   /* light-mode warm wash */
-  border: 2px solid #E8C15A !important;               /* light gold edge */
   box-shadow:
     0 2px 10px rgba(232, 193, 90, 0.18),
     inset 0 0 0 1px rgba(255,255,255,0.05) !important;
@@ -1895,7 +1894,6 @@ height: 10px;
 #planner .p-day--today,
 #planner .c-week .row.p-day--today {
   background: rgba(255, 216, 107, 0.14) !important;  /* soft gold wash */
-  border: 2px solid #FFD86B !important;              /* gold edge */
   border-radius: 10px !important;
   box-shadow: 0 2px 12px rgba(255, 216, 107, 0.15) !important;
 }
@@ -1950,4 +1948,47 @@ height: 10px;
 #planner .p-day--today .row::before,
 #planner .p-day--today .row::after {
   content: none !important;
+}
+/* === Keep text perfectly aligned in all rows (today + normal) === */
+
+/* Base layout: Hebrew day (right), counter (center), date (left) */
+#planner .p-day__head--flex {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 24px !important;
+  padding: 4px 10px !important;
+}
+
+/* Force Hebrew day and numeric date to align vertically */
+#planner .p-day__h,
+#planner .p-day__date {
+  display: flex !important;
+  align-items: center !important;
+  line-height: 1.1 !important;
+}
+
+/* === Today row highlight — only outer container === */
+#planner .p-day--today {
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+}
+
+#planner .p-day--today::after {
+  content: "";
+  position: absolute;
+  inset: -2px; /* creates the ring outside */
+  border-radius: 10px;
+  border: 2px solid #E8C15A; /* gold in light mode */
+  box-shadow: 0 4px 14px rgba(232,193,90,.18);
+  pointer-events: none;
+}
+
+/* Dark mode: blue-ish glow */
+[data-theme="dark"] #planner .p-day--today::after {
+  border-color: #4DA3FF;
+  box-shadow:
+    0 0 18px rgba(77,163,255,.28),
+    0 6px 22px rgba(0,0,0,.35);
 }
