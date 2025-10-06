@@ -1,23 +1,35 @@
 "use strict";
 
-document.addEventListener('DOMContentLoaded', function () {
-  var bar = document.querySelector('.looz-bar');
-  var img = document.querySelector('.looz-logo');
-  if (!bar || !img) return;
+// js/logo.js — smart home/back navigation (prevents flicker reloads)
+(function () {
+  'use strict'; // Define your home page (index.html in the same folder)
 
-  var playOnce = function playOnce() {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    bar.classList.add('flash-once');
-    var bolt = bar.querySelector('.looz-bolt');
-    if (!bolt) return;
-    bolt.addEventListener('animationend', function () {
-      bar.classList.remove('flash-once'); // clean up
-    }, {
-      once: true
-    });
-  };
+  var HOME = new URL('index.html', location.href).href; // Compare URLs safely
 
-  img.complete ? playOnce() : img.addEventListener('load', playOnce, {
-    once: true
+  function same(a, b) {
+    try {
+      a = new URL(a, location.href);
+      b = new URL(b, location.href);
+      return a.origin === b.origin && a.pathname === b.pathname;
+    } catch (_) {
+      return false;
+    }
+  } // Intercept clicks on logo or back buttons
+
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a.looz-logo, #sBack, a[href$="index.html"]');
+    if (!a) return;
+    e.preventDefault(); // Already on home? → do nothing (no reload flicker)
+
+    if (same(location.href, HOME)) return; // Came from home and history is available → go back (instant, no repaint)
+
+    if (document.referrer && same(document.referrer, HOME) && history.length > 1) {
+      history.back();
+      return;
+    } // Otherwise → replace with home (no extra history entry)
+
+
+    location.replace(HOME);
   });
-});
+})();

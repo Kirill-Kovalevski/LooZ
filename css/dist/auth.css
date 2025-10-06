@@ -1,153 +1,296 @@
+@charset "UTF-8";
 :root {
-  --bg:#f5f7fb;
-  --surface:#ffffff;
+  --bg:#f6f9fe;
   --ink:#0f172a;
-  --muted:#6b7280;
-  --ring:0 0 0 1px rgba(2,6,23,.06),0 10px 30px rgba(2,6,23,.06);
-  --primary:#22c55e;
-  /* green button */
-  --primary-press:#16a34a;
-  --field:#f4f6fb;
+  --muted:#66788a;
+  --card:#ffffff;
+  --field:#eef3f9;
+  --ring:#60a5fa;
+  --primary:#2563eb;
+  --primary-ink:#f8fafc;
+  --shadow:0 24px 70px rgba(2,6,23,.12);
+  /* brand colors */
+  --g:#4285F4;
+  /* Google blue */
+  --r:#EA4335;
+  /* Google red */
+  --y:#FBBC05;
+  /* Google yellow */
+  --gn:#34A853;
+  /* Google green */
+  --fb:#1877F2;
+  --ig1:#F58529;
+  --ig2:#DD2A7B;
+  --ig3:#8134AF;
+  --ig4:#515BD4;
+  --ap:#000000;
 }
 
-html[data-theme=dark] {
-  --bg:#0b0f1a;
-  --surface:#0f1424;
-  --ink:#f2f6ff;
-  --muted:#c5d0e2;
-  --ring:0 0 0 1px rgba(255,255,255,.08),0 12px 36px rgba(0,0,0,.55);
-  --field:#0f1626;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#0b1220;
+    --ink:#e6edf5;
+    --muted:#98a7b9;
+    --card:#0f172a;
+    --field:#0b1220;
+    --ring:#60a5fa;
+    --primary:#3b82f6;
+    --primary-ink:#0a1a2a;
+    --shadow:0 40px 90px rgba(0,0,0,.6);
+    --ap:#ffffff;
+    /* apple glyph white in dark */
+  }
+}
+html, body {
+  height: 100%;
 }
 
-.auth {
-  margin: 12px 0 24px;
+body {
+  margin: 0;
+  font-family: "Rubik", system-ui, -apple-system, Segoe UI, Roboto, Arial;
 }
 
-.auth__tabs {
-  display: flex;
+* {
+  box-sizing: border-box;
+}
+
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: radial-gradient(160% 120% at 120% -10%, #ffffff50, #0000), linear-gradient(180deg, var(--bg), color-mix(in oklab, var(--bg), #000 5%));
+}
+
+.card {
+  width: min(420px, 92vw);
+  max-width: 420px;
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 18px 16px 22px;
+  animation: up 0.35s cubic-bezier(0.18, 0.8, 0.28, 1) both;
+}
+
+@keyframes up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.topbar {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
   gap: 8px;
-  padding: 8px 2px;
-  overflow: auto;
 }
 
-.auth__tab {
-  appearance: none;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  padding: 10px 14px;
-  background: var(--field);
+.title {
+  margin: 6px 0 0;
+  text-align: center;
+  font-weight: 900;
   color: var(--ink);
-  font: 700 13px/1 system-ui, "Rubik";
-  box-shadow: var(--ring);
+  letter-spacing: 0.3px;
+  font-size: 22px;
 }
 
-.auth__tab.is-on {
-  background: #e8f0ff;
+.iconbtn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--ink), transparent 85%);
+  background: color-mix(in oklab, var(--card), #000 3%);
+  color: var(--ink);
 }
 
-html[data-theme=dark] .auth__tab.is-on {
-  background: #173a64;
-  color: #fff;
-}
-
-.auth__panel {
-  margin-top: 10px;
-}
-
-.auth__panel[hidden] {
+/* panels */
+.panel {
   display: none;
 }
 
-.auth__card {
-  background: var(--surface);
-  box-shadow: var(--ring);
-  border-radius: 22px;
-  padding: 16px;
+.panel.is-on {
+  display: block;
+}
+
+/* labels */
+.f {
   display: grid;
-  gap: 10px;
+  gap: 12px;
+  margin: 16px 0;
 }
 
-.field {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  background: var(--field);
-  border-radius: 16px;
-  padding: 6px 10px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04) inset;
-}
-
-.field .ic {
-  order: 2;
-  opacity: 0.7;
-  margin-inline-start: 8px;
-}
-
-.field input {
-  order: 1;
-  appearance: none;
-  border: 0;
-  background: transparent;
-  padding: 10px 6px;
-  color: var(--ink);
-  width: 100%;
-  font: 600 14px/1.2 system-ui, "Rubik";
-}
-
-.field input::placeholder {
+.f__label {
+  font: 800 13px/1.2 "Rubik", system-ui;
   color: var(--muted);
 }
 
-.eye {
-  order: 3;
-  appearance: none;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-}
-
-.eye:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-html[data-theme=dark] .eye:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.remember {
+/* inputs — left icon + right eye with no overlap */
+.input {
+  position: relative;
+  height: 56px;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--field), #fff 8%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink), transparent 85%), 0 8px 18px rgba(2, 6, 23, 0.05);
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 13px;
+  overflow: hidden;
 }
 
-.small {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
+.input__icon {
+  width: 44px;
+  min-width: 44px;
+  display: grid;
+  place-items: center;
+  color: color-mix(in oklab, var(--ink), #6b7280 30%);
 }
 
-.btn {
-  appearance: none;
+.input__el {
+  flex: 1;
   border: 0;
-  border-radius: 999px;
+  background: transparent;
+  outline: none;
+  color: var(--ink);
+  font: 500 16px/1 "Rubik", system-ui;
+  padding-inline-end: 54px;
+}
+
+.input__el::placeholder {
+  color: color-mix(in oklab, var(--ink), transparent 60%);
+}
+
+.input:focus-within {
+  box-shadow: inset 0 0 0 2px var(--ring), 0 0 0 6px color-mix(in oklab, var(--ring), transparent 80%), 0 8px 18px rgba(2, 6, 23, 0.06);
+}
+
+.input__eye, .input__tail {
+  position: absolute;
+  inset: 0 6px 0 auto;
+  width: 46px;
+  height: 46px;
+  margin: auto 0;
+  border-radius: 12px;
+  border: 0;
+  background: transparent;
+  color: color-mix(in oklab, var(--ink), #6b7280 30%);
+}
+
+.input__tail {
+  pointer-events: none;
+}
+
+/* just reserves space at end when no eye */
+/* CTA — medium radius + shine */
+.btn {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  border-radius: 12px;
+  border: 0;
   cursor: pointer;
-  padding: 14px 16px;
-  font: 800 15px/1 system-ui, "Rubik";
+  background: linear-gradient(180deg, color-mix(in oklab, var(--primary), #fff 10%), var(--primary));
+  color: var(--primary-ink);
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  box-shadow: 0 22px 36px color-mix(in oklab, var(--primary), transparent 75%);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.btn--primary {
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25);
+.btn__shine {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(180deg, #ffffff80, #ffffff10 40%, #0000 60%);
+  mix-blend-mode: soft-light;
+  opacity: 0.8;
 }
 
-.btn--primary:active {
-  transform: translateY(1px);
-  background: var(--primary-press);
+/* links / foot */
+.link {
+  color: var(--ring);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.muted {
+  color: var(--muted);
+  text-align: center;
+}
+
+/* round colorful providers */
+.providers {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.pbtn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 0;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 20px rgba(2, 6, 23, 0.1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.pbtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pbtn--google {
+  background: conic-gradient(var(--g) 0 25%, var(--r) 0 50%, var(--y) 0 75%, var(--gn) 0 100%);
+}
+
+.pbtn--facebook {
+  background: var(--fb);
+}
+
+.pbtn--instagram {
+  background: radial-gradient(circle at 30% 30%, #fff0 0 35%, #fff2 36% 40%, #0000 0 100%), conic-gradient(var(--ig1), var(--ig2), var(--ig3), var(--ig4), var(--ig1));
+}
+
+.pbtn--apple {
+  background: var(--ap);
+}
+
+/* apple glyph contrast */
+@media (prefers-color-scheme: light) {
+  .pbtn--apple::after {
+    content: "";
+    font: 700 22px/1 "SF Pro", system-ui, -apple-system;
+    color: #fff;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .pbtn--apple::after {
+    content: "";
+    font: 700 22px/1 "SF Pro", system-ui, -apple-system;
+    color: #000;
+  }
+}
+/* medium bump */
+@media (min-width: 600px) {
+  .card {
+    padding: 22px 18px 26px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
 }
