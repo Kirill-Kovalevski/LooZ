@@ -11,31 +11,19 @@
   function strongPass(p) {
     p = String(p || '');
     return p.length >= 10 && /[A-Za-z]/.test(p) && /\d/.test(p) && /[^A-Za-z0-9]/.test(p);
-  } // Always keep same origin+folder to avoid guard bounce
+  } // Always navigate within the SAME folder + origin to avoid guard bounce
 
 
-  function go(file) {
-    var url = new URL(file, location.href).href;
+  function goHome() {
+    var here = location.href;
+    var base = here.substring(0, here.lastIndexOf('/') + 1);
+    location.replace(base + 'index.html');
+  } // tiny util to read inputs safely (no optional chaining)
 
-    try {
-      location.replace(url);
-    } catch (_) {
-      location.href = url;
-    }
-  }
 
   function val(form, sel) {
     var el = form ? form.querySelector(sel) : null;
     return el ? el.value : '';
-  } // Find the correct home URL from your DOM (logo/back), fallback to index.html
-
-
-  function homeUrl() {
-    var src = // 1) header logo if present (auth + settings use it)
-    document.querySelector('.looz-logo[href]') || // 2) any explicit link to index.html in the page
-    document.querySelector('a[href$="index.html"], a[href*="/index.html"]');
-    var href = src ? src.getAttribute('href') : 'index.html';
-    return new URL(href, location.href).href; // keep same origin + correct folder
   }
   /* ========= tabs (buttons[data-tab], panels[data-panel]) ========= */
 
@@ -61,7 +49,7 @@
 
 
   document.addEventListener('click', function (e) {
-    var n = e.target; // walk up to find [data-go]
+    var n = e.target;
 
     while (n && n !== document && !(n.getAttribute && n.hasAttribute('data-go'))) {
       n = n.parentNode;
@@ -120,7 +108,7 @@
       if (!pass) {
         alert('נדרשת סיסמה');
         return;
-      } // ===== on successful login =====
+      } // ===== success: set session (triple) and go home =====
 
 
       var user = {
@@ -130,17 +118,16 @@
       };
 
       try {
-        // Primary session
-        localStorage.setItem('authUser', JSON.stringify(user)); // Redundant signals so the guard sees it immediately
+        localStorage.setItem('authUser', JSON.stringify(user)); // primary key app expects
 
-        sessionStorage.setItem('authUser', JSON.stringify(user));
+        sessionStorage.setItem('authUser', JSON.stringify(user)); // redundancy for guard
+
         localStorage.removeItem('looz:loggedOut');
-        localStorage.setItem('looz:justLoggedIn', '1'); // Cookie (origin-wide) – 7 days
-
-        document.cookie = "looz_auth=1; Max-Age=604800; Path=/; SameSite=Lax";
+        localStorage.setItem('looz:justLoggedIn', '1');
+        document.cookie = "looz_auth=1; Max-Age=604800; Path=/; SameSite=Lax"; // 7 days
       } catch (_) {}
 
-      location.replace(homeUrl());
+      goHome(); // same folder, same origin
     });
   }
   /* ========= REGISTER ========= */
@@ -174,8 +161,7 @@
       if (conf !== pass) {
         alert('אימות סיסמה לא תואם');
         return;
-      } // ===== on successful register =====
-
+      }
 
       var user = {
         id: Date.now(),
@@ -184,17 +170,14 @@
       };
 
       try {
-        // Primary session
-        localStorage.setItem('authUser', JSON.stringify(user)); // Redundant signals so the guard sees it immediately
-
+        localStorage.setItem('authUser', JSON.stringify(user));
         sessionStorage.setItem('authUser', JSON.stringify(user));
         localStorage.removeItem('looz:loggedOut');
-        localStorage.setItem('looz:justLoggedIn', '1'); // Cookie (origin-wide) – 7 days
-
+        localStorage.setItem('looz:justLoggedIn', '1');
         document.cookie = "looz_auth=1; Max-Age=604800; Path=/; SameSite=Lax";
       } catch (_) {}
 
-      location.replace(homeUrl());
+      goHome();
     });
   }
   /* ========= FORGOT ========= */

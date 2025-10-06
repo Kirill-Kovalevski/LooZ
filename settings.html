@@ -11,7 +11,42 @@
   <!-- compiled CSS (not .scss) -->
   <link rel="stylesheet" href="css/dist/settings.css?v=2">
   <link rel="stylesheet" href="css/dist/dark-overrides.css?v=2">
+  <script>
+  (function () {
+    function load(primary, fallback) {
+      var s = document.createElement('script');
+      s.src = primary; s.defer = true;
+      s.onerror = function () {
+        var f = document.createElement('script');
+        f.src = fallback; f.defer = true;
+        document.head.appendChild(f);
+      };
+      document.head.appendChild(s);
+    }
+    load('js/auth-guard.js', './auth-guard.js');
+  })();
+</script>
+
+
   <script src="js/theme.js"></script>
+  <!-- Auth guard + page script (robust loader: tries /js/... then ./...) -->
+<script>
+  (function () {
+    function load(primary, fallback) {
+      var s = document.createElement('script');
+      s.src = primary; s.defer = true;
+      s.onerror = function () {
+        var f = document.createElement('script');
+        f.src = fallback; f.defer = true;
+        document.head.appendChild(f);
+      };
+      document.head.appendChild(s);
+    }
+    load('js/auth-guard.js', './auth-guard.js');
+    load('js/settings.js',   './settings.js');
+  })();
+</script>
+
 
 </head>
 
@@ -74,6 +109,7 @@
           <span>התנתק</span>
         </span>
       </button>
+
     </section>
   </main>
 

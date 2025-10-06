@@ -1,142 +1,122 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<link rel="stylesheet" href="css/dist/dark-overrides.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>LooZ — כניסה / הרשמה</title>
 
-<title>LooZ</title>
+  <!-- Reuse your Settings styles & theme so header is identical -->
+  <script src="js/theme.js"></script>
+  <link rel="stylesheet" href="css/dist/settings.css" />
+  <link rel="stylesheet" href="css/dist/auth.css" />
+  <link rel="stylesheet" href="css/dist/dark-overrides.css" />
 
+
+
+  <!-- Robust loader: tries /js/auth.js then falls back to ./auth.js -->
 <script>
   (function () {
-    if (/github\.io$/.test(location.hostname)) {
-      var seg = (location.pathname.split('/').filter(Boolean)[0] || '');
-      var base = '/' + (seg ? seg + '/' : '');
-      var el = document.createElement('base'); el.href = base;
-      document.head.appendChild(el);
+    function load(primary, fallback) {
+      var s = document.createElement('script');
+      s.src = primary; s.defer = true;
+      s.onerror = function () {
+        var f = document.createElement('script');
+        f.src = fallback; f.defer = true;
+        document.head.appendChild(f);
+      };
+      document.head.appendChild(s);
     }
+    load('js/auth.js', './auth.js');
   })();
 </script>
 
-<link rel="stylesheet" href="css/dist/main.css" />
-<link rel="stylesheet" href="css/dist/dark-overrides.css" />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
-<script src="js/theme.js"></script>
-
-<style>
-  .auth-page{min-height:100svh;display:grid;grid-template-rows:auto 1fr auto;justify-items:center;align-items:start;padding:1.25rem clamp(.75rem,3vw,1.25rem);background:radial-gradient(120% 120% at 50% 0%,#fff 0%,#f4f7fb 70%)}
-  .auth-header{text-align:center;margin:.5rem 0 1rem}
-  .auth-brand{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:clamp(1.8rem,3.8vw + 1rem,2.2rem);letter-spacing:.02em;margin:0}
-  .auth-lemon{inline-size:2.6rem;block-size:2.6rem;margin:.35rem auto 0;display:grid;place-items:center;border-radius:1rem;background:radial-gradient(circle at 40% 35%,#fff,rgba(255,255,255,.25)),linear-gradient(180deg,#FFF7D1,#FFE48A);box-shadow:0 .4rem 1rem rgba(0,0,0,.08),inset 0 0 .35rem rgba(255,255,255,.7)}
-  .auth-card{width:100%;max-width:24rem;background:rgba(255,255,255,.9);border:1px solid rgba(0,0,0,.06);border-radius:1rem;box-shadow:0 .75rem 2rem rgba(0,0,0,.07);padding:1rem clamp(1rem,3vw,1.25rem)}
-  .auth-tabs{display:grid;grid-auto-flow:column;gap:.5rem;margin-bottom:.75rem}
-  .auth-tab{border:1px solid rgba(0,0,0,.08);border-radius:999rem;padding:.45rem .9rem;background:linear-gradient(145deg,#F8F5EF,#EDE7DC);box-shadow:inset 0 0 .25rem rgba(255,255,255,.5),0 .15rem .35rem rgba(0,0,0,.08);font:500 .95rem 'Rubik',system-ui,sans-serif;cursor:pointer}
-  .auth-tab.is-active{outline:2px solid rgba(29,78,216,.12);background:linear-gradient(145deg,#fff,#f4f2ea)}
-  .auth-panel{display:none}.auth-panel.is-active{display:block}
-  .auth-form{display:grid;gap:.75rem}
-  .f-field{display:grid;gap:.35rem}
-  .f-label{font:500 .9rem 'Rubik',system-ui,sans-serif;color:#2b2b44}
-  .f-input{inline-size:100%;block-size:2.9rem;padding:0 .95rem;border-radius:.9rem;border:1px solid rgba(0,0,0,.1);background:linear-gradient(180deg,#fff,#f7f7fa);font:400 1rem 'Rubik',system-ui,sans-serif}
-  .f-field--password{position:relative}
-  .f-eye{position:absolute;inset-inline-start:.55rem;inset-block-start:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:1.1rem;opacity:.7}
-  .f-inline{display:inline-flex;align-items:center;gap:.5rem}
-  .f-row.between{display:flex;justify-content:space-between;align-items:center}
-  .f-error{color:#b91c1c;font-size:.82rem;min-height:1em}
-  .f-hint{color:#64748b;font-size:.8rem}
-  .f-link{color:#2563eb;text-decoration:none}
-  .auth-primary{margin-top:.25rem;block-size:3rem;border-radius:999rem;border:0;cursor:pointer;color:#fff;font:600 1rem 'Rubik',system-ui,sans-serif;background:linear-gradient(135deg,#1e68ff,#06b6d4);box-shadow:0 .6rem 1.25rem rgba(6,182,212,.28)}
-  .auth-foot{margin-block:1.25rem 0;text-align:center}
-</style>
 </head>
 <body>
-  <main class="auth-page">
-    <header class="auth-header">
-      <h1 class="auth-brand">LooZ</h1>
-      <div class="auth-lemon" aria-hidden="true">
-        <!-- same lemon vibe as in-app -->
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <defs>
-            <radialGradient id="authLemon" cx="50%" cy="40%" r="70%">
-              <stop offset="0%" stop-color="#FFF8C6"/>
-              <stop offset="60%" stop-color="#FFE36E"/>
-              <stop offset="100%" stop-color="#F7C843"/>
-            </radialGradient>
-          </defs>
-          <path d="M19 7c-3-3-8-3-11 0-2 2.3-2 6 0 8 2.2 2.1 5.8 2.4 8 0 2.2-2.1 2.6-5.4 1-7.6" fill="url(#authLemon)" stroke="#C59A21" stroke-width="1"/>
-          <path d="M18 6c.9-.9 1.7-1.8 2.3-2.8" stroke="#6FA14D" stroke-linecap="round"/>
+  <main class="s">
+    <!-- Same header DOM/classes as Settings -->
+    <header class="s__header s__header--grid">
+      <a class="s__btn s__btn--gold s__btn--chev" href="index.html" aria-label="חזרה">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M14 5L7 12l7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-      </div>
+      </a>
+      <h1 class="s__title s__title--center">כניסה</h1>
+      <a class="looz-logo" href="index.html" aria-label="LooZ">
+        <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ" />
+        <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
+      </a>
     </header>
 
-    <section class="auth-card" aria-label="התחברות והרשמה">
-      <div class="auth-tabs" role="tablist">
-        <button id="tab-login" class="auth-tab is-active" role="tab" aria-controls="panel-login" aria-selected="true">התחברות</button>
-        <button id="tab-register" class="auth-tab" role="tab" aria-controls="panel-register" aria-selected="false">הרשמה</button>
-      </div>
+    <section class="auth">
+      <!-- Tabs -->
+      <nav class="auth__tabs" role="tablist" aria-label="Auth tabs">
+        <button class="auth__tab is-on" data-tab="login" role="tab" aria-selected="true">כניסה</button>
+        <button class="auth__tab" data-tab="register" role="tab" aria-selected="false">הרשמה</button>
+        <button class="auth__tab" data-tab="forgot" role="tab" aria-selected="false">שכחתי סיסמה</button>
+      </nav>
 
-      <!-- Login -->
-      <section id="panel-login" class="auth-panel is-active" role="tabpanel" aria-labelledby="tab-login">
-        <form id="loginForm" class="auth-form" novalidate>
-          <label class="f-field">
-            <span class="f-label">אימייל</span>
-            <input id="loginEmail" class="f-input" type="email" inputmode="email" autocomplete="email" required placeholder="name@example.com" />
-            <small id="loginEmailErr" class="f-error"></small>
-          </label>
-          <label class="f-field f-field--password">
-            <span class="f-label">סיסמה</span>
-            <input id="loginPassword" class="f-input" type="password" autocomplete="current-password" required placeholder="••••••••" />
-            <button type="button" class="f-eye" aria-label="הצג/הסתר סיסמה" data-eye="loginPassword">👁</button>
-            <small id="loginPasswordErr" class="f-error"></small>
-          </label>
-          <div class="f-row between">
-            <label class="f-inline"><input id="rememberMe" type="checkbox" /><span>זכור אותי</span></label>
-            <a class="f-link" href="#" aria-disabled="true">שכחת סיסמה?</a>
+      <!-- Panels -->
+      <section class="auth__panel is-on" data-panel="login" role="tabpanel">
+        <form id="formLogin" class="auth__card" autocomplete="on">
+          <div class="field">
+            <span class="ic">@</span>
+            <input type="email" name="email" placeholder="כתובת אימייל" required>
           </div>
-          <button type="submit" class="auth-primary">התחבר/י</button>
+          <div class="field">
+            <span class="ic">🔒</span>
+            <input type="password" name="password" placeholder="סיסמה" minlength="6" required>
+            <button type="button" class="eye" aria-label="הצג/הסתר סיסמה">👁️</button>
+          </div>
+          <label class="remember">
+            <input type="checkbox" name="remember"> זכור אותי
+          </label>
+          <button class="btn btn--primary" type="submit">התחבר</button>
+          <p class="small">
+            אין לך חשבון? <a href="#" data-go="register">הירשם/י כאן</a>
+          </p>
         </form>
       </section>
 
-      <!-- Register -->
-      <section id="panel-register" class="auth-panel" role="tabpanel" aria-labelledby="tab-register" hidden>
-        <form id="registerForm" class="auth-form" novalidate>
-          <label class="f-field">
-            <span class="f-label">שם פרטי</span>
-            <input id="regName" class="f-input" type="text" autocomplete="given-name" required placeholder="דניאלה" />
-            <small id="regNameErr" class="f-error"></small>
-          </label>
-          <label class="f-field">
-            <span class="f-label">אימייל</span>
-            <input id="regEmail" class="f-input" type="email" inputmode="email" autocomplete="email" required placeholder="name@example.com" />
-            <small id="regEmailErr" class="f-error"></small>
-          </label>
-          <label class="f-field f-field--password">
-            <span class="f-label">סיסמה</span>
-            <input id="regPassword" class="f-input" type="password" autocomplete="new-password" required placeholder="מינימום 10 תווים, אות, מספר וסימן" />
-            <button type="button" class="f-eye" aria-label="הצג/הסתר סיסמה" data-eye="regPassword">👁</button>
-            <small class="f-hint">לפחות 10 תווים ומינ׳ סימן</small>
-            <small id="regPasswordErr" class="f-error"></small>
-          </label>
-          <label class="f-field f-field--password">
-            <span class="f-label">אימות סיסמה</span>
-            <input id="regConfirm" class="f-input" type="password" autocomplete="new-password" required placeholder="חזרה על הסיסמה" />
-            <button type="button" class="f-eye" aria-label="הצג/הסתר סיסמה" data-eye="regConfirm">👁</button>
-            <small id="regConfirmErr" class="f-error"></small>
-          </label>
-          <label class="f-inline"><input id="regTerms" type="checkbox" required /><span>קראתי ואני מאשר/ת את התנאים</span></label>
-          <button type="submit" class="auth-primary">הרשם/י</button>
+      <section class="auth__panel" data-panel="register" role="tabpanel" hidden>
+        <form id="formRegister" class="auth__card" autocomplete="on">
+          <div class="field">
+            <span class="ic">🪪</span>
+            <input type="text" name="name" placeholder="שם מלא" required>
+          </div>
+          <div class="field">
+            <span class="ic">@</span>
+            <input type="email" name="email" placeholder="כתובת אימייל" required>
+          </div>
+          <div class="field">
+            <span class="ic">🔒</span>
+            <input type="password" name="password" placeholder="סיסמה (מינ׳ 6 תווים)" minlength="6" required>
+            <button type="button" class="eye" aria-label="הצג/הסתר סיסמה">👁️</button>
+          </div>
+          <div class="field">
+            <span class="ic">🔒</span>
+            <input type="password" name="confirm" placeholder="אימות סיסמה" minlength="6" required>
+            <button type="button" class="eye" aria-label="הצג/הסתר סיסמה">👁️</button>
+          </div>
+          <button class="btn btn--primary" type="submit">צור חשבון</button>
+          <p class="small">
+            כבר יש חשבון? <a href="#" data-go="login">כניסה</a>
+          </p>
+        </form>
+      </section>
+
+      <section class="auth__panel" data-panel="forgot" role="tabpanel" hidden>
+        <form id="formForgot" class="auth__card">
+          <div class="field">
+            <span class="ic">@</span>
+            <input type="email" name="email" placeholder="כתובת אימייל" required>
+          </div>
+          <button class="btn btn--primary" type="submit">שלח קישור לאיפוס</button>
+          <p class="small">
+            זוכרת/זוכר את הסיסמה? <a href="#" data-go="login">חזרה לכניסה</a>
+          </p>
         </form>
       </section>
     </section>
-
-    <footer class="auth-foot">
-      <a class="f-link" href="index.html">← חזרה לאפליקציה</a>
-    </footer>
   </main>
-
-  <!-- LooZ auth logic -->
-  <script src="dist/auth.js" defer></script>
-  <!-- Global theme (no-flash) -->
-<script src="js/theme.js"></script>
-
 </body>
 </html>

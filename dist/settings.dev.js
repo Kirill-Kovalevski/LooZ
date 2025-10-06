@@ -2,20 +2,18 @@
 
 // settings.js — page behaviour (back, share, plan, logout)
 (function () {
-  'use strict'; // --- Back (enhanced: works with/without history, PWA-safe)
+  'use strict'; // --- Back (safe both with/without history, PWA-friendly)
 
   (function () {
     var back = document.getElementById('sBack');
-    if (!back) return; // If there is history, use it; otherwise the link's href is the fallback
-
+    if (!back) return;
     back.addEventListener('click', function (e) {
-      // Some environments (file://, standalone PWA) report small history lengths
       if (history.length > 1) {
         e.preventDefault();
-        var prev = document.referrer; // If referrer is same-origin, go back; else let the href work
+        var prev = document.referrer;
 
         if (prev && new URL(prev, location.href).origin === location.origin) {
-          history.back(); // iOS Safari PWA sometimes ignores back—fallback after 150ms
+          history.back(); // iOS PWA fallback
 
           setTimeout(function () {
             if (document.visibilityState !== 'hidden') location.href = back.href;
@@ -23,7 +21,7 @@
         }
       }
     });
-  })(); // Share
+  })(); // --- Share
 
 
   var shareBtn = document.getElementById('btnShare');
@@ -76,7 +74,7 @@
         }
       }, null, null, [[1, 12]]);
     });
-  } // Plan modal
+  } // --- Plan modal
 
 
   var planBtn = document.getElementById('btnPlan');
@@ -94,17 +92,31 @@
         alert(plan === 'pro' ? 'ברוכה הבאה ל־Premium ✨' : 'נשארת על Free');
       });
     });
-  } // Logout
+  } // --- Logout (works with auth-guard.js if present, otherwise falls back)
 
 
-  var logout = document.getElementById('btnLogout');
+  var logoutBtn = document.getElementById('btnLogout');
 
-  if (logout) {
-    logout.addEventListener('click', function () {
-      if (confirm('להתנתק?')) {
-        localStorage.removeItem('looz:user');
-        location.href = 'index.html';
-      }
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function () {
+      if (!confirm('להתנתק?')) return; // Prefer the guard’s canonical logout (clears all keys + redirects)
+
+      if (typeof window.logout === 'function') {
+        window.logout();
+        return;
+      } // Fallback: clear all known keys and go to auth screen
+
+
+      try {
+        localStorage.removeItem('authUser'); // actually used by your login/register
+
+        localStorage.removeItem('auth.user');
+        localStorage.removeItem('auth.token');
+        localStorage.setItem('looz:loggedOut', '1');
+        sessionStorage.removeItem('auth.session');
+      } catch (_) {}
+
+      location.href = 'auth.html?loggedout=1';
     });
   }
 })();
