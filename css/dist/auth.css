@@ -86,7 +86,9 @@ body {
   display: grid;
   grid-template-columns: 44px 1fr 44px;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
+  padding: 0;
+  margin: 0;
 }
 
 .title {
@@ -1315,4 +1317,27 @@ html:not([data-theme]) .topbar .logo--light {
   height: 100% !important;
   object-fit: contain !important;
   display: block !important;
+}
+
+/* Bigger logo box (per-page via --auth-logo-size) */
+.topbar.topbar--simple .topbar__logo {
+  width: var(--auth-logo-size, 96px) !important;
+  height: var(--auth-logo-size, 96px) !important;
+  justify-self: end;
+}
+
+.topbar.topbar--simple .topbar__logo .logo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+  transition: opacity 0.14s linear;
+  /* fade between light/dark logo */
+  will-change: opacity;
+}
+
+/* During theme flip, freeze transitions to avoid bg gradient lag */
+.theme-fx-off *, .theme-fx-off *::before, .theme-fx-off *::after {
+  transition: none !important;
+  animation: none !important;
 }

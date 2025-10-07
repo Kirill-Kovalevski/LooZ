@@ -7,6 +7,9 @@
 
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&display=swap" rel="stylesheet">
+<!-- Preload both logos to avoid network/decoding lag -->
+<link rel="preload" as="image" href="icons/main-logo.png">
+<link rel="preload" as="image" href="icons/dark-logo.png">
 
   <link rel="stylesheet" href="css/dist/auth.css" />
 
@@ -27,16 +30,12 @@
 
 <header class="topbar topbar--simple" dir="rtl" style="--auth-logo-size: 112px">
   <h1 class="title">כניסה</h1>
+  
   <a class="topbar__logo" aria-label="LooZ">
     <!-- ONE image only; JS flips src between light/dark -->
     <img id="authLogo" class="logo" src="icons/main-logo.png" alt="LooZ" />
   </a>
 </header>
-
-
-
-
-
     <!-- LOGIN -->
     <section class="panel is-on" data-panel="login" aria-label="כניסה">
       <form id="formLogin" class="f" novalidate>
@@ -167,175 +166,7 @@
 
 <script src="js/logo.js"></script>
 <script src="js/auth-ui.js?v=2"></script>
-<script>
-  (function(){
-    // theme נשמר אצלך ב-localStorage ? (light/dark/system)
-    var pref = localStorage.getItem('theme') || 'system';
-    var root = document.documentElement;
 
-    function apply(t){
-      root.setAttribute('data-theme', t);
-    }
-
-    if (pref === 'dark') apply('dark');
-    else if (pref === 'light') apply('light');
-    else {
-      // system ברירת מחדל
-      var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-      apply(mq && mq.matches ? 'dark' : 'light');
-      if (mq && mq.addEventListener) mq.addEventListener('change', function(e){ apply(e.matches ? 'dark' : 'light'); });
-    }
-  })();
-</script>
-<script>
-(function(){
-  const root = document.documentElement;
-  const mq   = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-  const saved = localStorage.getItem('theme'); // 'light' | 'dark' | null
-
-  function apply(theme){
-    if (theme === 'light' || theme === 'dark'){
-      root.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-    } else {
-      root.removeAttribute('data-theme');           // follow system
-      localStorage.removeItem('theme');
-    }
-    updateToggle(currentTheme());
-  }
-
-  function currentTheme(){
-    const t = root.getAttribute('data-theme');
-    if (t) return t;
-    return (mq && mq.matches) ? 'dark' : 'light';
-  }
-
-  function updateToggle(t){
-    document.querySelectorAll('.theme-switch .ts-btn').forEach(btn=>{
-      btn.setAttribute('aria-pressed', btn.dataset.theme === t ? 'true' : 'false');
-    });
-  }
-
-  // init
-  apply(saved);
-
-  // toggle handlers
-  const lightBtn = document.querySelector('.theme-switch .ts-btn[data-theme="light"]');
-  const darkBtn  = document.querySelector('.theme-switch .ts-btn[data-theme="dark"]');
-  lightBtn && lightBtn.addEventListener('click', ()=> apply('light'));
-  darkBtn  && darkBtn.addEventListener('click',  ()=> apply('dark'));
-
-  // if following system (no saved theme) and system changes
-  mq && mq.addEventListener && mq.addEventListener('change', ()=> {
-    if (!localStorage.getItem('theme')) apply(null);
-  });
-})();
-</script>
-<script>
-(function(){
-  const root = document.documentElement;
-  const mq   = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-  const chk  = document.getElementById('ttInput');
-
-  function currentTheme(){
-    const t = root.getAttribute('data-theme');
-    if (t) return t;
-    return (mq && mq.matches) ? 'dark' : 'light';
-  }
-function apply(theme){
-  if (theme === 'light' || theme === 'dark'){
-    root.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  } else {
-    root.removeAttribute('data-theme');     // follow system
-    localStorage.removeItem('theme');
-  }
-
-  // 👇 ensure only one logo shows (auth header + home header)
-  const lights = document.querySelectorAll('.topbar .logo--light, .looz-logo .brand-logo--light');
-  const darks  = document.querySelectorAll('.topbar .logo--dark,  .looz-logo .brand-logo--dark');
-  const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const isDark = theme ? (theme === 'dark') : sysDark;
-
-  lights.forEach(el => el && (el.hidden =  isDark));  // hide light in dark
-  darks .forEach(el => el && (el.hidden = !isDark));  // hide dark in light
-
-  // keep the toggle’s checkbox in sync (if present)
-  const chk = document.getElementById('ttInput');
-  if (chk) chk.checked = isDark;
-}
-
-
-  // init from saved/system
-  const saved = localStorage.getItem('theme');
-  apply(saved || null);
-
-  chk && chk.addEventListener('change', ()=> apply(chk.checked ? 'dark' : 'light'));
-  mq && mq.addEventListener && mq.addEventListener('change', ()=> {
-    if (!localStorage.getItem('theme')) apply(null);
-  });
-})();
-</script>
-
-<script>
-(function(){
-  const root = document.documentElement;
-  const mq   = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-  const input = document.getElementById('ttInput');
-
-  function setTheme(theme){
-    if (theme === 'light' || theme === 'dark'){
-      root.setAttribute('data-theme', theme);
-      try{ localStorage.setItem('theme', theme); }catch(e){}
-    } else {
-      root.removeAttribute('data-theme'); // follow system
-      try{ localStorage.removeItem('theme'); }catch(e){}
-    }
-    const isDark = theme ? theme === 'dark' : (mq && mq.matches);
-
-    // show only one logo (auth header + any other header that uses these classes)
-    document.querySelectorAll('.topbar .logo--light').forEach(el => el && (el.hidden =  isDark));
-    document.querySelectorAll('.topbar .logo--dark' ).forEach(el => el && (el.hidden = !isDark));
-
-    // sync the switch UI
-    if (input) input.checked = isDark;
-  }
-
-  // init from saved/system
-  setTheme(localStorage.getItem('theme') || null);
-
-  // toggle
-  if (input){
-    input.addEventListener('change', () => setTheme(input.checked ? 'dark' : 'light'));
-  }
-
-  // follow system only when no explicit choice
-  mq && mq.addEventListener && mq.addEventListener('change', () => {
-    if (!localStorage.getItem('theme')) setTheme(null);
-  });
-})();
-</script>
-<script>
-(function(){
-  var root = document.documentElement;
-  var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-
-  function isDark(){
-    var t = root.getAttribute('data-theme');
-    return t ? (t === 'dark') : (mq && mq.matches);
-  }
-  function enforceLogo(){
-    var dark = isDark();
-    document.querySelectorAll('.topbar .logo--light').forEach(function(el){ if (el) el.hidden =  dark; });
-    document.querySelectorAll('.topbar .logo--dark' ).forEach(function(el){ if (el) el.hidden = !dark; });
-  }
-
-  enforceLogo();
-  // Re-run when theme changes
-  mq && mq.addEventListener && mq.addEventListener('change', enforceLogo);
-  window.addEventListener('storage', function(e){ if (e.key === 'theme') enforceLogo(); });
-})();
-</script>
 
 </body>
 </html>

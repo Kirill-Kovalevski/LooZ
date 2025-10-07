@@ -1,188 +1,250 @@
+/* ===================================================================
+   auth.js — full drop-in (LooZ)
+   - Tabs (login / register / forgot)
+   - Password eye toggle
+   - Theme system (sun/moon pill + optional 2-button switch)
+     • Single <img id="authLogo"> logo, no-flicker PNG swap
+     • Disables transitions briefly to avoid bg lag
+   - Register stores first/last for home greeting
+   - Demo login/forgot flows using local/session storage
+   =================================================================== */
 (function () {
   'use strict';
 
-  /* ========= helpers ========= */
-  function okEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v||'').trim()); }
-  function strongPass(p){
-    p = String(p||'');
+  /* --------------------- Utilities --------------------- */
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function val(form, sel) { var el = form ? form.querySelector(sel) : null; return el ? el.value : ''; }
+
+  function okEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim()); }
+  function strongPass(p) {
+    p = String(p || '');
     return p.length >= 10 && /[A-Za-z]/.test(p) && /\d/.test(p) && /[^A-Za-z0-9]/.test(p);
   }
-  // Paths to your logo assets
-const LIGHT_LOGO_SRC = "icons/main-logo.png";
-const DARK_LOGO_SRC  = "icons/dark-logo.png";
 
-function setAuthLogo(isDark){
-  var img = document.getElementById('authLogo');
-  if (img) img.src = isDark ? DARK_LOGO_SRC : LIGHT_LOGO_SRC;
-}
-
-  // Always navigate within the SAME folder + origin to avoid guard bounce
-  function goHome(){
+  function goHome() {
+    // Always navigate within the same folder to avoid path issues
     var here = location.href;
     var base = here.substring(0, here.lastIndexOf('/') + 1);
     location.replace(base + 'index.html');
   }
-  // tiny util to read inputs safely (no optional chaining)
-  function val(form, sel){
-    var el = form ? form.querySelector(sel) : null;
-    return el ? el.value : '';
-  }
-  function $(sel, root){ return (root||document).querySelector(sel); }
-  function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
 
-  /* ========= tabs (buttons[data-tab], panels[data-panel]) ========= */
-  var tabBtns = $all('.auth__tab');
-  var panels  = $all('.auth__panel');
+  /* --------------------- Tabs (login/register/forgot) --------------------- */
+  var tabBtns = $all('.auth__tab');                    // optional tabs
+  var panels  = $all('.auth__panel, .panel');          // support your markup
 
-  function show(tabKey){
-    for (var i=0;i<tabBtns.length;i++){
-      var b = tabBtns[i];
-      var on = (b.getAttribute('data-tab') === tabKey);
+  function show(panelKey) {
+    tabBtns.forEach(function (b) {
+      var on = (b.getAttribute('data-tab') === panelKey);
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-selected', on ? 'true' : 'false');
-    }
-    for (var j=0;j<panels.length;j++){
-      var p = panels[j];
-      var onp = (p.getAttribute('data-panel') === tabKey);
+    });
+    panels.forEach(function (p) {
+      var onp = (p.getAttribute('data-panel') === panelKey);
       p.classList.toggle('is-on', onp);
-      if (onp) p.removeAttribute('hidden'); else p.setAttribute('hidden','');
-    }
+      if (onp) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
+    });
   }
 
-  // links like <a data-go="register">
-  document.addEventListener('click', function (e){
+  // Buttons/text links with [data-go]
+  document.addEventListener('click', function (e) {
     var n = e.target;
     while (n && n !== document && !(n.getAttribute && n.hasAttribute('data-go'))) n = n.parentNode;
-    if (n && n !== document && n.hasAttribute('data-go')){
+    if (n && n !== document && n.hasAttribute('data-go')) {
       e.preventDefault();
       show(n.getAttribute('data-go'));
     }
   });
-  for (var k=0;k<tabBtns.length;k++){
-    (function(btn){
-      btn.addEventListener('click', function(){ show(btn.getAttribute('data-tab') || 'login'); });
-    })(tabBtns[k]);
-  }
+  tabBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () { show(btn.getAttribute('data-tab') || 'login'); });
+  });
 
-  /* ========= password eye ========= */
-  document.addEventListener('click', function(e){
+  /* --------------------- Password eye toggle --------------------- */
+  document.addEventListener('click', function (e) {
     var btn = e.target;
     while (btn && btn !== document && !(btn.classList && btn.classList.contains('eye'))) btn = btn.parentNode;
-    if (!btn || btn===document) return;
-    var input = null;
+    if (!btn || btn === document) return;
+
+    var field = null;
     var prev = btn.previousElementSibling;
-    if (prev && prev.tagName === 'INPUT') input = prev;
-    if (!input) {
-      var parent = btn.parentElement;
-      if (parent) input = parent.querySelector('input[type="password"], input[type="text"]');
+    if (prev && (prev.tagName === 'INPUT')) field = prev;
+    if (!field) {
+      var root = btn.parentElement;
+      if (root) field = root.querySelector('input[type="password"], input[type="text"]');
     }
-    if (input) input.type = (input.type === 'password') ? 'text' : 'password';
+    if (field) field.type = (field.type === 'password') ? 'text' : 'password';
   });
 
-  /* ========= THEME: apply + toggles + logo visibility ========= */
-  (function(){
-    var root = document.documentElement;
-    var mq   = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-    var chk  = document.getElementById('ttInput'); // sun/moon checkbox style
-    var ts   = document.querySelector('.theme-switch'); // 2-button style
+  /* --------------------- Theme system (no-flicker) --------------------- */
+  // Your PNG assets
+  var LIGHT_LOGO_SRC = 'icons/main-logo.png';
+  var DARK_LOGO_SRC  = 'icons/dark-logo.png';
 
-    function logos(isDark){
-      var lights = document.querySelectorAll('.topbar .logo--light, .looz-logo .brand-logo--light');
-      var darks  = document.querySelectorAll('.topbar .logo--dark,  .looz-logo .brand-logo--dark');
-      lights.forEach(function(el){ if (el) el.hidden =  isDark; });
-      darks .forEach(function(el){ if (el) el.hidden = !isDark; });
-    }
-    function currentTheme(){
-      var t = root.getAttribute('data-theme');
-      if (t) return t;
-      return (mq && mq.matches) ? 'dark' : 'light';
-    }
-function apply(theme){
-  var root = document.documentElement;
-  var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-
-  if (theme === 'light' || theme === 'dark'){
-    root.setAttribute('data-theme', theme);
-    try{ localStorage.setItem('theme', theme); }catch(_){}
-  } else {
-    root.removeAttribute('data-theme');     // follow system
-    try{ localStorage.removeItem('theme'); }catch(_){}
-  }
-
-  var isDark = theme ? theme === 'dark' : (mq && mq.matches);
-
-  // keep toggle UI in sync if you have it
-  var chk = document.getElementById('ttInput');
-  if (chk) chk.checked = isDark;
-  document.querySelectorAll('.theme-switch .ts-btn').forEach(function(b){
-    b && b.setAttribute('aria-pressed', b.getAttribute('data-theme') === (isDark ? 'dark' : 'light') ? 'true' : 'false');
-  });
-
-  // 🔁 swap the single auth logo
-  setAuthLogo(isDark);
-}
-
-
-    // init from saved/system
-    var saved = null; try{ saved = localStorage.getItem('theme'); }catch(_){}
-    apply(saved || null);
-
-    // wire controls
-    if (chk){
-      chk.addEventListener('change', function(){ apply(chk.checked ? 'dark' : 'light'); });
-    }
-    if (ts){
-      var lightBtn = ts.querySelector('.ts-btn[data-theme="light"]');
-      var darkBtn  = ts.querySelector('.ts-btn[data-theme="dark"]');
-      lightBtn && lightBtn.addEventListener('click', function(){ apply('light'); });
-      darkBtn  && darkBtn.addEventListener('click',  function(){ apply('dark');  });
-    }
-    mq && mq.addEventListener && mq.addEventListener('change', function(){
-      if (!localStorage.getItem('theme')) apply(null);
+  // Preload both logos (avoid network/decoding lag)
+  (function preloadLogos() {
+    [LIGHT_LOGO_SRC, DARK_LOGO_SRC].forEach(function (src) {
+      var i = new Image();
+      i.decoding = 'async';
+      i.loading = 'eager';
+      i.src = src;
     });
   })();
 
-  /* ========= LOGIN ========= */
-  var loginForm = document.getElementById('formLogin');
-  if (loginForm){
-    loginForm.addEventListener('submit', function(e){
+  // Swap single <img id="authLogo">, fallback to toggling .logo--light/.logo--dark if present
+  function setAuthLogoSync(isDark) {
+    var img = document.getElementById('authLogo');
+    if (img) {
+      var next = isDark ? DARK_LOGO_SRC : LIGHT_LOGO_SRC;
+      if (img.getAttribute('src') !== next) img.setAttribute('src', next);
+      return;
+    }
+    // Fallback: old two-logo markup
+    $all('.topbar .logo--light').forEach(function (el) { if (el) el.hidden =  isDark; });
+    $all('.topbar .logo--dark' ).forEach(function (el) { if (el) el.hidden = !isDark; });
+  }
+
+  // No-flicker async swap (decode before fade)
+  function setAuthLogo(isDark) {
+    var img = document.getElementById('authLogo');
+    if (!img) { setAuthLogoSync(isDark); return Promise.resolve(); }
+    var next = isDark ? DARK_LOGO_SRC : LIGHT_LOGO_SRC;
+    if (img.getAttribute('src') === next) return Promise.resolve();
+
+    return new Promise(function (resolve) {
+      var pre = new Image();
+      pre.src = next;
+      function done() {
+        img.style.opacity = '0';
+        requestAnimationFrame(function () {
+          img.setAttribute('src', next);
+          img.style.opacity = '1';
+          resolve();
+        });
+      }
+      if (pre.decode) pre.decode().then(done).catch(done);
+      else pre.onload = done, pre.onerror = done;
+    });
+  }
+
+  (function themeController() {
+    var root = document.documentElement;
+    var mq   = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    var chk  = document.getElementById('ttInput');            // sun/moon pill (checkbox)
+    var ts   = document.querySelector('.theme-switch');        // optional 2-button switch
+
+    function currentTheme() {
+      var t = root.getAttribute('data-theme');
+      return t ? t : ((mq && mq.matches) ? 'dark' : 'light');
+    }
+
+    function syncUI(isDark) {
+      if (chk) chk.checked = !!isDark;
+      if (ts) {
+        $all('.theme-switch .ts-btn').forEach(function (b) {
+          var on = b.getAttribute('data-theme') === (isDark ? 'dark' : 'light');
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
+    }
+
+    function apply(theme) {
+      // 1) Persist or follow system
+      if (theme === 'light' || theme === 'dark') {
+        root.setAttribute('data-theme', theme);
+        try { localStorage.setItem('theme', theme); } catch(_) {}
+      } else {
+        root.removeAttribute('data-theme');
+        try { localStorage.removeItem('theme'); } catch(_) {}
+      }
+
+      // 2) Compute active and freeze transitions to prevent gradient lag
+      var isDark = (theme ? theme === 'dark' : (mq && mq.matches));
+      root.classList.add('theme-fx-off');
+
+      // 3) Swap logo without flicker, then unfreeze transitions
+      setAuthLogo(isDark).finally(function () {
+        requestAnimationFrame(function () {
+          setTimeout(function(){ root.classList.remove('theme-fx-off'); }, 120);
+        });
+      });
+
+      // 4) Sync any toggle UI
+      syncUI(isDark);
+    }
+
+    // expose in case other scripts want to change theme
+    window.__authApplyTheme = apply;
+
+    // init from saved/system
+    var saved = null; try { saved = localStorage.getItem('theme'); } catch(_) {}
+    apply(saved || null);
+
+    // wire controls
+    if (chk) chk.addEventListener('change', function () { apply(chk.checked ? 'dark' : 'light'); });
+    if (ts) {
+      var lbtn = ts.querySelector('.ts-btn[data-theme="light"]');
+      var dbtn = ts.querySelector('.ts-btn[data-theme="dark"]');
+      lbtn && lbtn.addEventListener('click', function(){ apply('light'); });
+      dbtn && dbtn.addEventListener('click', function(){ apply('dark');  });
+    }
+
+    // follow system when no explicit choice
+    mq && mq.addEventListener && mq.addEventListener('change', function () {
+      if (!localStorage.getItem('theme')) apply(null);
+    });
+
+    // keep in sync across tabs
+    window.addEventListener('storage', function (e) { if (e.key === 'theme') apply(localStorage.getItem('theme') || null); });
+  })();
+
+  /* --------------------- LOGIN --------------------- */
+  var loginForm =
+    $('#formLogin') ||
+    $('#loginForm') ||
+    $('.auth__panel[data-panel="login"] form');
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var email = val(loginForm, 'input[name="email"]').trim().toLowerCase();
+      var email = (val(loginForm, 'input[name="email"]') || '').trim().toLowerCase();
       var pass  = val(loginForm, 'input[name="password"]');
 
       if (!okEmail(email)) { alert('אימייל לא תקין'); return; }
       if (!pass)          { alert('נדרשת סיסמה');   return; }
 
-      // ===== success: set session (triple) and go home =====
       var user = { id: Date.now(), email: email, name: email.split('@')[0] };
       try {
-        localStorage.setItem('authUser', JSON.stringify(user));   // primary key app expects
-        sessionStorage.setItem('authUser', JSON.stringify(user)); // redundancy for guard
+        localStorage.setItem('authUser', JSON.stringify(user));
+        sessionStorage.setItem('authUser', JSON.stringify(user));
         localStorage.removeItem('looz:loggedOut');
-        localStorage.setItem('looz:justLoggedIn', '1');
-        document.cookie = "looz_auth=1; Max-Age=604800; Path=/; SameSite=Lax"; // 7 days
-      } catch (_) {}
+        localStorage.setItem('looz:justLoggedIn','1');
+        document.cookie = 'looz_auth=1; Max-Age=604800; Path=/; SameSite=Lax';
+      } catch(_) {}
 
       goHome();
     });
   }
 
-  /* ========= REGISTER ========= */
-  // Support either #formRegister (old) or #registerForm (new)
-  var regForm = document.getElementById('formRegister') || document.getElementById('registerForm');
-  if (regForm){
-    regForm.addEventListener('submit', function(e){
+  /* --------------------- REGISTER --------------------- */
+  var regForm =
+    $('#formRegister') ||
+    $('#registerForm') ||
+    $('.auth__panel[data-panel="register"] form');
+
+  if (regForm) {
+    regForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      // Prefer explicit first/last IDs if present; otherwise fallback to single "name" field
-      var first = (document.getElementById('regFirstName') && document.getElementById('regFirstName').value || '').trim();
-      var last  = (document.getElementById('regLastName')  && document.getElementById('regLastName').value  || '').trim();
-      var name  = first || last ? (first && last ? first + ' ' + last : first || last) : val(regForm, 'input[name="name"]').trim();
+      var first = ($('#regFirstName') && $('#regFirstName').value || '').trim();
+      var last  = ($('#regLastName')  && $('#regLastName').value  || '').trim();
 
-      // Email / pass / confirm: prefer reg* IDs, fallback to name attrs
-      var email = (document.getElementById('regEmail')     && document.getElementById('regEmail').value     || val(regForm,'input[name="email"]')).trim().toLowerCase();
-      var pass  = (document.getElementById('regPassword')  && document.getElementById('regPassword').value  || val(regForm,'input[name="password"]'));
-      var conf  = (document.getElementById('regConfirm')   && document.getElementById('regConfirm').value   || val(regForm,'input[name="confirm"]'));
+      // Fallback to single name field if needed
+      var nameField = (first || last) ? '' : (val(regForm, 'input[name="name"]') || '').trim();
+      var name = first || last ? (first && last ? (first + ' ' + last) : (first || last)) : nameField;
+
+      var email = ($('#regEmail')    && $('#regEmail').value    || val(regForm, 'input[name="email"]')).trim().toLowerCase();
+      var pass  = ($('#regPassword') && $('#regPassword').value || val(regForm, 'input[name="password"]'));
+      var conf  = ($('#regConfirm')  && $('#regConfirm').value  || val(regForm, 'input[name="confirm"]'));
 
       if (!name)            { alert('נדרש שם'); return; }
       if (!okEmail(email))  { alert('אימייל לא תקין'); return; }
@@ -190,33 +252,44 @@ function apply(theme){
       if (conf !== pass)    { alert('אימות סיסמה לא תואם'); return; }
 
       var user = { id: Date.now(), email: email, name: name };
-      // store profile for greeting on home (uses firstName if available)
-      var profile = { firstName: first || name.split(' ')[0] || '', lastName: last || '', name: name };
+      var profile = {
+        firstName: first || (name.split(' ')[0] || ''),
+        lastName:  last  || (name.split(' ').slice(1).join(' ') || ''),
+        name: name
+      };
+
       try {
-        localStorage.setItem('profile', JSON.stringify(profile));
-        localStorage.setItem('authUser', JSON.stringify(user));
-        sessionStorage.setItem('authUser', JSON.stringify(user));
+        localStorage.setItem('profile', JSON.stringify(profile)); // home greeting uses this
+
+        // Mirror to authUser as a fallback
+        var authUser = { id: user.id, email, name, firstName: profile.firstName };
+        localStorage.setItem('authUser', JSON.stringify(authUser));
+        sessionStorage.setItem('authUser', JSON.stringify(authUser));
+
         localStorage.removeItem('looz:loggedOut');
-        localStorage.setItem('looz:justLoggedIn', '1');
-        document.cookie = "looz_auth=1; Max-Age=604800; Path=/; SameSite=Lax";
-      } catch (_) {}
+        localStorage.setItem('looz:justLoggedIn','1');
+        document.cookie = 'looz_auth=1; Max-Age=604800; Path=/; SameSite=Lax';
+      } catch(_) {}
 
       goHome();
     });
   }
 
-  /* ========= FORGOT ========= */
-  var forgotForm = document.getElementById('formForgot');
-  if (forgotForm){
-    forgotForm.addEventListener('submit', function(e){
+  /* --------------------- FORGOT --------------------- */
+  var forgotForm =
+    $('#formForgot') ||
+    $('.auth__panel[data-panel="forgot"] form');
+
+  if (forgotForm) {
+    forgotForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var email = val(forgotForm, 'input[name="email"]').trim().toLowerCase();
+      var email = (val(forgotForm, 'input[name="email"]') || '').trim().toLowerCase();
       if (!okEmail(email)) { alert('אימייל לא תקין'); return; }
-      alert('שלחנו (דמו) קישור לאיפוס ל־' + email);
+      alert('שלחנו (דמו) קישור לאיפוס ל־ ' + email);
       show('login');
     });
   }
 
-  // default view
+  // Default view
   show('login');
 })();

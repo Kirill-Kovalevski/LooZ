@@ -2021,3 +2021,237 @@ height: 10px;
 .looz-logo, .looz-bar, .logo-box{ height: var(--logo-size) !important; width: auto !important; }
 .looz-logo .brand-logo{ display:block; height:100% !important; width:auto !important; object-fit:contain !important; }
 /* ============ end LOOZ overrides ============ */
+/* ===== Create Event Modal ===== */
+.event-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+
+.event-modal.hidden {
+  display: none;
+}
+
+.event-content {
+  background: #f3f4f5;
+  padding: 2rem;
+  border-radius: 1.2rem;
+  width: 90%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,.1);
+}
+
+.event-line {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  border-bottom: 1px solid #ccc;
+  padding: .5rem;
+  position: relative;
+}
+
+.pencil-cursor {
+  width: 20px;
+  height: 20px;
+  animation: flicker .8s infinite;
+  cursor: pointer;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.event-line input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: #111;
+}
+
+.mic-center {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.mic-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #111;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Dark Mode */
+body.dark .event-content {
+  background: #1f2937;
+  color: #f9fafb;
+}
+body.dark .event-line {
+  border-bottom: 1px solid #444;
+}
+body.dark .event-line input {
+  color: #f9fafb;
+}
+body.dark .mic-btn {
+  background: #374151;
+  border-color: #f9fafb;
+  color: #f9fafb;
+}
+/* === Composer: tiny icons + flicker === */
+.composer .line { position: relative; }
+
+.pencil-icon,
+.mic-ico {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: .5rem; /* RTL: on the right side of the line */
+  width: 22px;   /* tiny icon size */
+  height: 22px;
+  opacity: .9;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.pencil-icon { animation: pencil-flicker .9s infinite; }
+@keyframes pencil-flicker {
+  0%, 100% { opacity: .9; }
+  50%      { opacity: .35; }
+}
+
+/* circular mic button, tiny */
+.mic-ico {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  width: 28px; height: 28px;          /* tiny round */
+  border: 1.5px solid #111;           /* visible on #f3f4f5 */
+  background: #fff;
+  font-size: 13px;                     /* if you use an emoji/icon font */
+  cursor: pointer;
+}
+
+body.dark .mic-ico {
+  background: #374151;
+  border-color: #f9fafb;
+  color: #f9fafb;
+}
+
+.pencil-icon.is-on,
+.mic-ico.is-on {
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+
+/* hide lines by step */
+.composer .line[data-step] { display: none; }
+.composer[data-step="1"] .line[data-step="1"] { display: block; }
+.composer[data-step="2"] .line[data-step="1"],
+.composer[data-step="2"] .line[data-step="2"] { display: block; }
+.composer[data-step="3"] .line[data-step="1"],
+.composer[data-step="3"] .line[data-step="2"],
+.composer[data-step="3"] .line[data-step="3"] { display: block; }
+
+/* base card stays the same background as requested */
+#eventComposer .composer__panel { background:#f3f4f5; }
+body.dark #eventComposer .composer__panel { background:#1f2937; }
+/* === Center the composer and tidy panel === */
+#eventComposer.composer { position: fixed; inset: 0; display: grid; place-items: center; z-index: 9999; }
+#eventComposer .composer__backdrop { position: absolute; inset:0; background: rgba(0,0,0,.45); }
+#eventComposer .composer__panel {
+  position: relative; width: min(92vw, 480px);
+  background:#f3f4f5; border-radius:16px; padding:16px 16px 14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.18);
+}
+html[data-theme="dark"] #eventComposer .composer__panel { background:#1f2937; }
+
+/* === Line + inputs === */
+#eventComposer .line { position: relative; margin:12px 0 32px; } /* bottom space for mic */
+#eventComposer .line input{
+  width:100%; font-size:16px; padding:12px 46px 12px 12px;
+  border:none; border-bottom:1.5px solid #cbd5e1; background:transparent; color:#0f172a;
+}
+html[data-theme="dark"] #eventComposer .line input{ border-bottom-color:#475569; color:#f8fafc; }
+
+/* === Pencil as flickering cursor (tiny) === */
+#compPencil.pencil-icon{
+  position:absolute; top:50%; right:10px; transform:translateY(-50%);
+  width:22px; height:22px; opacity:.95; pointer-events:auto; user-select:none; z-index:2;
+  animation:pencil-flicker .9s infinite;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+}
+@keyframes pencil-flicker { 0%,100%{opacity:.95} 50%{opacity:.35} }
+
+/* === Mic under the task line (centered) === */
+#compMic.mic-ico{
+  position:absolute; left:50%; top:calc(100% + 12px); transform:translateX(-50%);
+  width:32px; height:32px; border-radius:9999px;
+  display:inline-grid; place-items:center; font-size:14px; cursor:pointer;
+  background:#fff; border:1.5px solid #0f172a; box-shadow:0 6px 16px rgba(2,6,23,.15);
+}
+html[data-theme="dark"] #compMic.mic-ico{ background:#374151; border-color:#e5e7eb; color:#f8fafc; }
+#compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
+
+/* Step reveal: show only relevant fields */
+#eventComposer .line[data-step]{ display:none; }
+#eventComposer[data-step="1"] .line[data-step="1"]{ display:block; }       /* task */
+#eventComposer[data-step="2"] .line[data-step="1"],
+#eventComposer[data-step="2"] .line[data-step="2"]{ display:block; }        /* + date */
+#eventComposer[data-step="3"] .line[data-step]{ display:block; }             /* + time */
+/* mic visible only on step 1 */
+#eventComposer[data-step="1"] #compMic{ display:inline-grid; }
+#eventComposer:not([data-step="1"]) #compMic{ display:none; }
+
+/* === Buttons: match your “Reload” style (white pill, soft shadow) === */
+.c-btn, .btn-create-orb, .p-weekbar__btn, .p-day__count, .c-btn--secondary, .c-btn--primary {
+  -webkit-tap-highlight-color: transparent;
+  appearance:none; border:none; outline:none; cursor:pointer; user-select:none;
+  background:#fff; color:#0f172a;
+  padding:10px 16px; border-radius:14px;
+  box-shadow:0 8px 20px rgba(2,6,23,.12);
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.c-btn:hover, .btn-create-orb:hover, .p-weekbar__btn:hover, .p-day__count:hover{
+  transform:translateY(-1px); box-shadow:0 10px 26px rgba(2,6,23,.16);
+}
+.c-btn:active, .btn-create-orb:active, .p-weekbar__btn:active, .p-day__count:active{
+  transform:translateY(0); box-shadow:0 6px 16px rgba(2,6,23,.12);
+}
+/* Primary just gets stronger border ring on focus */
+.c-btn--primary{ font-weight:600; }
+.c-btn--secondary{ opacity:.9; }
+
+html[data-theme="dark"] .c-btn,
+html[data-theme="dark"] .btn-create-orb,
+html[data-theme="dark"] .p-weekbar__btn,
+html[data-theme="dark"] .p-day__count{
+  background:#111827; color:#f8fafc; box-shadow:0 8px 20px rgba(0,0,0,.35);
+}
+/* Pencil = flickering cursor (positioned INSIDE the panel) */
+#compPencil.pencil-icon{
+  position:absolute;           /* was fixed */
+  width:22px; height:22px; z-index:3; display:none;
+  animation:pencil-flicker .9s infinite;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));
+}
+
+/* Mic — dead center over the Save button (also INSIDE the panel) */
+#compMic.mic-ico{
+  position:absolute;           /* was fixed */
+  width:36px; height:36px; border-radius:9999px;
+  display:inline-grid; place-items:center; font-size:14px; cursor:pointer;
+  background:#fff; color:#0f172a; border:1.5px solid #0f172a;
+  box-shadow:0 8px 18px rgba(2,6,23,.14);
+  z-index:3;
+}
+#compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
+html[data-theme="dark"] #compMic.mic-ico{ background:#1f2937; color:#e5e7eb; border-color:#e5e7eb; }

@@ -4,17 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>LooZ</title>
-<script>
-  // Apply saved theme before paint (no flash)
-  (function () {
-    try {
-      var t = localStorage.getItem('theme');
-      if (t === 'light' || t === 'dark') {
-        document.documentElement.setAttribute('data-theme', t);
-      }
-    } catch (e) {}
-  })();
-</script>
+  <script>
+    // Apply saved theme before paint (no flash)
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) {}
+    })();
+  </script>
 
   <!-- Global theme (add first so dark mode applies before paint) -->
   <script src="js/theme.js"></script>
@@ -35,22 +35,118 @@
   <link rel="stylesheet" href="css/dist/main.css" />
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
   <link rel="stylesheet" href="css/dist/settings.css" />
-  <script>
-  (function () {
-    function load(primary, fallback) {
-      var s = document.createElement('script');
-      s.src = primary; s.defer = true;
-      s.onerror = function () {
-        var f = document.createElement('script');
-        f.src = fallback; f.defer = true;
-        document.head.appendChild(f);
-      };
-      document.head.appendChild(s);
-    }
-    load('js/auth-guard.js', './auth-guard.js');
-  })();
-</script>
+ <style>
+ /* Center composer & panel */
+#eventComposer.composer { position: fixed; inset: 0; display: grid; place-items: center; z-index: 9999; }
+#eventComposer .composer__backdrop { position: absolute; inset:0; background: rgba(0,0,0,.45); }
+#eventComposer .composer__panel{
+  position: relative; width:min(92vw,520px);
+  background:#f3f4f5; border-radius:18px;
+  padding:18px 18px 16px;
+  box-shadow:0 22px 60px rgba(0,0,0,.18), 0 1px 0 rgba(255,255,255,.6) inset;
+  border:1px solid #e5e7eb;
+  color:#0f172a;
+}
+html[data-theme="dark"] #eventComposer .composer__panel{
+  background:#111827; border-color:#1f2937; color:#e5e7eb;
+  box-shadow:0 22px 60px rgba(0,0,0,.55);
+}
 
+/* Header + close (✕) — pill style like app buttons */
+.composer__header{ display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px; }
+.composer__title{ margin-inline-end:auto; font-weight:700; font-size:18px; }
+.composer__close{
+  appearance:none; border:none; cursor:pointer;
+  width:32px; height:32px; border-radius:12px;
+  display:grid; place-items:center;
+  background:#fff; color:#0f172a; box-shadow:0 8px 20px rgba(2,6,23,.12);
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.composer__close:hover{ transform:translateY(-1px); box-shadow:0 10px 26px rgba(2,6,23,.16); }
+.composer__close:active{ transform:none; box-shadow:0 6px 16px rgba(2,6,23,.12); }
+html[data-theme="dark"] .composer__close{ background:#111827; color:#f8fafc; box-shadow:0 8px 20px rgba(0,0,0,.35); }
+
+/* Lines + inputs (hide native caret so pencil can be the cursor) */
+#eventComposer .line{ position:relative; margin:12px 0 34px; } /* bottom space grows below */
+#eventComposer .line input{
+  width:100%; font-size:16px; padding:12px 12px;
+  border:none; border-bottom:1.5px solid #cbd5e1; background:transparent; color:inherit;
+  caret-color:transparent;
+}
+html[data-theme="dark"] #eventComposer .line input{ border-bottom-color:#374151; }
+
+/* Pencil = flickering cursor INSIDE the panel (panel is already position:relative) */
+#compPencil.pencil-icon{
+  position:absolute;                /* <-- was fixed */
+  width:22px; height:22px;
+  z-index:4; display:none;
+  pointer-events:none;              /* don’t block typing */
+  animation:pencil-flicker .9s infinite;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));
+}
+
+/* Mic = dead center under the task line, INSIDE the panel */
+#compMic.mic-ico{
+  position:absolute;                /* <-- was fixed */
+  width:36px; height:36px; border-radius:9999px;
+  display:inline-grid; place-items:center; font-size:14px; cursor:pointer;
+  background:#fff; color:#0f172a; border:1.5px solid #0f172a;
+  box-shadow:0 8px 18px rgba(2,6,23,.14);
+  z-index:4;
+}
+#compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
+html[data-theme="dark"] #compMic.mic-ico{ background:#1f2937; color:#e5e7eb; border-color:#e5e7eb; }
+
+
+
+/* Step reveal (task→date→time). Mic only on step 1 */
+#eventComposer .line[data-step]{ display:none; }
+#eventComposer[data-step="1"] .line[data-step="1"]{ display:block; }
+#eventComposer[data-step="2"] .line[data-step="1"], #eventComposer[data-step="2"] .line[data-step="2"]{ display:block; }
+#eventComposer[data-step="3"] .line[data-step]{ display:block; }
+#eventComposer[data-step="1"] #compMic{ display:inline-grid; }
+#eventComposer:not([data-step="1"]) #compMic{ display:none; }
+
+/* Buttons — pill like your “Reload” */
+.c-btn, .btn-create-orb, .p-weekbar__btn, .p-day__count, .c-headbtn, .qp__chip{
+  -webkit-tap-highlight-color:transparent; appearance:none; border:none; outline:none; cursor:pointer; user-select:none;
+  background:#fff; color:#0f172a;
+  padding:10px 16px; border-radius:14px;
+  box-shadow:0 8px 20px rgba(2,6,23,.12);
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.c-btn:hover, .btn-create-orb:hover, .p-weekbar__btn:hover, .p-day__count:hover, .c-headbtn:hover, .qp__chip:hover{
+  transform:translateY(-1px); box-shadow:0 10px 26px rgba(2,6,23,.16);
+}
+.c-btn:active, .btn-create-orb:active, .p-weekbar__btn:active, .p-day__count:active, .c-headbtn:active, .qp__chip:active{
+  transform:none; box-shadow:0 6px 16px rgba(2,6,23,.12);
+}
+.c-btn--primary{ font-weight:600; }
+
+/* Place the Save button under the mic with Fibonacci spacing (34px) */
+#eventComposer .composer__actions{ display:flex; justify-content:center; margin-top:34px; } /* 34px = next Fibonacci */
+html[data-theme="dark"] .c-btn, html[data-theme="dark"] .btn-create-orb, html[data-theme="dark"] .p-weekbar__btn,
+html[data-theme="dark"] .p-day__count, html[data-theme="dark"] .c-headbtn, html[data-theme="dark"] .qp__chip{
+  background:#111827; color:#f8fafc; box-shadow:0 8px 20px rgba(0,0,0,.35);
+}
+
+ </style>
+
+  <script>
+    (function () {
+      function load(primary, fallback) {
+        var s = document.createElement('script');
+        s.src = primary; s.defer = true;
+        s.onerror = function () {
+          var f = document.createElement('script');
+          f.src = fallback; f.defer = true;
+          document.head.appendChild(f);
+        };
+        document.head.appendChild(s);
+      }
+      load('js/auth-guard.js', './auth-guard.js');
+    })();
+  </script>
 
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
@@ -178,7 +274,7 @@
         <button class="c-cta c-cta--bang btn-create-orb" aria-label="Create new event"></button>
       </div>
 
-      <!-- Bottom Sheet: Event -->
+      <!-- Bottom Sheet (kept) -->
       <section id="eventSheet" class="c-sheet u-hidden" dir="rtl" aria-hidden="true">
         <button class="c-sheet__backdrop" type="button" data-close aria-label="סגור"></button>
         <div class="c-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
@@ -241,87 +337,85 @@
           </form>
         </div>
       </section>
-<!-- Fullscreen Event Composer (new) -->
-<section id="eventComposer" class="composer composer--card u-hidden" dir="rtl" aria-hidden="true">
 
-  <button class="composer__backdrop" type="button" data-close aria-label="סגור"></button>
+      <!-- Fullscreen Event Composer (upgraded) -->
+      <section id="eventComposer" class="composer composer--card u-hidden" dir="rtl" aria-hidden="true">
+        <button class="composer__backdrop" type="button" data-close aria-label="סגור"></button>
 
-  <div class="composer__panel" role="dialog" aria-modal="true" aria-labelledby="compTitleLabel">
-    <header class="composer__header">
-      <button class="composer__close" type="button" data-close aria-label="סגור">✕</button>
-      <h3 class="composer__title">אירוע חדש</h3>
-    </header>
+        <div class="composer__panel" role="dialog" aria-modal="true" aria-labelledby="compTitleLabel">
+          <header class="composer__header">
+            <button class="composer__close" type="button" data-close aria-label="סגור">✕</button>
+            <h3 class="composer__title">אירוע חדש</h3>
+          </header>
 
-    <form id="composerForm" class="composer__form" autocomplete="off">
-      <!-- Title line (single line, blinking caret feel) -->
-      <label class="line">
-        <span id="compTitleLabel" class="line__label">מה עושים?</span>
-        <input id="compTitle" name="title" class="line__input line__input--title" type="text"
-               inputmode="text" placeholder="כתוב/כתבי משימה או פעילות" required />
-        <span class="line__underline" aria-hidden="true"></span>
-      </label>
-
-      <!-- Date line -->
-      <label class="line">
-        <span class="line__label">תאריך</span>
-        <input id="compDate" name="date" class="line__input" type="date" required />
-        <span class="line__underline" aria-hidden="true"></span>
-      </label>
-
-      <!-- Time line -->
-      <label class="line">
-        <span class="line__label">שעה</span>
-        <input id="compTime" name="time" class="line__input" type="time" required />
-        <span class="line__underline" aria-hidden="true"></span>
-      </label>
-
-  <!-- Voice to text (icon version) -->
-<div class="voice">
-  <button id="compMic" class="voice__iconBtn" type="button" aria-pressed="false" aria-label="הקלט ודבר">
-    <img src="icons/mic.svg" alt="" class="voice__icon" />
-    <span class="sr-only">הקלט ודבר</span>
+      <form id="composerForm" class="composer__form" autocomplete="off">
+<!-- Step 1: Task (pencil = flickering cursor; mic under the line) -->
+<div class="line" data-step="1">
+  <label class="visually-hidden" for="compTitle">תיאור המשימה</label>
+  <input id="compTitle" type="text" placeholder="תיאור המשימה…" autocomplete="off" />
+  <!-- pencil flicker; will be positioned exactly at the caret -->
+  <img id="compPencil" class="pencil-icon" src="icons/pencil.svg" alt="סמן כתיבה" />
+  <!-- tiny mic under the line -->
+  <button id="compMic" class="mic-ico" type="button" aria-pressed="false" title="דבר/י" aria-label="דבר/י">
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="12" rx="3" fill="currentColor"></rect>
+      <path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
   </button>
-  <div id="compMicNote" class="voice__note" role="status" aria-live="polite"></div>
+  <div id="compMicNote" class="mic-note" aria-live="polite"></div>
 </div>
 
 
-      <div class="composer__actions">
-        <button class="c-btn c-btn--primary" type="submit">שמור</button>
-      </div>
-    </form>
+  <!-- Step 2: Date -->
+  <div class="line" data-step="2">
+    <label class="visually-hidden" for="compDate">תאריך</label>
+    <input id="compDate" type="date" />
   </div>
-</section>
+
+  <!-- Step 3: Time -->
+  <div class="line" data-step="3">
+    <label class="visually-hidden" for="compTime">שעה</label>
+    <input id="compTime" type="time" />
+  </div>
+
+  <div class="composer__actions">
+    <button class="c-btn c-btn--primary" type="submit">שמור</button>
+  </div>
+</form>
+
+        </div>
+      </section>
 
     </div>
+
   </main>
 
   <!-- Scripts -->
   <script src="app.js" defer></script>
   <script src="js/logo.js" defer></script>
   <script>
-(function () {
-  const PLANNER = document.getElementById('planner');
-  function markTodayRow() {
-    if (!PLANNER) return;
-    const d = new Date();
-    const dd = String(d.getDate()).padStart(2,'0');
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const token = dd + '.' + mm; // "06.10"
+    (function () {
+      const PLANNER = document.getElementById('planner');
+      function markTodayRow() {
+        if (!PLANNER) return;
+        const d = new Date();
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const token = dd + '.' + mm;
 
-    PLANNER.querySelectorAll('.is-today').forEach(el => el.classList.remove('is-today'));
-    PLANNER.querySelectorAll('.p-day__head--flex, .c-week .row').forEach(row => {
-      const dateEl = row.querySelector('.p-day__date, .date');
-      if (dateEl && (dateEl.textContent || '').trim().startsWith(token)) {
-        row.classList.add('is-today');
+        PLANNER.querySelectorAll('.is-today').forEach(el => el.classList.remove('is-today'));
+        PLANNER.querySelectorAll('.p-day__head--flex, .c-week .row').forEach(row => {
+          const dateEl = row.querySelector('.p-day__date, .date');
+          if (dateEl && (dateEl.textContent || '').trim().startsWith(token)) {
+            row.classList.add('is-today');
+          }
+        });
       }
-    });
-  }
-  document.addEventListener('DOMContentLoaded', markTodayRow);
-  if (PLANNER && 'MutationObserver' in window) {
-    new MutationObserver(markTodayRow).observe(PLANNER, { childList:true, subtree:true });
-  }
-})();
-</script>
-
+      document.addEventListener('DOMContentLoaded', markTodayRow);
+      if (PLANNER && 'MutationObserver' in window) {
+        new MutationObserver(markTodayRow).observe(PLANNER, { childList:true, subtree:true });
+      }
+    })();
+  </script>
 </body>
 </html>

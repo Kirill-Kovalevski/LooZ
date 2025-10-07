@@ -6,7 +6,7 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-/* ===== LooZ — Planner App (home) — vFinal.8 ===== */
+/* ===== LooZ — Planner App (home) — vFinal.9 with Composer + Pencil ===== */
 (function () {
   'use strict';
   /* -------- AUTH GUARD (runs before anything else) -------- */
@@ -85,21 +85,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   };
 
   var HEB_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-  /* fixed months (added נובמבר) */
-
   var HEB_MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-
-  var weekLabel = function weekLabel(d, weekStart) {
-    var s = startOfWeek(d, weekStart);
-    var e = new Date(s);
-    e.setDate(s.getDate() + 6);
-    var sM = HEB_MONTHS[s.getMonth()],
-        eM = HEB_MONTHS[e.getMonth()];
-    return s.getMonth() === e.getMonth() ? "".concat(s.getDate(), "\u2013").concat(e.getDate(), " ").concat(sM, " ").concat(s.getFullYear()) : "".concat(s.getDate(), " ").concat(sM, " \u2013 ").concat(e.getDate(), " ").concat(eM, " ").concat(s.getFullYear());
-  };
-  /* ===================== DOM refs ===================== */
-
-
   var btnProfile = $('#btnProfile');
   var btnMenu = $('#btnMenu');
   var btnCategories = $('#btnCategories');
@@ -134,8 +120,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   var dateInput = $('#evtDate');
   var timeInput = $('#evtTime');
   var subtitleEl = $('.c-subtitle');
-  var createOrbBtn = $('.btn-create-orb'); // NEW: static “create event” orb
-
+  var createOrbBtn = $('.btn-create-orb');
   /* ===================== Greeting ===================== */
 
   function getAuth() {
@@ -329,7 +314,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       } else if (scope === 'week') {
         if (k === 'prev') state.current.setDate(state.current.getDate() - 7);else if (k === 'next') state.current.setDate(state.current.getDate() + 7);else state.current = new Date();
       } else {
-        /* month */
         if (k === 'prev') state.current = addMonths(startOfMonth(state.current), -1);else if (k === 'next') state.current = addMonths(startOfMonth(state.current), 1);else state.current = new Date();
       }
 
@@ -342,10 +326,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   function renderDay() {
     plannerRoot.innerHTML = '';
     var d = state.current;
-    var title = "".concat(pad2(d.getDate()), ".").concat(pad2(d.getMonth() + 1), " \u2014 ").concat(HEB_DAYS[d.getDay()]); // no year
-
-    plannerRoot.appendChild(buildBar('day', title)); // ...rest of your Day list code stays EXACTLY as-is...
-
+    var title = "".concat(pad2(d.getDate()), ".").concat(pad2(d.getMonth() + 1), " \u2014 ").concat(HEB_DAYS[d.getDay()]);
+    plannerRoot.appendChild(buildBar('day', title));
     var wrap = document.createElement('div');
     wrap.className = 'p-dayview';
     var ymd = dateKey(state.current);
@@ -374,8 +356,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
   function renderWeek() {
     plannerRoot.innerHTML = '';
-    plannerRoot.appendChild(buildBar('week', weekLabel(state.current, weekStart))); // ...your existing Week grid/list code unchanged...
-
+    var s = startOfWeek(state.current, weekStart);
+    var e = new Date(s);
+    e.setDate(s.getDate() + 6);
+    var sM = HEB_MONTHS[s.getMonth()],
+        eM = HEB_MONTHS[e.getMonth()];
+    var barTitle = s.getMonth() === e.getMonth() ? "".concat(s.getDate(), "\u2013").concat(e.getDate(), " ").concat(sM, " ").concat(s.getFullYear()) : "".concat(s.getDate(), " ").concat(sM, " \u2013 ").concat(e.getDate(), " ").concat(eM, " ").concat(s.getFullYear());
+    plannerRoot.appendChild(buildBar('week', barTitle));
     var wrap = document.createElement('div');
     wrap.className = 'p-week';
     var start = startOfWeek(state.current, weekStart);
@@ -428,8 +415,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   function renderMonth() {
     plannerRoot.innerHTML = '';
     var title = "".concat(HEB_MONTHS[state.current.getMonth()], " ").concat(state.current.getFullYear());
-    plannerRoot.appendChild(buildBar('month', title)); // ...your existing Month grid code unchanged...
-
+    plannerRoot.appendChild(buildBar('month', title));
     var grid = document.createElement('div');
     grid.className = 'p-month';
     var anchor = new Date(state.current.getFullYear(), state.current.getMonth(), 1);
@@ -519,16 +505,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     render();
     prefs.defaultView = 'month';
     persistPrefs();
-  }); // NEW: hook the static create-orb button to open the sheet
+  }); // Hook the static create-orb button → open the fullscreen composer
 
   if (createOrbBtn) {
-    // Hook the static create-orb button to open the *composer*
-    if (createOrbBtn) {
-      createOrbBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        openComposer();
-      });
-    }
+    createOrbBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      openComposer();
+    });
   }
 
   if (plannerRoot) {
@@ -595,7 +578,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       }
     });
   }
-  /* ===================== Bottom Sheet ===================== */
+  /* ===================== Bottom Sheet (kept) ===================== */
 
 
   function openSheet() {
@@ -680,180 +663,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     sheetForm.reset();
     closeSheet();
   });
-  /* ===================== Logout helpers (kept) ===================== */
-
-  function clearAuthAll() {
-    try {
-      ['authUser', 'authName', 'token', 'auth.token', 'auth.user', 'looz:justLoggedIn', 'looz:loggedOut'].forEach(function (k) {
-        try {
-          localStorage.removeItem(k);
-        } catch (_unused8) {}
-
-        try {
-          sessionStorage.removeItem(k);
-        } catch (_unused9) {}
-      });
-    } catch (_unused10) {}
-  }
-
-  function handleLogout() {
-    window.__loozLoggingOut = true;
-    clearAuthAll();
-
-    try {
-      localStorage.setItem('looz:loggedOut', '1');
-    } catch (_unused11) {}
-
-    window.location.replace('auth.html?loggedout=1');
-  }
-  /* ===================== Fullscreen Composer (new) ===================== */
-
-
-  var composer = document.getElementById('eventComposer');
-  var compPanel = composer ? composer.querySelector('.composer__panel') : null;
-  var compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
-  var compForm = document.getElementById('composerForm');
-  var compTitle = document.getElementById('compTitle');
-  var compDate = document.getElementById('compDate');
-  var compTime = document.getElementById('compTime');
-  var compMic = document.getElementById('compMic');
-  var compMicNote = document.getElementById('compMicNote');
-
-  function openComposer() {
-    if (!composer) return;
-    var now = new Date();
-    if (compDate && !compDate.value) compDate.value = dateKey(now);
-    if (compTime && !compTime.value) compTime.value = "".concat(pad2(now.getHours()), ":").concat(pad2(now.getMinutes()));
-    composer.classList.remove('u-hidden');
-    composer.classList.add('is-open');
-    composer.setAttribute('aria-hidden', 'false');
-
-    try {
-      compTitle && compTitle.focus();
-    } catch (_unused12) {}
-  }
-
-  function closeComposer() {
-    if (!composer) return;
-    composer.classList.remove('is-open');
-    composer.setAttribute('aria-hidden', 'true');
-    setTimeout(function () {
-      return composer.classList.add('u-hidden');
-    }, 220);
-    stopMic();
-  }
-
-  compCloseBtns.forEach(function (btn) {
-    return btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      closeComposer();
-    });
-  });
-  composer && composer.addEventListener('click', function (e) {
-    if (e.target && e.target.classList.contains('composer__backdrop')) closeComposer();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && composer && composer.classList.contains('is-open')) closeComposer();
-  });
-  /* ---- Save ---- */
-
-  compForm && compForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var t = (compTitle && compTitle.value || '').trim();
-    var d = (compDate && compDate.value || '').trim();
-    var h = (compTime && compTime.value || '').trim();
-    if (!t || !d || !h) return;
-    var idv = 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-    state.tasks.push({
-      id: idv,
-      title: t,
-      date: d,
-      time: h
-    });
-    saveTasks();
-    state.current = fromKey(d);
-    state.view = 'day';
-    render();
-    compForm.reset();
-    closeComposer();
-  });
-  /* ---- Voice to text (Web Speech API) ---- */
-
-  var _rec = null;
-  var _listening = false;
-
-  function ensureRecognizer() {
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return null;
-    if (_rec) return _rec;
-    var r = new SR();
-    r.lang = 'he-IL'; // Hebrew first (change to 'en-US' if you prefer)
-
-    r.interimResults = true;
-    r.continuous = false;
-    r.maxAlternatives = 1;
-
-    r.onresult = function (evt) {
-      var txt = '';
-
-      for (var i = evt.resultIndex; i < evt.results.length; i++) {
-        txt += evt.results[i][0].transcript;
-      }
-
-      if (compTitle) compTitle.value = txt.trim();
-      if (compMicNote) compMicNote.textContent = 'מזהה דיבור...';
-    };
-
-    r.onerror = function () {
-      if (compMicNote) compMicNote.textContent = 'שגיאת מיקרופון.';
-      stopMic(true);
-    };
-
-    r.onend = function () {
-      stopMic();
-    };
-
-    _rec = r;
-    return r;
-  }
-
-  function startMic() {
-    var r = ensureRecognizer();
-
-    if (!r) {
-      if (compMicNote) compMicNote.textContent = 'הדפדפן לא תומך בזיהוי דיבור.';
-      return;
-    }
-
-    if (_listening) return;
-    _listening = true;
-    compMic && compMic.setAttribute('aria-pressed', 'true');
-    compMic && compMic.classList.add('is-on');
-    if (compMicNote) compMicNote.textContent = 'התחל/י לדבר...';
-
-    try {
-      r.start();
-    } catch (_unused13) {}
-  }
-
-  function stopMic(forceNote) {
-    if (!_listening) return;
-    _listening = false;
-    compMic && compMic.setAttribute('aria-pressed', 'false');
-    compMic && compMic.classList.remove('is-on');
-
-    try {
-      _rec && _rec.stop();
-    } catch (_unused14) {}
-
-    if (compMicNote) compMicNote.textContent = forceNote ? compMicNote.textContent || '' : '';
-  }
-
-  compMic && compMic.addEventListener('click', function (e) {
-    e.preventDefault();
-    _listening ? stopMic(true) : startMic();
-  });
-  /* ===================== Effects & INLINE CSS (minimal) ===================== */
+  /* ===================== Effects & INLINE CSS (tiny keep) ===================== */
 
   function blastConfetti(x, y, scale) {
     var layer = document.createElement('div');
@@ -876,14 +686,14 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     setTimeout(function () {
       return layer.remove();
     }, 1600);
-  } // Update injected style (kept lean; adds single-line titles)
+  } // small safety style injection kept
 
 
   var prev = document.getElementById('looz-fixes-v12');
   if (prev) prev.remove();
   var style = document.createElement('style');
   style.id = 'looz-fixes-v12';
-  style.textContent = "\n    .p-weekbar__title,.p-monthbar__title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n  ";
+  style.textContent = ".p-weekbar__title,.p-monthbar__title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}";
   document.head.appendChild(style);
   /* ===================== Initial ===================== */
 
@@ -891,50 +701,30 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
   state.current = _today;
   formatTitle(_today);
-  render();
-  /* ---- Save ---- */
+  render(); // Ensure firstName exists + greeting update (kept)
 
-  compForm && compForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var t = (compTitle && compTitle.value || '').trim();
-    var d = (compDate && compDate.value || '').trim();
-    var h = (compTime && compTime.value || '').trim();
-    if (!t || !d || !h) return;
-    var idv = 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-    state.tasks.push({
-      id: idv,
-      title: t,
-      date: d,
-      time: h
-    });
-    saveTasks();
-    state.current = fromKey(d);
-    state.view = 'day';
-    render();
-    var primary = document.querySelector('#eventComposer .c-btn--primary');
+  (function ensureFirstNameAndGreeting() {
+    try {
+      var prof = JSON.parse(localStorage.getItem('profile') || '{}');
+      var au = JSON.parse(localStorage.getItem('authUser') || 'null');
 
-    if (primary) {
-      primary.classList.add('is-rippling');
-      setTimeout(function () {
-        return primary.classList.remove('is-rippling');
-      }, 480);
+      if (!prof.firstName) {
+        var guess = (prof.name || au && au.displayName || '').split(' ')[0];
+
+        if (guess) {
+          prof.firstName = guess;
+          localStorage.setItem('profile', JSON.stringify(prof));
+        }
+      } // Update greeting section if available
+
+
+      var greetEl = document.querySelector('#greeting');
+
+      if (greetEl && prof.firstName) {
+        greetEl.textContent = "\u05E9\u05DC\u05D5\u05DD, ".concat(prof.firstName, "!");
+      }
+    } catch (e) {
+      console.warn("Greeting setup failed", e);
     }
-
-    celebrateSave(); // ← add this line
-
-    compForm.reset();
-    closeComposer();
-  });
-})();
-/* --- AUTH GUARD (skip on auth page) --- */
-
-
-(function () {
-  try {
-    if (/auth\.html(?:$|\?)/.test(location.pathname)) return;
-    var u = localStorage.getItem('authUser') || localStorage.getItem('auth.user');
-    if (!u) location.replace('auth.html');
-  } catch (_) {
-    location.replace('auth.html');
-  }
+  })();
 })();
