@@ -2014,3 +2014,368 @@ height: 10px;
 }
 .o-page{ animation: fadeIn .18s ease-out both }
 @keyframes fadeIn{ from{opacity:.0; transform: translateY(4px)} to{opacity:1; transform:none} }
+/* =========================
+   Fullscreen Event Composer
+   ========================= */
+.composer {
+  position: fixed; inset: 0;
+  z-index: 1100;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: opacity .22s ease;
+  opacity: 0;
+  pointer-events: none;
+
+  &.is-open { opacity: 1; pointer-events: auto; }
+}
+
+.composer__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(2,6,23,.46);
+  border: 0;
+}
+
+.composer__panel {
+  --pad-x: 16px;
+  position: relative;
+  margin: 0;
+  align-self: end;
+  width: 100%;
+  min-height: 100dvh;
+  background: #fff;
+  color: var(--ink, #0f172a);
+  border-radius: 0; /* full screen */
+  padding: calc(env(safe-area-inset-top) + 12px) var(--pad-x) calc(env(safe-area-inset-bottom) + 18px);
+  box-shadow: 0 -8px 40px rgba(2,6,23,.20);
+  transform: translateY(10%);
+  transition: transform .22s ease, opacity .22s ease;
+
+  .composer.is-open & { transform: translateY(0); }
+  @media (prefers-color-scheme: dark) {
+    background: #0b1220;
+    color: #fff;
+  }
+}
+
+.composer__header{
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
+  margin-bottom: 18px;
+}
+.composer__title{
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600; text-align: center; letter-spacing:.3px;
+}
+.composer__close{
+  justify-self: end; border:0; background: transparent; font-size: 20px; line-height: 1; cursor: pointer;
+  color: inherit; opacity: .8; padding: 6px;
+}
+
+.composer__form{ display: grid; gap: 18px; }
+
+/* Single-line fields with blinking caret underline */
+.line{
+  display: grid; gap: 6px;
+}
+.line__label{
+  font-size: .92rem; opacity: .78;
+}
+.line__input{
+  font: inherit;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 8px 0;
+  outline: none;
+  caret-color: currentColor;
+  color: inherit;
+
+  &::placeholder{ opacity:.45; }
+}
+.line__input--title{
+  font-size: 1.15rem; font-weight: 500;
+}
+
+.line__underline{
+  position: relative;
+  height: 2px; background: rgba(2,6,23,.12);
+  @media (prefers-color-scheme: dark){ background: rgba(255,255,255,.15); }
+
+  /* caret bar (blinking) */
+  &::after{
+    content: "";
+    position: absolute; inset-inline-end: 0; top: -10px; bottom: -10px;
+    width: 2px; border-radius: 2px;
+    background: currentColor;
+    opacity: 0;
+    animation: caretBlink 1s steps(1,end) infinite;
+  }
+}
+.line:has(.line__input:focus) .line__underline::after{ opacity: 1; }
+
+@keyframes caretBlink{
+  0%,49%{ opacity: 1; }
+  50%,100%{ opacity: 0; }
+}
+
+/* Voice button */
+.voice{ display: grid; gap: 8px; }
+.voice__btn{
+  display: inline-flex; align-items: center; gap: 10px;
+  border: 0; border-radius: 999px; padding: 12px 16px;
+  background: var(--pill-on, #e8f0ff);
+  color: var(--ink, #0f172a);
+  cursor: pointer; font-weight: 600; letter-spacing:.2px;
+  transition: transform .08s ease, box-shadow .18s ease;
+  box-shadow: 0 2px 10px rgba(2,6,23,.10);
+
+  .voice__dot{ width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+  &:active{ transform: translateY(1px); }
+}
+.voice__btn.is-on{
+  box-shadow: 0 0 0 6px rgba(239,68,68,.12);
+  .voice__dot{ animation: pulse 1.2s ease-in-out infinite; }
+}
+.voice__txt{ font-size: .95rem; }
+.voice__note{ min-height: 1.2em; font-size: .85rem; opacity: .7; }
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50%{ transform: scale(1.25); opacity: .5; }
+  100%{ transform: scale(1); opacity: 1; }
+}
+
+.composer__actions{
+  margin-top: 10px;
+  display: flex; justify-content: center;
+}
+/* =========================
+   Composer — Compact Card
+   ========================= */
+:root{
+  /* you can tweak these to fine-tune the vibe */
+  --mint-50: #eefbf4;
+  --mint-100:#d8f6e8;
+  --mint-200:#bdf0d9;
+  --mint-600:#16a34a; /* action */
+  --ink-soft: #0f172a;
+  --muted-ink: rgba(15,23,42,.65);
+  --stroke: rgba(2,6,23,.08);
+  --stroke-dark: rgba(255,255,255,.12);
+}
+
+.composer--card .composer__backdrop{
+  background: radial-gradient(120% 120% at 90% -10%, #e9f3ff 0%, #f6f7fb 40%, #ffffff 100%);
+  @media (prefers-color-scheme: dark){
+    background: linear-gradient(180deg,#0b1220,#0e1628);
+  }
+}
+
+.composer--card .composer__panel{
+  align-self: center;
+  justify-self: center;
+  width: min(600px, 92vw);
+  max-height: 86dvh;
+  overflow: auto;
+  border-radius: 22px;
+  padding: 18px clamp(16px, 4vw, 24px);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.92)),
+    radial-gradient(120% 120% at 100% -10%, var(--mint-50) 0%, #fff 60%) no-repeat;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 40px rgba(2,6,23,.18);
+  transform: translateY(6%);
+  transition: transform .22s ease, opacity .22s ease;
+
+  .composer.is-open & { transform: translateY(0); }
+
+  @media (prefers-color-scheme: dark){
+    background:
+      linear-gradient(180deg, rgba(14,22,40,.92), rgba(14,22,40,.94)),
+      radial-gradient(120% 120% at 100% -10%, #0f1a2e 0%, #0b1220 60%) no-repeat;
+    color:#fff;
+    box-shadow: 0 10px 40px rgba(0,0,0,.45);
+  }
+}
+
+/* Header — subtle, centered */
+.composer--card .composer__header{
+  position: sticky; top: 0; z-index: 1;
+  background: transparent;
+  padding-block: 2px 10px;
+}
+.composer--card .composer__title{
+  font-weight: 700; font-size: 1.05rem; text-align: center;
+  letter-spacing:.2px; color: var(--ink-soft);
+  @media (prefers-color-scheme: dark){ color:#fff; }
+}
+.composer--card .composer__close{
+  justify-self: end; opacity:.6; border-radius: 10px;
+  &:hover{ opacity:.9; }
+}
+
+/* Form layout */
+.composer--card .composer__form{
+  display: grid;
+  gap: 16px;
+}
+
+/* Lines — soft underline + mint focus */
+.composer--card .line__label{
+  font-size: .9rem; color: var(--muted-ink);
+  @media (prefers-color-scheme: dark){ color: rgba(255,255,255,.75); }
+}
+.composer--card .line__input{
+  padding: 10px 0 8px;
+}
+.composer--card .line__input--title{
+  font-size: 1.1rem; font-weight: 600;
+}
+.composer--card .line__underline{
+  height: 2px;
+  background: var(--stroke);
+  border-radius: 2px;
+  @media (prefers-color-scheme: dark){ background: var(--stroke-dark); }
+}
+.composer--card .line:has(.line__input:focus) .line__underline{
+  background: linear-gradient(90deg, var(--mint-200), var(--mint-100));
+}
+
+/* Caret bar behavior stays the same but thinner for the card */
+.composer--card .line__underline::after{
+  width: 1.5px;
+}
+
+/* Native date/time: tighter paddings + subtle icons */
+.composer--card input[type="date"],
+.composer--card input[type="time"]{
+  appearance: none;
+}
+.composer--card input[type="date"]::-webkit-calendar-picker-indicator,
+.composer--card input[type="time"]::-webkit-calendar-picker-indicator{
+  filter: opacity(.6);
+}
+
+/* Voice button — mint pill */
+.composer--card .voice__btn{
+  background: #eaf4ff; /* light blue like your current */
+  border: 1px solid var(--stroke);
+  font-weight: 600;
+  .voice__dot{ background: #ef4444; }
+  @media (prefers-color-scheme: dark){
+    background: #111b2e; border-color: var(--stroke-dark);
+  }
+}
+.composer--card .voice__btn.is-on{
+  box-shadow: 0 0 0 6px rgba(22,163,74,.12);
+}
+
+/* Primary button — small, neat, mint */
+.c-btn.c-btn--primary{
+  border: 0;
+  background: linear-gradient(180deg, #2ed882, var(--mint-600));
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  box-shadow: 0 6px 18px rgba(22,163,74,.25);
+  transition: transform .06s ease, box-shadow .18s ease, filter .18s ease;
+  &:active{ transform: translateY(1px); }
+  @media (prefers-color-scheme: dark){
+    box-shadow: 0 6px 18px rgba(22,163,74,.35);
+  }
+}
+
+/* Spacing below actions so it feels airy */
+.composer--card .composer__actions{ margin-top: 8px; }
+/* ==== Mic icon button (tiny & rounded) ==== */
+.voice {
+  display: grid; gap: 8px; align-items: center; justify-items: start;
+}
+.voice__iconBtn{
+  --size: 42px;
+  width: var(--size); height: var(--size);
+  border-radius: 50%;
+  border: 1px solid rgba(2,6,23,.10);
+  background: linear-gradient(180deg,#ffffff,#f6f8fb);
+  display: inline-grid; place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2,6,23,.08);
+  transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  &:active{ transform: translateY(1px); }
+  &:hover{ box-shadow: 0 6px 18px rgba(2,6,23,.12); }
+  @media (prefers-color-scheme: dark){
+    background: linear-gradient(180deg,#0f172a,#0b1220);
+    border-color: rgba(255,255,255,.14);
+  }
+}
+.voice__icon{
+  width: 18px; height: 18px; display: block; pointer-events: none;
+  /* If your mic.svg uses currentColor, this will color it */
+  filter: none;
+}
+
+/* Recording ON: green glow + pulse ring */
+.voice__iconBtn[aria-pressed="true"]{
+  box-shadow: 0 0 0 6px rgba(22,163,74,.12), 0 6px 18px rgba(22,163,74,.25);
+  border-color: rgba(22,163,74,.35);
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+@keyframes micPulse {
+  0% { transform: scale(1); }
+  50%{ transform: scale(1.04); }
+  100%{ transform: scale(1); }
+}
+
+.voice__note{ min-height: 1.2em; font-size: .85rem; opacity: .65; }
+
+/* ==== “Task saved” celebration (confetti burst) ==== */
+.fx-burst{
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  z-index: 9999;
+}
+.fx-dot{
+  position: absolute; left: 0; top: 0;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor;
+  color: #2ed882; /* base mint */
+  /* mixed palette */
+  &:nth-child(3n){ color:#60a5fa; }       /* blue */
+  &:nth-child(4n){ color:#f472b6; }       /* pink */
+  &:nth-child(5n){ color:#f59e0b; }       /* amber */
+  animation: fxFly var(--d,220ms) ease-out forwards, fxFade .22s ease-out forwards;
+}
+@keyframes fxFly {
+  to { transform: translate(var(--tx), var(--ty)) scale(0.6) rotate(20deg); }
+}
+@keyframes fxFade {
+  0% { opacity: 1; }
+  70%{ opacity: 1; }
+  100%{ opacity: 0; }
+}
+
+/* Optional: subtle success ripple behind primary button */
+/* If you want it, add class .has-ripple to .composer__actions in JS at save time */
+.c-btn.c-btn--primary{ position: relative; overflow: hidden; }
+.c-btn.c-btn--primary::after{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  background: radial-gradient(120px 120px at center, rgba(46,216,130,.28), transparent 60%);
+  transform: scale(0);
+  opacity: 0; pointer-events:none;
+}
+.c-btn.c-btn--primary.is-rippling::after{
+  animation: btnRipple .45s ease-out forwards;
+}
+@keyframes btnRipple{
+  0%{ transform:scale(0); opacity:.0; }
+  30%{ opacity:.75; }
+  100%{ transform:scale(2.6); opacity:0; }
+}
+
+/* accessibility helper */
+.sr-only{
+  position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}

@@ -338,7 +338,11 @@ function renderMonth(){
 
   // NEW: hook the static create-orb button to open the sheet
   if (createOrbBtn) {
-    createOrbBtn.addEventListener('click', (e) => { e.preventDefault(); openSheet(); });
+    // Hook the static create-orb button to open the *composer*
+if (createOrbBtn) {
+  createOrbBtn.addEventListener('click', (e) => { e.preventDefault(); openComposer(); });
+}
+
   }
 
   if (plannerRoot){
@@ -454,6 +458,119 @@ function renderMonth(){
     try{ localStorage.setItem('looz:loggedOut','1'); }catch{}
     window.location.replace('auth.html?loggedout=1');
   }
+/* ===================== Fullscreen Composer (new) ===================== */
+const composer      = document.getElementById('eventComposer');
+const compPanel     = composer ? composer.querySelector('.composer__panel') : null;
+const compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
+const compForm      = document.getElementById('composerForm');
+const compTitle     = document.getElementById('compTitle');
+const compDate      = document.getElementById('compDate');
+const compTime      = document.getElementById('compTime');
+const compMic       = document.getElementById('compMic');
+const compMicNote   = document.getElementById('compMicNote');
+
+function openComposer() {
+  if (!composer) return;
+  const now = new Date();
+  if (compDate && !compDate.value) compDate.value = dateKey(now);
+  if (compTime && !compTime.value) compTime.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+
+  composer.classList.remove('u-hidden');
+  composer.classList.add('is-open');
+  composer.setAttribute('aria-hidden', 'false');
+  try { compTitle && compTitle.focus(); } catch {}
+}
+
+function closeComposer() {
+  if (!composer) return;
+  composer.classList.remove('is-open');
+  composer.setAttribute('aria-hidden', 'true');
+  setTimeout(() => composer.classList.add('u-hidden'), 220);
+  stopMic();
+}
+
+compCloseBtns.forEach(btn => btn.addEventListener('click', (e) => {
+  e.preventDefault(); closeComposer();
+}));
+composer && composer.addEventListener('click', (e) => {
+  if (e.target && e.target.classList.contains('composer__backdrop')) closeComposer();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && composer && composer.classList.contains('is-open')) closeComposer(); });
+
+/* ---- Save ---- */
+compForm && compForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const t = (compTitle && compTitle.value || '').trim();
+  const d = (compDate  && compDate.value  || '').trim();
+  const h = (compTime  && compTime.value  || '').trim();
+  if (!t || !d || !h) return;
+
+  const idv = 't_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  state.tasks.push({ id: idv, title: t, date: d, time: h });
+  saveTasks();
+  state.current = fromKey(d);
+  state.view = 'day';
+  render();
+  compForm.reset();
+  closeComposer();
+});
+
+/* ---- Voice to text (Web Speech API) ---- */
+let _rec = null;
+let _listening = false;
+
+function ensureRecognizer() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  if (_rec) return _rec;
+  const r = new SR();
+  r.lang = 'he-IL';           // Hebrew first (change to 'en-US' if you prefer)
+  r.interimResults = true;
+  r.continuous = false;
+  r.maxAlternatives = 1;
+  r.onresult = (evt) => {
+    let txt = '';
+    for (let i = evt.resultIndex; i < evt.results.length; i++) {
+      txt += evt.results[i][0].transcript;
+    }
+    if (compTitle) compTitle.value = txt.trim();
+    if (compMicNote) compMicNote.textContent = 'מזהה דיבור...';
+  };
+  r.onerror = () => {
+    if (compMicNote) compMicNote.textContent = 'שגיאת מיקרופון.';
+    stopMic(true);
+  };
+  r.onend = () => { stopMic(); };
+  _rec = r; return r;
+}
+
+function startMic() {
+  const r = ensureRecognizer();
+  if (!r) {
+    if (compMicNote) compMicNote.textContent = 'הדפדפן לא תומך בזיהוי דיבור.';
+    return;
+  }
+  if (_listening) return;
+  _listening = true;
+  compMic && compMic.setAttribute('aria-pressed', 'true');
+  compMic && compMic.classList.add('is-on');
+  if (compMicNote) compMicNote.textContent = 'התחל/י לדבר...';
+  try { r.start(); } catch {}
+}
+
+function stopMic(forceNote) {
+  if (!_listening) return;
+  _listening = false;
+  compMic && compMic.setAttribute('aria-pressed', 'false');
+  compMic && compMic.classList.remove('is-on');
+  try { _rec && _rec.stop(); } catch {}
+  if (compMicNote) compMicNote.textContent = forceNote ? (compMicNote.textContent || '') : '';
+}
+
+compMic && compMic.addEventListener('click', (e) => {
+  e.preventDefault();
+  _listening ? stopMic(true) : startMic();
+});
 
   /* ===================== Effects & INLINE CSS (minimal) ===================== */
   function blastConfetti(x,y,scale){
@@ -485,6 +602,31 @@ function renderMonth(){
   state.current = _today;
   formatTitle(_today);
   render();
+/* ---- Save ---- */
+compForm && compForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const t = (compTitle && compTitle.value || '').trim();
+  const d = (compDate  && compDate.value  || '').trim();
+  const h = (compTime  && compTime.value  || '').trim();
+  if (!t || !d || !h) return;
+
+  const idv = 't_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  state.tasks.push({ id: idv, title: t, date: d, time: h });
+  saveTasks();
+  state.current = fromKey(d);
+  state.view = 'day';
+  render();
+const primary = document.querySelector('#eventComposer .c-btn--primary');
+if (primary){
+  primary.classList.add('is-rippling');
+  setTimeout(()=> primary.classList.remove('is-rippling'), 480);
+}
+
+  celebrateSave();            // ← add this line
+
+  compForm.reset();
+  closeComposer();
+});
 
 })();
 

@@ -230,6 +230,56 @@
           </form>
         </div>
       </section>
+<!-- Fullscreen Event Composer (new) -->
+<section id="eventComposer" class="composer composer--card u-hidden" dir="rtl" aria-hidden="true">
+
+  <button class="composer__backdrop" type="button" data-close aria-label="סגור"></button>
+
+  <div class="composer__panel" role="dialog" aria-modal="true" aria-labelledby="compTitleLabel">
+    <header class="composer__header">
+      <button class="composer__close" type="button" data-close aria-label="סגור">✕</button>
+      <h3 class="composer__title">אירוע חדש</h3>
+    </header>
+
+    <form id="composerForm" class="composer__form" autocomplete="off">
+      <!-- Title line (single line, blinking caret feel) -->
+      <label class="line">
+        <span id="compTitleLabel" class="line__label">מה עושים?</span>
+        <input id="compTitle" name="title" class="line__input line__input--title" type="text"
+               inputmode="text" placeholder="כתוב/כתבי משימה או פעילות" required />
+        <span class="line__underline" aria-hidden="true"></span>
+      </label>
+
+      <!-- Date line -->
+      <label class="line">
+        <span class="line__label">תאריך</span>
+        <input id="compDate" name="date" class="line__input" type="date" required />
+        <span class="line__underline" aria-hidden="true"></span>
+      </label>
+
+      <!-- Time line -->
+      <label class="line">
+        <span class="line__label">שעה</span>
+        <input id="compTime" name="time" class="line__input" type="time" required />
+        <span class="line__underline" aria-hidden="true"></span>
+      </label>
+
+  <!-- Voice to text (icon version) -->
+<div class="voice">
+  <button id="compMic" class="voice__iconBtn" type="button" aria-pressed="false" aria-label="הקלט ודבר">
+    <img src="icons/mic.svg" alt="" class="voice__icon" />
+    <span class="sr-only">הקלט ודבר</span>
+  </button>
+  <div id="compMicNote" class="voice__note" role="status" aria-live="polite"></div>
+</div>
+
+
+      <div class="composer__actions">
+        <button class="c-btn c-btn--primary" type="submit">שמור</button>
+      </div>
+    </form>
+  </div>
+</section>
 
     </div>
   </main>

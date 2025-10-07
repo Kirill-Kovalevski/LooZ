@@ -522,10 +522,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   }); // NEW: hook the static create-orb button to open the sheet
 
   if (createOrbBtn) {
-    createOrbBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      openSheet();
-    });
+    // Hook the static create-orb button to open the *composer*
+    if (createOrbBtn) {
+      createOrbBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        openComposer();
+      });
+    }
   }
 
   if (plannerRoot) {
@@ -703,8 +706,154 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
     window.location.replace('auth.html?loggedout=1');
   }
-  /* ===================== Effects & INLINE CSS (minimal) ===================== */
+  /* ===================== Fullscreen Composer (new) ===================== */
 
+
+  var composer = document.getElementById('eventComposer');
+  var compPanel = composer ? composer.querySelector('.composer__panel') : null;
+  var compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
+  var compForm = document.getElementById('composerForm');
+  var compTitle = document.getElementById('compTitle');
+  var compDate = document.getElementById('compDate');
+  var compTime = document.getElementById('compTime');
+  var compMic = document.getElementById('compMic');
+  var compMicNote = document.getElementById('compMicNote');
+
+  function openComposer() {
+    if (!composer) return;
+    var now = new Date();
+    if (compDate && !compDate.value) compDate.value = dateKey(now);
+    if (compTime && !compTime.value) compTime.value = "".concat(pad2(now.getHours()), ":").concat(pad2(now.getMinutes()));
+    composer.classList.remove('u-hidden');
+    composer.classList.add('is-open');
+    composer.setAttribute('aria-hidden', 'false');
+
+    try {
+      compTitle && compTitle.focus();
+    } catch (_unused12) {}
+  }
+
+  function closeComposer() {
+    if (!composer) return;
+    composer.classList.remove('is-open');
+    composer.setAttribute('aria-hidden', 'true');
+    setTimeout(function () {
+      return composer.classList.add('u-hidden');
+    }, 220);
+    stopMic();
+  }
+
+  compCloseBtns.forEach(function (btn) {
+    return btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeComposer();
+    });
+  });
+  composer && composer.addEventListener('click', function (e) {
+    if (e.target && e.target.classList.contains('composer__backdrop')) closeComposer();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && composer && composer.classList.contains('is-open')) closeComposer();
+  });
+  /* ---- Save ---- */
+
+  compForm && compForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = (compTitle && compTitle.value || '').trim();
+    var d = (compDate && compDate.value || '').trim();
+    var h = (compTime && compTime.value || '').trim();
+    if (!t || !d || !h) return;
+    var idv = 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    state.tasks.push({
+      id: idv,
+      title: t,
+      date: d,
+      time: h
+    });
+    saveTasks();
+    state.current = fromKey(d);
+    state.view = 'day';
+    render();
+    compForm.reset();
+    closeComposer();
+  });
+  /* ---- Voice to text (Web Speech API) ---- */
+
+  var _rec = null;
+  var _listening = false;
+
+  function ensureRecognizer() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+    if (_rec) return _rec;
+    var r = new SR();
+    r.lang = 'he-IL'; // Hebrew first (change to 'en-US' if you prefer)
+
+    r.interimResults = true;
+    r.continuous = false;
+    r.maxAlternatives = 1;
+
+    r.onresult = function (evt) {
+      var txt = '';
+
+      for (var i = evt.resultIndex; i < evt.results.length; i++) {
+        txt += evt.results[i][0].transcript;
+      }
+
+      if (compTitle) compTitle.value = txt.trim();
+      if (compMicNote) compMicNote.textContent = 'מזהה דיבור...';
+    };
+
+    r.onerror = function () {
+      if (compMicNote) compMicNote.textContent = 'שגיאת מיקרופון.';
+      stopMic(true);
+    };
+
+    r.onend = function () {
+      stopMic();
+    };
+
+    _rec = r;
+    return r;
+  }
+
+  function startMic() {
+    var r = ensureRecognizer();
+
+    if (!r) {
+      if (compMicNote) compMicNote.textContent = 'הדפדפן לא תומך בזיהוי דיבור.';
+      return;
+    }
+
+    if (_listening) return;
+    _listening = true;
+    compMic && compMic.setAttribute('aria-pressed', 'true');
+    compMic && compMic.classList.add('is-on');
+    if (compMicNote) compMicNote.textContent = 'התחל/י לדבר...';
+
+    try {
+      r.start();
+    } catch (_unused13) {}
+  }
+
+  function stopMic(forceNote) {
+    if (!_listening) return;
+    _listening = false;
+    compMic && compMic.setAttribute('aria-pressed', 'false');
+    compMic && compMic.classList.remove('is-on');
+
+    try {
+      _rec && _rec.stop();
+    } catch (_unused14) {}
+
+    if (compMicNote) compMicNote.textContent = forceNote ? compMicNote.textContent || '' : '';
+  }
+
+  compMic && compMic.addEventListener('click', function (e) {
+    e.preventDefault();
+    _listening ? stopMic(true) : startMic();
+  });
+  /* ===================== Effects & INLINE CSS (minimal) ===================== */
 
   function blastConfetti(x, y, scale) {
     var layer = document.createElement('div');
@@ -743,6 +892,39 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   state.current = _today;
   formatTitle(_today);
   render();
+  /* ---- Save ---- */
+
+  compForm && compForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = (compTitle && compTitle.value || '').trim();
+    var d = (compDate && compDate.value || '').trim();
+    var h = (compTime && compTime.value || '').trim();
+    if (!t || !d || !h) return;
+    var idv = 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    state.tasks.push({
+      id: idv,
+      title: t,
+      date: d,
+      time: h
+    });
+    saveTasks();
+    state.current = fromKey(d);
+    state.view = 'day';
+    render();
+    var primary = document.querySelector('#eventComposer .c-btn--primary');
+
+    if (primary) {
+      primary.classList.add('is-rippling');
+      setTimeout(function () {
+        return primary.classList.remove('is-rippling');
+      }, 480);
+    }
+
+    celebrateSave(); // ← add this line
+
+    compForm.reset();
+    closeComposer();
+  });
 })();
 /* --- AUTH GUARD (skip on auth page) --- */
 
