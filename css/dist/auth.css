@@ -294,3 +294,1025 @@ body {
     font-size: 24px;
   }
 }
+/* ===== Topbar: title left, logo right ===== */
+.topbar.topbar--simple {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 10px 14px;
+}
+
+.topbar.topbar--simple .title {
+  justify-self: start;
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.topbar.topbar--simple .topbar__logo {
+  justify-self: end;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+}
+
+.topbar.topbar--simple .topbar__logo img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+.logo-fallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #eaf4ff, #f6f8fb);
+  box-shadow: 0 2px 8px rgba(2, 6, 23, 0.12);
+}
+
+/* ===== New auth actions (register / forgot) ===== */
+.auth-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0 2px;
+}
+
+.auth-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #ffffff, #f6f7fb);
+  border: 1px solid rgba(2, 6, 23, 0.08);
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.08);
+  transition: transform 0.06s ease, box-shadow 0.18s ease;
+}
+
+.auth-icon:hover {
+  box-shadow: 0 6px 16px rgba(2, 6, 23, 0.12);
+}
+
+.auth-icon:active {
+  transform: translateY(1px);
+}
+
+.auth-icon img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* ===== Inputs: fix lock + eye overlap in RTL ===== */
+.input {
+  position: relative;
+}
+
+.input .input__icon {
+  position: absolute;
+  inset-inline-start: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.input .input__eye {
+  position: absolute;
+  inset-inline-end: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.input .input__eye:hover {
+  opacity: 1;
+}
+
+.input .input__el {
+  padding-inline-start: 40px;
+  /* מקום לאייקון הנעילה */
+  padding-inline-end: 40px;
+  /* מקום לכפתור העין */
+}
+
+/* אם תרצה לבטל לגמרי את אייקון המנעול בשדה סיסמה: בטל את השורה הבאה */
+.panel[data-panel=login] .input:nth-of-type(2) .input__icon {
+  display: block;
+}
+
+/* set to none to hide */
+:root {
+  --auth-icon-size: 56px;
+  /* גודל אחיד לאייקונים (register/forgot/social) */
+}
+
+/* ===== Topbar ===== */
+.topbar.topbar--simple {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 10px 14px;
+}
+
+.topbar .title {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.topbar .topbar__logo {
+  justify-self: end;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+}
+
+.topbar .logo {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.logo--dark {
+  display: none;
+}
+
+/* תמה: הצגת לוגו לפי מצב */
+[data-theme=dark] .logo--light {
+  display: none;
+}
+
+[data-theme=dark] .logo--dark {
+  display: block;
+}
+
+/* ===== Auth actions (register / forgot) — גדולים כמו הסושיאל ===== */
+.auth-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0 2px;
+}
+
+.auth-icon {
+  width: var(--auth-icon-size);
+  height: var(--auth-icon-size);
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid rgba(2, 6, 23, 0.08);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.1);
+  transition: transform 0.06s ease, box-shadow 0.18s ease;
+}
+
+.auth-icon:hover {
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.14);
+}
+
+.auth-icon:active {
+  transform: translateY(1px);
+}
+
+.auth-icon img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+/* ===== Social (מותג אמיתי) ===== */
+.social-icons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-social {
+  width: var(--auth-icon-size);
+  height: var(--auth-icon-size);
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid rgba(2, 6, 23, 0.08);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.1);
+  transition: transform 0.06s ease, box-shadow 0.18s ease;
+}
+
+.btn-social:hover {
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.14);
+}
+
+.btn-social:active {
+  transform: translateY(1px);
+}
+
+.btn-social img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+/* מצב Dark — מיכלים כהים אבל הלוגואים נשארים בצבעם */
+@media (prefers-color-scheme: dark) {
+  .auth-icon,
+.btn-social {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  }
+}
+/* ===== Password: רק עין, בלי מנעול, בלי התנגשות ===== */
+.input {
+  position: relative;
+}
+
+.input:has(input[type=password]) .input__icon {
+  display: none !important;
+}
+
+/* מסתיר את המנעול */
+.input .input__eye {
+  position: absolute;
+  inset-inline-end: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.input .input__eye:hover {
+  opacity: 1;
+}
+
+.input input[type=password] {
+  padding-inline-end: 40px;
+  /* מקום לעין */
+  padding-inline-start: 14px;
+  /* לא צריך מקום למנעול */
+}
+
+img {
+  border-radius: 30px;
+  width: fit-content;
+}
+
+/* ===== Show only one logo (default: light) ===== */
+.topbar .logo {
+  display: none;
+}
+
+html[data-theme=light] .topbar .logo--light {
+  display: block;
+}
+
+html[data-theme=dark] .topbar .logo--dark {
+  display: block;
+}
+
+/* If no explicit theme saved → follow system */
+html:not([data-theme]) .topbar .logo--light {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .topbar .logo--light {
+    display: none;
+  }
+
+  html:not([data-theme]) .topbar .logo--dark {
+    display: block;
+  }
+}
+/* ===== Theme toggle (2-way pill) ===== */
+.theme-switch {
+  position: relative;
+  margin: 12px auto 0;
+  width: min(240px, 80vw);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(2, 6, 23, 0.1);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.1);
+  overflow: hidden;
+}
+
+.theme-switch .ts-btn {
+  background: transparent;
+  border: 0;
+  padding: 10px 0;
+  font-weight: 700;
+  cursor: pointer;
+  color: #0f172a;
+  opacity: 0.8;
+}
+
+.theme-switch .ts-btn[aria-pressed=true] {
+  opacity: 1;
+}
+
+.theme-switch .ts-ind {
+  position: absolute;
+  inset: 3px calc(50% + 3px) 3px 3px;
+  /* default = LIGHT on left */
+  border-radius: 999px;
+  background: #eaf4ff;
+  box-shadow: 0 6px 14px rgba(2, 6, 23, 0.12) inset;
+  transition: inset 0.25s ease;
+  pointer-events: none;
+}
+
+/* Dark container look + indicator position when dark */
+html[data-theme=dark] .theme-switch {
+  background: #0f172a;
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme=dark] .theme-switch .ts-btn {
+  color: #fff;
+}
+
+html[data-theme=dark] .theme-switch .ts-ind {
+  inset: 3px 3px 3px calc(50% + 3px);
+  background: #1b2842;
+}
+
+/* If no explicit theme saved, let system move indicator */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .theme-switch .ts-btn {
+    color: #fff;
+  }
+
+  html:not([data-theme]) .theme-switch .ts-ind {
+    inset: 3px 3px 3px calc(50% + 3px);
+    background: #1b2842;
+  }
+}
+/* Show only the logo for the active theme */
+.topbar .logo {
+  display: none;
+}
+
+/* Explicit theme chosen */
+html[data-theme=light] .topbar .logo--light {
+  display: block;
+}
+
+html[data-theme=dark] .topbar .logo--dark {
+  display: block;
+}
+
+/* If no explicit theme saved → follow system preference */
+html:not([data-theme]) .topbar .logo--light {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .topbar .logo--light {
+    display: none;
+  }
+
+  html:not([data-theme]) .topbar .logo--dark {
+    display: block;
+  }
+}
+/* (Optional) make sure the logo box doesn’t shift */
+.topbar .topbar__logo {
+  width: 36px;
+  height: 36px;
+  display: inline-grid;
+  place-items: center;
+}
+
+.topbar .logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Hide placeholder completely for that field */
+.input--noprompt .input__el::placeholder {
+  opacity: 0;
+}
+
+/* show just one logo */
+.topbar .logo {
+  display: none;
+}
+
+html[data-theme=light] .topbar .logo--light {
+  display: block;
+}
+
+html[data-theme=dark] .topbar .logo--dark {
+  display: block;
+}
+
+/* when no saved theme, follow system */
+html:not([data-theme]) .topbar .logo--light {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .topbar .logo--light {
+    display: none;
+  }
+
+  html:not([data-theme]) .topbar .logo--dark {
+    display: block;
+  }
+}
+/* Sun/Moon gradient switch */
+.tt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+
+.tt input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tt__track {
+  --h: 42px;
+  --w: 108px;
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+  border-radius: 999px;
+  padding: 4px;
+  display: block;
+  box-sizing: border-box;
+  background: linear-gradient(90deg, #ffb65e, #ff6589);
+  /* LIGHT gradient */
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.1), inset 0 2px 6px rgba(255, 255, 255, 0.6);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tt__sun, .tt__moon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.tt__sun {
+  left: 12px;
+}
+
+.tt__moon {
+  right: 12px;
+}
+
+.tt__knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(var(--h) - 8px);
+  height: calc(var(--h) - 8px);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.18);
+  transition: transform 0.25s ease;
+}
+
+/* Checked = DARK gradient, knob right */
+.tt input:checked + .tt__track {
+  background: linear-gradient(90deg, #2e8bff, #0b5bdb);
+}
+
+.tt input:checked + .tt__track .tt__knob {
+  transform: translateX(calc(var(--w) - var(--h)));
+}
+
+/* Dark container look (auth page background) */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .tt__track {
+    background: linear-gradient(90deg, #2e8bff, #0b5bdb);
+  }
+
+  html:not([data-theme]) .tt__track .tt__knob {
+    transform: translateX(calc(var(--w) - var(--h)));
+  }
+}
+/* Home header */
+.looz-logo .brand-logo {
+  display: none;
+}
+
+html[data-theme=light] .looz-logo .brand-logo--light {
+  display: block;
+}
+
+html[data-theme=dark] .looz-logo .brand-logo--dark {
+  display: block;
+}
+
+/* Auth header (if you use .topbar .logo there) */
+.topbar .logo {
+  display: none;
+}
+
+html[data-theme=light] .topbar .logo--light {
+  display: block;
+}
+
+html[data-theme=dark] .topbar .logo--dark {
+  display: block;
+}
+
+/* Only one logo visible */
+.topbar .logo {
+  display: none !important;
+}
+
+html[data-theme=light] .topbar .logo--light {
+  display: block !important;
+}
+
+html[data-theme=dark] .topbar .logo--dark {
+  display: block !important;
+}
+
+/* If no explicit theme saved → follow system */
+html:not([data-theme]) .topbar .logo--light {
+  display: block !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .topbar .logo--light {
+    display: none !important;
+  }
+
+  html:not([data-theme]) .topbar .logo--dark {
+    display: block !important;
+  }
+}
+/* ===== Dark theme surfaces & background ===== */
+html[data-theme=dark] body {
+  background: linear-gradient(180deg, #0b1220, #0e1628);
+  color: #e8eefc;
+}
+
+/* If you use .o-page / .o-phone wrappers (your project does) */
+html[data-theme=dark] .o-page {
+  background: linear-gradient(180deg, #0b1220, #0e1628) !important;
+}
+
+html[data-theme=dark] .o-phone {
+  background: #0b1220 !important;
+  color: #e8eefc;
+}
+
+/* Generic cards / auth panels / composer panel */
+html[data-theme=dark] .card,
+html[data-theme=dark] .auth-card,
+html[data-theme=dark] .composer__panel,
+html[data-theme=dark] .panel {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Inputs */
+html[data-theme=dark] .input__el,
+html[data-theme=dark] input[type=text],
+html[data-theme=dark] input[type=email],
+html[data-theme=dark] input[type=password],
+html[data-theme=dark] input[type=date],
+html[data-theme=dark] input[type=time] {
+  background: #0f172a !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+html[data-theme=dark] .input__el::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Soft strokes/underlines */
+html[data-theme=dark] .line__underline {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Social & small icon tiles keep depth on dark */
+html[data-theme=dark] .btn-social,
+html[data-theme=dark] .auth-icon {
+  background: #111b2e !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* =========================
+   DARK MODE — polished auth
+   ========================= */
+html[data-theme=dark] body {
+  background: linear-gradient(180deg, #0b1220, #0e1628);
+  color: #e8eefc;
+}
+
+/* Phone shell / page wrapper (use whatever you have) */
+html[data-theme=dark] .o-page {
+  background: linear-gradient(180deg, #0b1220, #0e1628) !important;
+}
+
+html[data-theme=dark] .o-phone {
+  background: #0b1220 !important;
+  color: #e8eefc;
+}
+
+/* Card / auth container */
+html[data-theme=dark] .auth-card,
+html[data-theme=dark] .panel,
+html[data-theme=dark] .card {
+  background: #0f172a !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Topbar */
+html[data-theme=dark] .topbar .title {
+  color: #f1f6ff;
+}
+
+/* Labels, muted, links */
+html[data-theme=dark] .f__label {
+  color: rgba(232, 238, 252, 0.82);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+html[data-theme=dark] .muted,
+html[data-theme=dark] .hint {
+  color: rgba(232, 238, 252, 0.65);
+}
+
+html[data-theme=dark] a.link {
+  color: #93b4ff;
+}
+
+html[data-theme=dark] a.link:hover {
+  color: #b7c9ff;
+}
+
+/* Inputs */
+html[data-theme=dark] .input {
+  --stroke: rgba(255,255,255,.14);
+}
+
+html[data-theme=dark] .input__el,
+html[data-theme=dark] input[type=text],
+html[data-theme=dark] input[type=email],
+html[data-theme=dark] input[type=password],
+html[data-theme=dark] input[type=date],
+html[data-theme=dark] input[type=time] {
+  background: #101b31 !important;
+  color: #f0f6ff !important;
+  border: 1px solid var(--stroke) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme=dark] .input__el::placeholder {
+  color: rgba(200, 214, 244, 0.55);
+}
+
+/* Input icons (mail/eye) */
+html[data-theme=dark] .input .input__icon {
+  opacity: 0.9;
+  filter: none;
+}
+
+html[data-theme=dark] .input .input__eye {
+  opacity: 0.85;
+}
+
+html[data-theme=dark] .input .input__eye:hover {
+  opacity: 1;
+}
+
+/* Focus ring (keyboard friendly) */
+html[data-theme=dark] .input__el:focus {
+  border-color: #6ea8ff !important;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(110, 168, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Underline lines (if you use .line fields) */
+html[data-theme=dark] .line__underline {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+html[data-theme=dark] .line:has(.line__input:focus) .line__underline {
+  background: linear-gradient(90deg, #7ad6b3, #bfe8ff) !important;
+}
+
+/* Primary button */
+html[data-theme=dark] .c-btn.c-btn--primary {
+  color: #fff;
+  background: linear-gradient(180deg, #5592ff, #2a6dff);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 24px rgba(42, 109, 255, 0.35);
+  border: 0;
+}
+
+html[data-theme=dark] .c-btn.c-btn--primary:active {
+  transform: translateY(1px);
+}
+
+/* Social & register/forgot tiles (keep brand colors, just dark surface) */
+html[data-theme=dark] .btn-social,
+html[data-theme=dark] .auth-icon {
+  background: #111b2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme=dark] .btn-social img,
+html[data-theme=dark] .auth-icon img {
+  filter: none;
+}
+
+/* don't recolor brand SVGs */
+/* Sun–Moon toggle (your pill) */
+html[data-theme=dark] .tt .tt__track {
+  background: linear-gradient(90deg, #2e8bff, #0b5bdb);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45), inset 0 2px 6px rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme=dark] .tt .tt__sun {
+  opacity: 0.55;
+}
+
+html[data-theme=dark] .tt .tt__moon {
+  opacity: 1;
+}
+
+html[data-theme=dark] .tt .tt__knob {
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+}
+
+/* Small utilities */
+html[data-theme=dark] ::selection {
+  background: #2a6dff;
+  color: #fff;
+}
+
+html[data-theme=dark] .shadow-soft {
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme=dark] hr {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Dark mode: pill container owns the border/background --- */
+html[data-theme=dark] .input {
+  background: #0f1930 !important;
+  /* dark pill */
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* The actual <input> becomes transparent and borderless */
+html[data-theme=dark] .input__el,
+html[data-theme=dark] input[type=email],
+html[data-theme=dark] input[type=password] {
+  background: transparent !important;
+  /* kill inner “stripes/lines” */
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #f0f6ff !important;
+}
+
+/* Placeholder + icons */
+html[data-theme=dark] .input__el::placeholder {
+  color: rgba(220, 230, 255, 0.55) !important;
+}
+
+html[data-theme=dark] .input .input__icon,
+html[data-theme=dark] .input .input__eye {
+  opacity: 0.85;
+}
+
+/* Focus ring on the PILL, not the field (keyboard friendly) */
+html[data-theme=dark] .input:has(.input__el:focus) {
+  border-color: #6ea8ff !important;
+  box-shadow: 0 0 0 3px rgba(110, 168, 255, 0.28), 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Remove any underline/tail decorations if you had them */
+html[data-theme=dark] .input .input__tail,
+html[data-theme=dark] .input::before,
+html[data-theme=dark] .input::after {
+  display: none !important;
+}
+
+/* iOS/Chrome autofill often paints its own inner fill — neutralize it */
+html[data-theme=dark] input:-webkit-autofill,
+html[data-theme=dark] input:-webkit-autofill:hover,
+html[data-theme=dark] input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #0f1930 inset !important;
+  -webkit-text-fill-color: #f0f6ff !important;
+  caret-color: #f0f6ff !important;
+}
+
+/* Make sure the native control has no default bevel/inner line on mobile */
+html[data-theme=dark] input[type=email],
+html[data-theme=dark] input[type=password] {
+  -webkit-appearance: none;
+  appearance: none;
+  background-clip: padding-box !important;
+}
+
+/* ============== LOOZ overrides (safe, non-breaking) ============== */
+/* Bigger logo in auth header + ensure single-rendered image fills box */
+:root {
+  --logo-size: clamp(48px, 8vw, 72px);
+}
+
+.topbar .topbar__logo {
+  width: var(--logo-size) !important;
+  height: var(--logo-size) !important;
+  justify-self: end;
+}
+
+.topbar .logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Dark-mode pill inputs: remove inner black lines, let container own the pill */
+html[data-theme=dark] .input {
+  background: #0f1930 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme=dark] .input__el,
+html[data-theme=dark] input[type=email],
+html[data-theme=dark] input[type=password] {
+  background: transparent !important;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #f0f6ff !important;
+}
+
+html[data-theme=dark] .input__el::placeholder {
+  color: rgba(220, 230, 255, 0.55) !important;
+}
+
+html[data-theme=dark] .input:has(.input__el:focus) {
+  border-color: #6ea8ff !important;
+  box-shadow: 0 0 0 3px rgba(110, 168, 255, 0.28), 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme=dark] input:-webkit-autofill,
+html[data-theme=dark] input:-webkit-autofill:hover,
+html[data-theme=dark] input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #0f1930 inset !important;
+  -webkit-text-fill-color: #f0f6ff !important;
+  caret-color: #f0f6ff !important;
+}
+
+html[data-theme=dark] input[type=email],
+html[data-theme=dark] input[type=password] {
+  -webkit-appearance: none;
+  appearance: none;
+  background-clip: padding-box !important;
+}
+
+/* One-logo CSS guard (if still needed) */
+.topbar .logo {
+  display: none !important;
+}
+
+html[data-theme=light] .topbar .logo--light {
+  display: block !important;
+}
+
+html[data-theme=dark] .topbar .logo--dark {
+  display: block !important;
+}
+
+html:not([data-theme]) .topbar .logo--light {
+  display: block !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .topbar .logo--light {
+    display: none !important;
+  }
+
+  html:not([data-theme]) .topbar .logo--dark {
+    display: block !important;
+  }
+}
+/* ============ end LOOZ overrides ============ */
+/* Auth header — bigger logo, no layout shift */
+.topbar.topbar--simple {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  /* title flexes, logo gets its true size */
+  align-items: center;
+  gap: 8px;
+}
+
+/* If --logo-size is set inline, use it; otherwise fall back to a nice clamp */
+.topbar.topbar--simple .topbar__logo {
+  width: var(--logo-size, clamp(56px, 9vw, 96px)) !important;
+  height: var(--logo-size, clamp(56px, 9vw, 96px)) !important;
+  justify-self: end;
+}
+
+.topbar.topbar--simple .topbar__logo .logo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+/* Keep title from wrapping weirdly when the logo is big */
+.topbar.topbar--simple .title {
+  white-space: nowrap;
+}
+
+/* Show only ONE logo (auth page) */
+.topbar .logo {
+  display: none !important;
+}
+
+html[data-theme=light] .topbar .logo--light {
+  display: block !important;
+}
+
+html[data-theme=dark] .topbar .logo--dark {
+  display: block !important;
+}
+
+/* If no explicit theme saved → follow system */
+html:not([data-theme]) .topbar .logo--light {
+  display: block !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .topbar .logo--light {
+    display: none !important;
+  }
+
+  html:not([data-theme]) .topbar .logo--dark {
+    display: block !important;
+  }
+}
+/* Bigger logo box (uses inline --logo-size from the header) */
+.topbar.topbar--simple .topbar__logo {
+  width: var(--logo-size, clamp(56px, 9vw, 96px)) !important;
+  height: var(--logo-size, clamp(56px, 9vw, 96px)) !important;
+  justify-self: end;
+}
+
+.topbar.topbar--simple .topbar__logo .logo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+/* Auth header — single logo, bigger size, no distortion */
+.topbar.topbar--simple .topbar__logo {
+  width: var(--auth-logo-size, clamp(56px, 9vw, 96px)) !important;
+  height: var(--auth-logo-size, clamp(56px, 9vw, 96px)) !important;
+  justify-self: end;
+}
+
+.topbar.topbar--simple .topbar__logo .logo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
