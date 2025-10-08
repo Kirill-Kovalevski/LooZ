@@ -1,4 +1,4 @@
-/* ===== LooZ — Planner App (home) — vFinal.11 (auto-save, he, cleaned) ===== */
+/* ===== LooZ — Planner App (home) — vFinal.13 (dark-mode polish + robust mic) ===== */
 (function () {
   'use strict';
 
@@ -250,7 +250,7 @@
       if (state._openWeek===ymd){
         const items = state.tasks.filter(t=>t.date===ymd).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
         const list = document.createElement('div'); list.className='p-day__list';
-        if (!items.length) list.innerHTML = '<div class="פ-empty small">אין אירועים</div>';
+        if (!items.length) list.innerHTML = '<div class="p-empty small">אין אירועים</div>';
         else {
           items.forEach(t=>{
             const row = document.createElement('div');
@@ -356,12 +356,9 @@
     });
   }
 
-  /* ===================== Bottom Sheet (guarded) ===================== */
+  /* ===================== Bottom Sheet (optional) ===================== */
   function openSheet(){
     if (!sheet) return;
-    const now = new Date();
-    if (dateInput && !dateInput.value) dateInput.value = dateKey(now);
-    if (timeInput && !timeInput.value) timeInput.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
     sheet.classList.remove('u-hidden'); sheet.classList.add('is-open');
     try { titleInput && titleInput.focus(); } catch {}
   }
@@ -398,11 +395,7 @@
   }
   document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeSheet(); });
 
-  // (השארנו את מאזין ה-submit בשביל Enter, אבל אין כפתור שמור)
-  sheetForm && sheetForm.addEventListener('submit', (e)=>{
-    e.preventDefault();
-    autoSaveComposer();
-  });
+  sheetForm && sheetForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
 
   /* ===================== Fullscreen Composer ===================== */
   const composer      = document.getElementById('eventComposer');
@@ -414,75 +407,22 @@
   const compTime      = document.getElementById('compTime');
   const compMic       = document.getElementById('compMic');
   const compMicNote   = document.getElementById('compMicNote');
-  const compPencil    = document.getElementById('compPencil');
-  const actionsHost   = composer ? composer.querySelector('.composer__actions') : null;
 
   const MIN_TITLE_CHARS = 2;
-  let _pendingSave = false; // מונע כפילות שמירה
+  let _pendingSave = false; // למניעת כפילות שמירה
 
-  // hidden mirror for caret width
-  const _mirror = document.createElement('div');
-  _mirror.style.cssText = ['position:absolute','visibility:hidden','white-space:pre','pointer-events:none','top:-9999px','right:-9999px'].join(';');
-  document.body.appendChild(_mirror);
-
-  function _copyInputStyles(src, dst){
-    const cs = getComputedStyle(src);
-    ['fontFamily','fontSize','fontWeight','letterSpacing','textTransform','padding','border','boxSizing','direction'].forEach(p => dst.style[p] = cs[p]);
-    dst.style.width = cs.width;
-  }
-
-  function updatePencilAnchor(){
-    if (!composer || !compPencil || !compTitle || !compPanel) return;
+  // Anchor mic at bottom-center (step 1 only)
+  function updateMicAnchor(){
+    if (!composer || !compMic || !compPanel) return;
     const step = Number(composer.getAttribute('data-step')||1);
-    const input = (step === 1 ? compTitle : null);
-    if (!input) { compPencil.style.display='none'; return; }
-
-    const inputRect = input.getBoundingClientRect();
-    const panelRect = compPanel.getBoundingClientRect();
-    _copyInputStyles(input, _mirror);
-    const cs = getComputedStyle(input);
-    const isRTL    = (cs.direction === 'rtl');
-    const padStart = parseFloat(isRTL ? cs.paddingRight : cs.paddingLeft) || 0;
-    const val   = input.value || '';
-    const caret = input.selectionStart ?? val.length;
-    _mirror.textContent = val.slice(0, caret);
-    const w = _mirror.getBoundingClientRect().width;
-    const MIN_INSET = 6;
-    const xAbs = (val.length === 0)
-      ? (isRTL ? (inputRect.right - padStart - MIN_INSET) : (inputRect.left  + padStart + MIN_INSET))
-      : (isRTL ? (inputRect.right - padStart - w)        : (inputRect.left  + padStart + w));
-    const x = Math.round(xAbs - panelRect.left) - 2;
-    const y = Math.round(inputRect.top - panelRect.top + inputRect.height/2);
-    compPencil.style.display = 'block';
-    compPencil.style.left = x + 'px';
-    compPencil.style.top  = y + 'px';
+    if (step !== 1){ compMic.style.display='none'; return; }
+    const bottomOffset = 24;
+    const x = (compPanel.clientWidth  / 2) + compPanel.scrollLeft;
+    const y = (compPanel.scrollTop + compPanel.clientHeight - bottomOffset);
+    compMic.style.display = 'inline-grid';
+    compMic.style.left = x + 'px';
+    compMic.style.top  = y + 'px';
   }
-
-// עיגון המיקרופון: למרכז של .composer__actions (10px מעליו), בלי כפתור שמור
-function updateMicAnchor(){
-  if (!composer || !compMic || !compPanel) return;
-
-  const step = Number(composer.getAttribute('data-step')||1);
-  if (step !== 1){ compMic.style.display='none'; return; }
-
-  // host הוא הקונטיינר הריק של האקשנס
-  const host = composer.querySelector('.composer__actions') || compPanel;
-  const panRect  = compPanel.getBoundingClientRect();
-  const hostRect = host.getBoundingClientRect();
-
-  const centerX_vp = hostRect.left + hostRect.width/2;
-  const top_vp     = hostRect.top - 10; // 10px מעל
-
-  const left_in_panel = centerX_vp - panRect.left + compPanel.scrollLeft;
-  const top_in_panel  = top_vp    - panRect.top  + compPanel.scrollTop;
-
-  compMic.style.display = 'inline-grid';
-  compMic.style.left = `${left_in_panel}px`;
-  const micH = compMic.offsetHeight || 38;
-  compMic.style.top  = `${top_in_panel - micH}px`; // לשבת מעל
-  // translate(-50%,0) ב-CSS משלים יישור אופקי
-}
-
 
   function setStep(n){
     if (!composer) return;
@@ -490,7 +430,7 @@ function updateMicAnchor(){
     if (n===1 && compTitle) compTitle.focus();
     if (n===2 && compDate)  compDate.focus();
     if (n===3 && compTime)  compTime.focus();
-    updatePencilAnchor(); updateMicAnchor();
+    updateMicAnchor();
   }
 
   function fieldsReadyForSave(){
@@ -523,10 +463,10 @@ function updateMicAnchor(){
     }
   }
 
-  // מעבר בין שלבים
+  // Step flow
   function maybeAdvanceFromTitle(origin){
     const t = (compTitle && compTitle.value || '').trim();
-    const ok = (origin === 'enter') || ((origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS);
+    const ok = (origin === 'enter' || origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS;
     if (ok) setStep(2);
   }
   function maybeAdvanceFromDate(){
@@ -536,14 +476,14 @@ function updateMicAnchor(){
 
   function openComposer(){
     if(!composer) return;
-    const now = new Date();
-    if(compDate && !compDate.value) compDate.value = dateKey(now);
-    if(compTime && !compTime.value) compTime.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    if (compTitle) compTitle.value = '';
+    if (compDate)  compDate.value  = '';
+    if (compTime)  compTime.value  = '';
     composer.classList.remove('u-hidden'); composer.classList.add('is-open');
     composer.setAttribute('aria-hidden','false');
     _pendingSave = false;
     setStep(1);
-    requestAnimationFrame(()=>{ updatePencilAnchor(); updateMicAnchor(); });
+    requestAnimationFrame(()=>{ updateMicAnchor(); });
   }
   function closeComposer(){
     if(!composer) return;
@@ -554,93 +494,105 @@ function updateMicAnchor(){
 
   compCloseBtns.forEach(b=>b.addEventListener('click', e=>{ e.preventDefault(); closeComposer(); }));
   composer && composer.addEventListener('click', e=>{ if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer(); });
-  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && composer && composer.classList.contains('is-open')) closeComposer(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeComposer(); });
 
-  // תמיכה ב-Enter כדי לשמור מהר כשכל השדות מלאים
   compForm && compForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
 
   /* ---------- Web Speech (append; hold; swipe-down lock) ---------- */
   let _rec=null, _listening=false, _lockBySwipe=false;
 
-function ensureRecognizer(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  // חייבים HTTPS/localhost ותמיכה בדפדפן
-  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
-  if (!isSecure || !SR) {
-    if (compMicNote) compMicNote.textContent = 'זיהוי דיבור דורש דפדפן תומך ו־HTTPS.';
-    return null;
+  function ensureRecognizer(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+    if (!isSecure || !SR) {
+      if (compMicNote) compMicNote.textContent = 'זיהוי דיבור דורש דפדפן תומך ו־HTTPS.';
+      return null;
+    }
+    if(_rec) return _rec;
+
+    const r = new SR();
+    r.lang = 'he-IL';
+    r.interimResults = true;
+    r.continuous = true;
+    r.maxAlternatives = 1;
+
+    // Hardening
+    r.onspeechend = ()=>{ /* onend handles restart if locked */ };
+    r.onnomatch   = ()=>{ if(compMicNote) compMicNote.textContent='לא נשמע קול… נסו שוב'; };
+
+    r.onresult = (evt)=>{
+      let finalText = '', interimText = '';
+      for (let i = evt.resultIndex; i < evt.results.length; i++){
+        const res = evt.results[i];
+        if (res.isFinal) finalText += res[0].transcript;
+        else interimText += res[0].transcript;
+      }
+      const base = (compTitle && compTitle.value ? compTitle.value.replace(/\s+$/,'') : '');
+      const next = (base + ' ' + (finalText || interimText)).trim();
+      if (compTitle) compTitle.value = next;
+      if (compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
+    };
+
+    r.onerror = (e)=>{
+      if (compMicNote) compMicNote.textContent = (
+        e && e.error === 'not-allowed' ? 'גישה למיקרופון נדחתה.' :
+        e && e.error === 'no-speech'   ? 'לא זוהה דיבור.' :
+        'שגיאת מיקרופון.'
+      );
+      try{ r.stop(); }catch(_){}
+    };
+
+    r.onend = ()=>{
+      if (_listening || _lockBySwipe) {
+        // Some engines need a tiny delay between stop→start
+        setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
+        return;
+      }
+    };
+
+    _rec = r;
+    return r;
   }
-  if(_rec) return _rec;
 
-  const r = new SR();
-  r.lang = 'he-IL';
-  r.interimResults = true;
-  r.continuous = true;      // ננסה רציף; נאתחל מחדש ב-onend אם נסגר
-  r.maxAlternatives = 1;
-
-  // תיקוני התאמה
-  r.onspeechend = ()=>{ /* מתעלמים; onend מטפל באתחול מחדש */ };
-  r.onnomatch   = ()=>{ if(compMicNote) compMicNote.textContent='לא נשמע קול… נסו שוב'; };
-
-  r.onresult = (evt)=>{
-    let finalText = '', interimText = '';
-    for (let i = evt.resultIndex; i < evt.results.length; i++){
-      const res = evt.results[i];
-      if (res.isFinal) finalText += res[0].transcript;
-      else interimText += res[0].transcript;
+  function safeStart(r){
+    try { r.start(); }
+    catch (err){
+      // If already started, bounce stop→start
+      try { r.stop(); } catch(_){}
+      setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
     }
-    const base = (compTitle && compTitle.value ? compTitle.value.replace(/\s+$/,'') : '');
-    const next = (base + ' ' + (finalText || interimText)).trim();
-    if (compTitle) compTitle.value = next;
-    if (compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
-    updatePencilAnchor();
-  };
+  }
 
-  r.onerror = (e)=>{
-    if(compMicNote) compMicNote.textContent = 'שגיאת מיקרופון.';
-    // חלק מהדפדפנים זורקים "no-speech" תדיר — ננסה שוב אם עדיין במצב האזנה
-    try { if (_listening || _lockBySwipe) r.stop(); } catch(_){}
-  };
+  function startMic(){
+    const r = ensureRecognizer();
+    if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
+    if(_listening) return;
+    _listening = true;
+    compMic?.setAttribute('aria-pressed','true');
+    compMic?.classList.add('is-on');
+    if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
 
-  // 🔁 אתחול מחדש אוטומטי כשהדפדפן מסיים את הסשן, כל עוד עדיין אמורים להאזין
-  r.onend = ()=>{
-    if (_listening || _lockBySwipe) {
-      try { r.start(); return; } catch(_) {}
+    // Prompt permission on mobile Safari/Chrome, then start
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({audio:true})
+        .catch(()=>{})  // ignore — SpeechRecognition will still try
+        .finally(()=> safeStart(r));
+    } else {
+      safeStart(r);
     }
-    // אחרת נסיים נקי
-    stopMic();
-  };
+  }
 
-  _rec = r;
-  return r;
-}
+  function stopMic(forceNote){
+    if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
+    _listening = false;
+    compMic?.setAttribute('aria-pressed','false');
+    compMic?.classList.remove('is-on');
+    try{ _rec && _rec.stop(); }catch(_){}
+    if(!forceNote && compMicNote) compMicNote.textContent='';
+    maybeAdvanceFromTitle('mic'); // go to date after speaking (no auto-save here)
+  }
 
- function startMic(){
-  const r = ensureRecognizer();
-  if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
-  if(_listening) return;
-  _listening = true;
-  compMic?.setAttribute('aria-pressed','true');
-  compMic?.classList.add('is-on');
-  compPencil?.classList.add('is-on');
-  if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
-  try{ r.start(); }catch(_){}
-}
-
-function stopMic(forceNote){
-  if(!_listening){ maybeAdvanceFromTitle('mic'); autoSaveComposer(); return; }
-  _listening = false;
-  compMic?.setAttribute('aria-pressed','false');
-  compMic?.classList.remove('is-on');
-  compPencil?.classList.remove('is-on');
-  try{ _rec && _rec.stop(); }catch(_){}
-  if(!forceNote && compMicNote) compMicNote.textContent='';
-  maybeAdvanceFromTitle('mic');
-  autoSaveComposer();
-}
-
-
-  // מחוות: לחיצה רציפה → הקלטה; גרירה מטה (>30px) → נעילה; טאפ → טוגל
+  // gestures: hold→record; swipe-down (>30px)→lock; tap→toggle
   let _micPointerId=null, _micDownY=0;
   if (compMic){
     compMic.addEventListener('pointerdown', (e)=>{
@@ -669,8 +621,17 @@ function stopMic(forceNote){
     });
   }
 
+  // Pause/resume when tab visibility changes (mobile browsers)
+  document.addEventListener('visibilitychange', ()=>{
+    if (document.hidden){
+      try{ _rec && _rec.stop(); }catch(_){}
+    } else if (_listening || _lockBySwipe){
+      try{ _rec && safeStart(_rec); }catch(_){}
+    }
+  });
+
   /* ---------- anchors & input events ---------- */
-  const tickAnchors = ()=>{ updatePencilAnchor(); updateMicAnchor(); };
+  const tickAnchors = ()=>{ updateMicAnchor(); };
   window.addEventListener('resize', tickAnchors);
   window.addEventListener('orientationchange', tickAnchors);
   if (document.fonts && document.fonts.ready) { document.fonts.ready.then(tickAnchors); }
@@ -678,23 +639,19 @@ function stopMic(forceNote){
   [compTitle, compDate, compTime].forEach(inp=>{
     if(!inp) return;
     inp.addEventListener('focus', tickAnchors);
-    inp.addEventListener('input', ()=>{ tickAnchors(); if (inp===compTitle) { /* אין שמירה עדיין */ } });
-    inp.addEventListener('change', ()=>{ tickAnchors(); autoSaveComposer(); });
+    inp.addEventListener('input', tickAnchors);
+    inp.addEventListener('change', ()=>{ tickAnchors(); if (inp===compDate) maybeAdvanceFromDate(); if (inp===compTime) autoSaveComposer(); });
     inp.addEventListener('keyup', tickAnchors);
     inp.addEventListener('click', tickAnchors);
     inp.addEventListener('blur', ()=> setTimeout(()=>{
-      if(Number(composer.getAttribute('data-step')||1)!==1 && compPencil) compPencil.style.display='none';
-      autoSaveComposer();
+      if (inp===compDate) maybeAdvanceFromDate();
+      if (inp===compTime) autoSaveComposer();
     }, 0));
   });
 
-  // Enter בשדה הכותרת → התקדמות; בתאריך/שעה פשוט נשמור כשמלא
+  // Enter on title → advance
   compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
   compTitle && compTitle.addEventListener('blur', ()=> maybeAdvanceFromTitle('blur'));
-  compDate  && compDate.addEventListener('change', ()=>{ maybeAdvanceFromDate(); autoSaveComposer(); });
-  compDate  && compDate.addEventListener('blur',   ()=>{ maybeAdvanceFromDate(); autoSaveComposer(); });
-  compTime  && compTime.addEventListener('change', autoSaveComposer);
-  compTime  && compTime.addEventListener('blur',   autoSaveComposer);
 
   /* ===================== Effects & tiny inline fix ===================== */
   function blastConfetti(x,y,scale){

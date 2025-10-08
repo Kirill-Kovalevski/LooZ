@@ -37,302 +37,361 @@
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
   <link rel="stylesheet" href="css/dist/settings.css" />
 
-  <style>
-  /* ===== Event Composer (focused, minimal, unchanged behavior) ===== */
-  #eventComposer.composer { position: fixed; inset: 0; display: grid; place-items: center; z-index: 9999; }
-  #eventComposer .composer__backdrop { position: absolute; inset:0; background: rgba(0,0,0,.45); }
-  #eventComposer .composer__panel{
-    position: relative; width:min(92vw,520px);
-    background:#f3f4f5; border-radius:18px;
-    padding:18px 18px 16px;
-    box-shadow:0 22px 60px rgba(0,0,0,.18), 0 1px 0 rgba(255,255,255,.6) inset;
-    border:1px solid #e5e7eb; color:#0f172a;
-  }
-  html[data-theme="dark"] #eventComposer .composer__panel{
-    background:#111827; border-color:#1f2937; color:#e5e7eb;
-    box-shadow:0 22px 60px rgba(0,0,0,.55);
-  }
-
-  /* Header: X on TOP-LEFT, title same line centered */
-  .composer__header{
-    display:grid;
-    grid-template-columns:auto 1fr;
-    align-items:center;
-    column-gap:8px;
-    margin-bottom:8px;
-    padding-inline:8px;
-  }
-  .composer__title{
-    margin:0; font-weight:800; font-size:18px; text-align:center; justify-self:center;
-  }
-  .composer__close{
-    justify-self:start; width:32px;height:32px;border-radius:12px;
-    appearance:none;border:none;cursor:pointer;
-    display:grid;place-items:center;
-    background:#fff;color:#0f172a;box-shadow:0 8px 20px rgba(2,6,23,.12);
-  }
-  html[data-theme="dark"] .composer__close{ background:#111827;color:#f8fafc;box-shadow:0 8px 20px rgba(0,0,0,.35); }
-
-  /* Pencil cursor INSIDE panel */
-  #compPencil.pencil-icon{
-    position:absolute; width:22px; height:22px; z-index:6; display:none; pointer-events:none;
-    animation:pencil-flicker .9s infinite;
-    filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));
-  }
-
-  /* Mic INSIDE panel — dead-center above Save; JS sets left/top */
-  #compMic.mic-ico{
-    position:absolute; width:36px; height:36px; border-radius:9999px; z-index:6;
-    display:inline-grid; place-items:center; font-size:14px; cursor:pointer;
-    background:#fff; color:#0f172a; border:1.5px solid #0f172a;
-    box-shadow:0 8px 18px rgba(2,6,23,.14);
-    transform:translate(-50%,0);
-  }
-  #compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
-  html[data-theme="dark"] #compMic.mic-ico{ background:#1f2937; color:#e5e7eb; border-color:#e5e7eb; }
-
-  /* Hide native caret so pencil acts as cursor */
-  #eventComposer .line input{ caret-color:transparent; }
-
-  /* Step reveal (task→date→time). Mic only on step 1 */
-  #eventComposer .line[data-step]{ display:none; }
-  #eventComposer[data-step="1"] .line[data-step="1"]{ display:block; }
-  #eventComposer[data-step="2"] .line[data-step="1"],
-  #eventComposer[data-step="2"] .line[data-step="2"]{ display:block; }
-  #eventComposer[data-step="3"] .line[data-step]{ display:block; }
-  #eventComposer[data-step="1"] #compMic{ display:inline-grid; }
-  #eventComposer:not([data-step="1"]) #compMic{ display:none; }
-
-  /* Buttons — pill */
-  .c-btn, .btn-create-orb, .p-weekbar__btn, .p-day__count, .c-headbtn, .qp__chip{
-    -webkit-tap-highlight-color:transparent; appearance:none; border:none; outline:none; cursor:pointer; user-select:none;
-    background:#fff; color:#0f172a; padding:10px 16px; border-radius:14px;
-    box-shadow:0 8px 20px rgba(2,6,23,.12);
-    transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
-  }
-  .c-btn:hover, .btn-create-orb:hover, .p-weekbar__btn:hover, .p-day__count:hover, .c-headbtn:hover, .qp__chip:hover{
-    transform:translateY(-1px); box-shadow:0 10px 26px rgba(2,6,23,.16);
-  }
-  .c-btn:active, .btn-create-orb:active, .p-weekbar__btn:active, .p-day__count:active, .c-headbtn:active, .qp__chip:active{
-    transform:none; box-shadow:0 6px 16px rgba(2,6,23,.12);
-  }
-  .c-btn--primary{ font-weight:600; }
-  html[data-theme="dark"] .c-btn,
-  html[data-theme="dark"] .btn-create-orb,
-  html[data-theme="dark"] .p-weekbar__btn,
-  html[data-theme="dark"] .p-day__count,
-  html[data-theme="dark"] .c-headbtn,
-  html[data-theme="dark"] .qp__chip{
-    background:#111827; color:#f8fafc; box-shadow:0 8px 20px rgba(0,0,0,.35);
-  }
-
-  /* Task Row (time · text · ✓ ✕) */
-  .task-item{
-    display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:.6rem;
-    padding:.55rem .7rem; border-radius:14px; background:#fff8ea;
-    border:1px solid #f1e4c6; box-shadow:0 1px 0 rgba(0,0,0,.03); outline:none;
-  }
-  .task-item:focus-within{ border-color:#ffd27a; box-shadow:0 0 0 3px rgba(255,210,122,.25); }
-  .task-item__time{
-    font-weight:700; font-size:.95rem; color:#374151;
-    background:#ffefc0; padding:.15rem .55rem; border-radius:999px; line-height:1; white-space:nowrap;
-  }
-  .task-item__text{
-    width:100%; min-width:0; border:none; outline:none; background:transparent; font-size:1rem; color:#1f2937;
-  }
-  .task-item__text::placeholder{ color:#9aa4b2; }
- /* ——— Task row actions: tiny rounded-pill ✓ / ✕ ——— */
-.task-item__actions{ display:flex; align-items:center; gap:.35rem; }
-
-.task-ico{
-  /* pill look like your screenshot */
-  inline-size: 30px;
-  block-size: 16px;
-  border-radius: 999px;
-  display: inline-grid; place-items: center;
-  font-size: 12px; line-height: 1; font-weight: 800;
-  color: #4b5563;               /* glyph color */
-  background: linear-gradient(180deg,#fff,#fff9ef);
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 1px 0 rgba(0,0,0,.03);
-  cursor: pointer;
-  user-select: none;
+<style id="looz-hotfix-compact-week-and-actions">
+/* ================== DAY VIEW — ✓ / ✕ buttons ===================== */
+.p-daytask__actions{
+  display:flex; align-items:center; gap:.35rem;
 }
-.task-ico:active{ transform: translateY(1px); }
-
-/* success / delete accents are subtle, glyph stays dark */
-.task-ico--ok  { background: linear-gradient(180deg,#f6ffef,#fff); }
-.task-ico--del { background: linear-gradient(180deg,#fff5f6,#fff); }
-
-/* dark mode */
-html[data-theme="dark"] .task-ico{
-  color:#e5ecf5;
-  background: linear-gradient(180deg,#132036,#0f1a2d);
-  border-color:#2c4676;
-  box-shadow: 0 0 0 1px rgba(0,0,0,.25) inset;
+.p-daytask__actions .p-ico{
+  inline-size:28px; block-size:18px;
+  border-radius:999px;
+  display:grid; place-items:center;
+  font:700 12px/1 'Rubik',system-ui,sans-serif;
+  background:linear-gradient(180deg,#fff,#fff9ef);
+  border:1px solid #cbd5e1; color:#4b5563;
+  cursor:pointer; user-select:none;
 }
-html[data-theme="dark"] .task-ico--ok  { background: linear-gradient(180deg,#12291c,#0f1a2d); }
-html[data-theme="dark"] .task-ico--del { background: linear-gradient(180deg,#2a1820,#0f1a2d); }
+.p-daytask__actions .p-ico:active{ transform:translateY(1px); }
 
-/* make task text readable in dark */
-html[data-theme="dark"] .task-item__text{ color:#eaf2ff; }
-html[data-theme="dark"] .task-item{
-  background:#162540;
-  border-color:#2c4676;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset;
-}
-/* time chip dark */
-html[data-theme="dark"] .task-item__time{
-  color:#e4ecff; background:#0f1b2f; border:1px solid #3b588b;
+/* ensure glyphs exist even if button text is empty */
+.p-daytask__actions .p-ico--ok::before { content:"✓"; }
+.p-daytask__actions .p-ico--del::before{ content:"✕"; }
+
+/* subtle accents */
+.p-daytask__actions .p-ico--ok  { background:linear-gradient(180deg,#f6ffef,#fff); }
+.p-daytask__actions .p-ico--del { background:linear-gradient(180deg,#fff5f6,#fff); }
+
+/* ================== DARK MODE — readable golden text + glow ====== */
+@keyframes loozGoldGlow {
+  0%,100% { text-shadow:0 0 6px rgba(255,210,120,.35), 0 0 12px rgba(255,210,120,.18); }
+  50%     { text-shadow:0 0 10px rgba(255,210,120,.65), 0 0 18px rgba(255,210,120,.32); }
 }
 
-
-  @media (max-width: 420px){
-    .task-item{ padding:.5rem .6rem; gap:.5rem; }
-    .task-item__time{ font-size:.9rem; }
-    .task-ico{ width:24px; height:20px; }
-  }
-
-  /* Save button spacing under mic (Fibonacci 34px) */
-  #eventComposer .composer__actions{ display:flex; justify-content:center; margin-top:34px; }
-
-  /* Pencil flicker */
-  @keyframes pencil-flicker{
-    0%,48%{ opacity:1 } 49%,100%{ opacity:0 }
-  }
-  /* === Fixed bottom-center orb ================================================= */
-.fab-rail{
-  position: fixed;
-  left: 0; right: 0;
-  bottom: calc(env(safe-area-inset-bottom) + 14px);
-  display: grid; place-items: center;
-  z-index: 60;
-  pointer-events: none;               /* rail is click-through */
+/* task text (day + week) */
+html[data-theme="dark"] .p-daytask__text,
+html[data-theme="dark"] .p-task__text,
+body.is-dark            .p-daytask__text,
+body.is-dark            .p-task__text{
+  color:#ffe8a3;                    /* golden readable */
+  animation: loozGoldGlow 2.6s ease-in-out infinite;
 }
-.fab-rail .btn-create-orb{ pointer-events:auto; }
 
-/* Orb visuals (same look as when pressed) */
-.btn-create-orb{
-  position: relative;
-  inline-size: clamp(86px, 24vw, 112px);
-  block-size:  clamp(86px, 24vw, 112px);
+/* time chip in dark (keeps your vibe) */
+html[data-theme="dark"] .p-daytask__time,
+body.is-dark            .p-daytask__time{
+  background:linear-gradient(180deg,#0f1b2f,#0d1728);
+  border:1px solid #3b588b; color:#e4ecff;
+}
+
+/* ✓ / ✕ in dark */
+html[data-theme="dark"] .p-daytask__actions .p-ico,
+body.is-dark            .p-daytask__actions .p-ico{
+  background:#111827; border-color:#2c4676; color:#e5e7eb;
+}
+html[data-theme="dark"] .p-daytask__actions .p-ico--ok {
+  background:#0f2a1c; border-color:#1a7f47; color:#7ee787;
+}
+html[data-theme="dark"] .p-daytask__actions .p-ico--del{
+  background:#2b0f18; border-color:#b91c1c; color:#fda4af;
+}
+
+/* ================== WEEK VIEW — same size as day rows ============= */
+/* Your day row height is driven by padding ~0.55rem.
+   Mirror that on the week “card” and its head row. */
+.p-week{ gap:.55rem; }
+
+.p-week .p-day{
+  border-radius:14px;
+  padding:.55rem .7rem;               /* match day-view card padding */
+}
+
+/* HEAD: three zones laid out like space-between, with true center for counter */
+.p-week .p-day__head{
+  display:grid !important;
+  grid-template-columns: auto 1fr auto;   /* Left | Center | Right */
+  align-items:center;                      /* vertical centering */
+  column-gap:.5rem;
+  min-block-size: 42px;                    /* same apparent height as day row */
+  padding-inline:.6rem;
+}
+
+/* Right edge: numeric date (DD.MM) */
+.p-week .p-day__date{
+  grid-column:3; justify-self:end; text-align:right;
+  margin:0; font-weight:800; color:#64748b;
+}
+
+/* Center: circular counter — dead center, number centered inside */
+.p-week .p-day__count{
+  grid-column:2; justify-self:center; align-self:center;
+  inline-size: 28px; block-size: 28px;
   border-radius: 50%;
-  border: 0;
-  display: grid; place-items: center;
-  color: transparent; text-indent: -9999px; line-height: 0;
-  cursor: pointer;
-  background:
-    radial-gradient(120% 110% at 38% 22%, rgba(255,255,255,.95) 0 56%, rgba(255,255,255,0) 58%),
-    radial-gradient(140% 120% at 62% 115%, #f8d8a2 0, #f4c984 42%, #efc272 68%, #e8b861 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.92),
-    0 12px 24px rgba(0,0,0,.28),
-    0 1px 0 rgba(0,0,0,.06),
-    0 0 0 1px rgba(219,185,120,.42);
-}
-.btn-create-orb:active{ transform: translateY(1px) scale(.985); }
-
-/* golden inner tile */
-.btn-create-orb::before{
-  content:"";
-  position:absolute; left:50%; top:50%;
-  width:42%; height:42%;
-  transform:translate(-50%,-46%);
-  border-radius:22%;
-  background:
-    radial-gradient(140% 120% at 34% 28%, rgba(255,255,255,.85), rgba(255,255,255,0) 54%),
-    linear-gradient(180deg, #f6d57a, #e6b65f);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.85),
-    0 10px 16px rgba(0,0,0,.12),
-    0 0 0 1px rgba(160,121,30,.28);
-  pointer-events:none;
+  display:grid; place-items:center;      /* center the number */
+  font: 800 12px/1 'Rubik',system-ui,sans-serif;
+  background:#fff; color:#0f172a;
+  border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 2px 6px rgba(0,0,0,.06);
 }
 
-/* blue + badge */
-.btn-create-orb::after{
-  content:"";
-  position:absolute; left:60%; top:26%;
-  width:22%; height:22%;
-  border-radius:50%;
-  border:2px solid #fff;
-  background:
-     linear-gradient(#fff 0 0) center / 62% 12% no-repeat,
-     linear-gradient(#fff 0 0) center / 12% 62% no-repeat,
-     radial-gradient(120% 140% at 30% 25%, #51c7ff, #1b7cff 70%, #1560d8 100%);
-  box-shadow:
-     inset 0 1px 0 rgba(255,255,255,.55),
-     0 8px 14px rgba(27,124,255,.35);
-  pointer-events:none;
+/* Left edge: Hebrew weekday name */
+.p-week .p-day__name{
+  grid-column:1; justify-self:start; text-align:left;
+  margin:0; font-weight:800; color:#0f172a;
 }
 
-/* dark: same size, a touch more lift */
-:is(html,body).is-dark .btn-create-orb{
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.92),
-    0 16px 30px rgba(0,0,0,.45),
-    0 0 0 1px rgba(219,185,120,.32),
-    0 0 40px rgba(255,210,120,.12);
+/* DARK — match day row look */
+html[data-theme="dark"] .p-week .p-day{
+  background:#162540; border:1px solid #2c4676;
+  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04);
 }
-/* --- DARK MODE PATCH for task rows --------------------------------- */
-/* Support both switches your app uses: data-theme="dark" and body.is-dark */
-:root{
-  --ok-ink:#7ee787;  --ok-br:#1a7f47;  --ok-bg:#0f2a1c;
-  --del-ink:#fda4af; --del-br:#b91c1c; --del-bg:#2b0f18;
+html[data-theme="dark"] .p-week .p-day__name{ color:#eaf2ff; }
+html[data-theme="dark"] .p-week .p-day__date{ color:#9cb3d6; }
+html[data-theme="dark"] .p-week .p-day__count{
+  background:#0f1b2f; color:#e5ecf5; border-color:#2c4676;
+}
+/* Create a new event window */
+/* === Dark-mode polish + caret + mic === */
+
+/* keep caret visible everywhere in the composer */
+#eventComposer .line input{ caret-color:auto !important; }
+
+/* title field styling */
+#compTitle{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid #e5e7eb;
+  background:#ffffff;
+  color:#0f172a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 2px 10px rgba(0,0,0,.06);
+}
+#compTitle::placeholder{ color:#94a3b8; }
+
+/* focus */
+#compTitle:focus{
+  outline:none;
+  border-color:#93c5fd;
+  box-shadow:0 0 0 3px rgba(147,197,253,.35);
 }
 
-/* container */
-html[data-theme="dark"] .task-item,
-body.is-dark .task-item{
-  background:#0f1b2f;                 /* deep panel, fits your vibe */
+/* dark mode for the panel + fields + mic + note */
+html[data-theme="dark"] #eventComposer .composer__panel{
+  background:#0b1220;              /* deep navy */
+  border-color:#1f2937;
+  color:#e5e7eb;
+  box-shadow:0 22px 60px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] #compTitle{
+  background:#0f1b2f;              /* slightly lighter than panel */
   border-color:#2c4676;
+  color:#eaf2ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 12px rgba(0,0,0,.25);
+}
+html[data-theme="dark"] #compTitle::placeholder{ color:#94a3b8; }
+html[data-theme="dark"] #compTitle:focus{
+  border-color:#60a5fa;
+  box-shadow:0 0 0 3px rgba(96,165,250,.28);
 }
 
-/* the INPUT itself (high specificity + !important) */
-html[data-theme="dark"] input.task-item__text,
-body.is-dark input.task-item__text{
-  color:#e5ecf5 !important;
+/* mic sits near bottom-center; JS sets left/top */
+#compMic.mic-ico{
+  position:absolute;
+  transform:translate(-50%, 0);
+  background:#fff;
+  color:#0f172a;
+  border:1.5px solid #0f172a;
+  box-shadow:0 8px 18px rgba(2,6,23,.14);
 }
-html[data-theme="dark"] input.task-item__text::placeholder,
-body.is-dark input.task-item__text::placeholder{
-  color:#93a4c7 !important;
+#compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
+
+html[data-theme="dark"] #compMic.mic-ico{
+  background:#122139;
+  color:#e5e7eb;
+  border-color:#d1d5db;
+  box-shadow:0 10px 22px rgba(0,0,0,.45);
+}
+html[data-theme="dark"] #compMic.mic-ico.is-on{
+  box-shadow:0 0 0 4px rgba(99,102,241,.28);
 }
 
-/* time chip */
-html[data-theme="dark"] .task-item__time,
-body.is-dark .task-item__time{
-  background:#0d1728;
-  border:1px solid #3b588b;
-  color:#e4ecff;
+/* mic note */
+#compMicNote{ margin-top:8px; text-align:center; font-size:.85rem; color:#6b7280; }
+html[data-theme="dark"] #compMicNote{ color:#9ca3af; }
+
+</style>
+<style>
+/* ========== shared tokens ========== */
+:root{
+  --row-h: 44px;                 /* height for task row + week row */
+  --row-r: 14px;                 /* corner radius like day view */
+  --chip-w: 28px;                /* week counter diameter */
+  --chip-f: 700 12px/28px 'Rubik',system-ui,sans-serif;
 }
 
-/* action buttons – visible in dark */
+/* ========== DAY VIEW ✓ / ✕ CHIPS ========== */
+/* Base pill (so they never appear as empty grey squares) */
+.task-item__actions .task-ico{
+  display:grid; place-items:center;
+  inline-size: 30px; block-size: 20px;
+  border-radius: 999px;
+  font: 800 12px/1 'Rubik',system-ui,sans-serif;
+  border:1px solid #d6dbe4; background:#fff; color:#475569;
+  user-select:none; cursor:pointer;
+  box-shadow:0 1px 0 rgba(0,0,0,.03);
+}
+.task-ico--ok::before{ content:"✓"; }  /* fallback glyphs */
+.task-ico--del::before{ content:"✕"; }
+
+/* Light theme colors */
+.task-ico--ok{
+  background: linear-gradient(180deg,#ecfee7,#ffffff);
+  border-color:#9ad69b; color:#15803d;
+}
+.task-ico--del{
+  background: linear-gradient(180deg,#ffe8ea,#ffffff);
+  border-color:#f3b5b9; color:#be123c;
+}
+
+/* Dark theme (support both switches you use) */
 html[data-theme="dark"] .task-ico,
 body.is-dark .task-ico{
-  background:#111827;
-  border-color:#2c4676;
-  color:#e5e7eb;
+  border-color:#2c4676; background:#111827; color:#e5e7eb;
 }
 
-/* ✓ and ✕ colors in dark */
+/* ✓ golden-yellow, ✕ golden-red with a soft glow in dark */
+@keyframes loozGlow{0%,100%{box-shadow:0 0 0 rgba(0,0,0,0),0 0 10px rgba(255,208,86,.18)}50%{box-shadow:0 0 0 rgba(0,0,0,0),0 0 16px rgba(255,208,86,.28)}}
+@keyframes loozGlowRed{0%,100%{box-shadow:0 0 0 rgba(0,0,0,0),0 0 10px rgba(255,132,132,.18)}50%{box-shadow:0 0 0 rgba(0,0,0,0),0 0 16px rgba(255,132,132,.28)}}
+
 html[data-theme="dark"] .task-ico--ok,
 body.is-dark .task-ico--ok{
-  background:var(--ok-bg);
-  border-color:var(--ok-br);
-  color:var(--ok-ink);
+  background: linear-gradient(180deg,#1c2b12,#13230e);
+  border-color:#a08b3a;           /* warm rim */
+  color:#ffd456;                  /* golden yellow */
+  animation: loozGlow 2.4s ease-in-out infinite;
 }
 html[data-theme="dark"] .task-ico--del,
 body.is-dark .task-ico--del{
-  background:var(--del-bg);
-  border-color:var(--del-br);
-  color:var(--del-ink);
+  background: linear-gradient(180deg,#2b1716,#201011);
+  border-color:#b0604e;
+  color:#ff8a6b;                  /* golden red */
+  animation: loozGlowRed 2.4s ease-in-out infinite;
 }
 
-/* Fallback: draw symbols even if button text is empty */
-.task-ico--ok::before{ content:"✓"; }
-.task-ico--del::before{ content:"✕"; }
+/* ========== WEEK VIEW ROW ========== */
+/* Make each week row look/size like a day task container */
+.p-week .p-day{
+  padding: 0;                                    /* let header control height */
+  border-radius: var(--row-r);
+  border: 1px solid rgba(197,154,33,.25);
+  background: radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%);
+  box-shadow: 0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06);
+}
 
-  </style>
+/* Header line inside each .p-day: horizontally spaced, vertically centered,
+   and the same height as day view rows */
+.p-week .p-day__head{
+  display: flex !important;
+  justify-content: space-between;    /* date —— counter —— name */
+  align-items: center;               /* dead center vertically */
+  min-height: var(--row-h);
+  padding: 6px 10px;
+  gap: .5rem;
+}
+
+/* Right: numeric date */
+.p-week .p-day__date{
+  margin: 0; font-weight: 800; color:#64748b;
+}
+
+/* Left: Hebrew weekday */
+.p-week .p-day__name{
+  margin: 0; font-weight: 800; color:#0f172a;
+}
+
+/* Middle: task counter chip — number perfectly centered */
+.p-week .p-day__count{
+  display: grid; place-items: center;            /* centers number */
+  inline-size: var(--chip-w); block-size: var(--chip-w);
+  border-radius: 50%;
+  font: var(--chip-f);
+  background:#fff; color:#0f172a;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  margin-inline: .5rem;                          /* keeps it visually centered */
+}
+
+/* Dark mode for week rows */
+html[data-theme="dark"] .p-week .p-day,
+body.is-dark .p-week .p-day{
+  background:#162540 !important;
+  border-color:#2c4676 !important;
+  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+html[data-theme="dark"] .p-week .p-day__name,
+body.is-dark .p-week .p-day__name{ color:#eaf2ff; }
+html[data-theme="dark"] .p-week .p-day__date,
+body.is-dark .p-week .p-day__date{ color:#9cb3d6; }
+html[data-theme="dark"] .p-week .p-day__count,
+body.is-dark .p-week .p-day__count{
+  background:#0f1b2f; color:#e5ecf5; border-color:#2c4676;
+}
+
+/* ========== ensure day task row height matches token (visual parity) ========== */
+.task-item{
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:.6rem;
+  min-height: var(--row-h);
+  padding:.55rem .7rem;
+  border-radius: var(--row-r);
+  background:#fff8ea;
+  border:1px solid #f1e4c6;
+  box-shadow:0 1px 0 rgba(0,0,0,.03);
+}
+html[data-theme="dark"] .task-item,
+body.is-dark .task-item{
+  background:#162540; border-color:#2c4676;
+}
+.task-item__time{
+  direction:ltr; font-weight:700; font-size:.95rem;
+  background:#ffefc0; color:#374151;
+  padding:.15rem .55rem; border-radius:999px;
+}
+html[data-theme="dark"] .task-item__time{
+  background:#0f1b2f; color:#e4ecff; border:1px solid #3b588b;
+}
+.task-item__text{ min-width:0; border:0; background:transparent; color:#1f2937; }
+html[data-theme="dark"] .task-item__text{ color:#e5ecf5; }
+/* keep caret visible */
+#eventComposer .line input{ caret-color:auto !important; }
+
+/* dark-mode composer polish (wins by source order) */
+html[data-theme="dark"] #eventComposer .composer__panel{
+  background:#0b1220; border-color:#1f2937; color:#e5e7eb;
+  box-shadow:0 22px 60px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] #compTitle{
+  background:#0f1b2f; border-color:#2c4676; color:#eaf2ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 12px rgba(0,0,0,.25);
+}
+html[data-theme="dark"] #compTitle::placeholder{ color:#94a3b8; }
+html[data-theme="dark"] #compTitle:focus{
+  border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,.28);
+}
+
+/* mic bottom-center; make sure it’s above everything */
+#compMic.mic-ico{
+  position:absolute; transform:translate(-50%,0); z-index:20;
+}
+
+/* hide any legacy save row completely */
+#eventComposer .composer__actions{ display:none !important; }
+
+/* mic note colors */
+#compMicNote{ margin-top:8px; text-align:center; font-size:.85rem; color:#6b7280; }
+html[data-theme="dark"] #compMicNote{ color:#9ca3af; }
+
+</style>
 
   <!-- Resilient auth guard loader -->
   <script>
@@ -408,10 +467,12 @@ body.is-dark .task-ico--del{
           <div class="task-item" tabindex="0" data-id="">
             <span class="task-item__time" dir="ltr"></span>
             <input class="task-item__text" type="text" placeholder="תיאור המשימה…" value="" inputmode="text" />
-            <div class="task-item__actions">
-              <button class="task-ico task-ico--ok"  title="בוצע" aria-label="בוצע">✓</button>
-              <button class="task-ico task-ico--del" title="מחק"  aria-label="מחק">×</button>
-            </div>
+          <!-- inside .task-item/.p-daytask/.p-task actions -->
+<div class="task-item__actions">
+  <button class="task-ico" data-act="ok"  aria-label="בוצע"></button>
+  <button class="task-ico" data-act="del" aria-label="מחק"></button>
+</div>
+
 
           </div>
         </template>
@@ -501,7 +562,7 @@ body.is-dark .task-ico--del{
             <div class="line" data-step="1">
               <label class="visually-hidden" for="compTitle">תיאור המשימה</label>
               <input id="compTitle" type="text" placeholder="תיאור המשימה…" autocomplete="off" />
-              <img id="compPencil" class="pencil-icon" src="icons/pencil.svg" alt="" aria-hidden="true" />
+          
               <button id="compMic" class="mic-ico" type="button" aria-pressed="false" title="דבר/י" aria-label="דבר/י">
                 <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                   <rect x="9" y="3" width="6" height="12" rx="3" fill="currentColor"></rect>

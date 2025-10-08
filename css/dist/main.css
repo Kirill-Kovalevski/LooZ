@@ -2562,11 +2562,10 @@ html[data-theme=dark] #eventComposer .line[data-step="1"] input {
 }
 
 /* Mic visual tweak (same size, nicer ring) */
+/* Mic: center on both axes */
 #compMic.mic-ico {
-  width: 38px;
-  height: 38px;
-  border-width: 1.6px;
-  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.16);
+  transform: translate(-50%, -50%);
+  /* was translate(-50%, 0) */
 }
 
 #compMic.mic-ico.is-on {
@@ -3017,4 +3016,110 @@ html[data-theme=dark] .p-week .p-day__count {
 /* keep space for the orb so rows don't collide with it */
 .c-planner {
   margin-bottom: 5.25rem;
+}
+
+/* === Compact week row: day (left) • counter (center) • date (right) === */
+.p-week {
+  gap: 0.5rem;
+}
+
+.p-week .p-day {
+  padding: 0.5rem 0.65rem !important;
+  /* shorter rows */
+  border-radius: 14px !important;
+}
+
+/* Header uses three columns; content perfectly centered vertically */
+.p-week .p-day__head {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  /* left | center | right */
+  align-items: center !important;
+  column-gap: 0.5rem !important;
+  padding-inline: 0.4rem !important;
+  min-block-size: 42px !important;
+  /* consistent height */
+}
+
+/* Left: Hebrew day */
+.p-week .p-day__name {
+  grid-column: 1;
+  justify-self: start;
+  text-align: right;
+  margin: 0;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Center: counter — dead center */
+.p-week .p-day__count {
+  grid-column: 2;
+  justify-self: center;
+  align-self: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  font: 800 12px/28px "Rubik", system-ui, sans-serif;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Right: numeric date DD.MM */
+.p-week .p-day__date {
+  grid-column: 3;
+  justify-self: end;
+  text-align: left;
+  margin: 0;
+  font-weight: 800;
+  color: #64748b;
+}
+
+/* Stretch to phone width nicely */
+.o-inner .p-week .p-day {
+  width: 100%;
+}
+
+/* Dark theme */
+html[data-theme=dark] .p-week .p-day,
+body.is-dark .p-week .p-day {
+  background: #162540 !important;
+  border-color: #2c4676 !important;
+  box-shadow: 0 10px 26px rgba(11, 18, 34, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+html[data-theme=dark] .p-week .p-day__name {
+  color: #eaf2ff;
+}
+
+html[data-theme=dark] .p-week .p-day__date {
+  color: #9cb3d6;
+}
+
+html[data-theme=dark] .p-week .p-day__count {
+  background: #0f1b2f;
+  color: #e5ecf5;
+  border-color: #2c4676;
+}
+
+/* Keep bottom space so the orb doesn't overlap last row */
+.c-planner {
+  margin-bottom: 5.25rem;
+}
+
+/* The title line wraps the input; keep it relative and visible */
+#eventComposer .line[data-step="1"] {
+  position: relative;
+  overflow: visible;
+  /* so the pencil is never clipped */
+}
+
+/* Pencil floats above the input */
+#compPencil.pencil-icon {
+  position: absolute;
+  z-index: 10;
+  /* above the input and its background */
+  pointer-events: none;
+  display: none;
+  /* JS toggles to block */
 }
