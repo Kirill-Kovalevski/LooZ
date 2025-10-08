@@ -1,4 +1,4 @@
-/* ===== LooZ — Planner App (home) — vFinal.9 with Composer + Pencil ===== */
+/* ===== LooZ — Planner App (home) — vFinal.9 (refined) ===== */
 (function () {
   'use strict';
 
@@ -26,6 +26,7 @@
   const HEB_DAYS   = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   const HEB_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 
+  /* ===================== Top buttons ===================== */
   const btnProfile    = $('#btnProfile');
   const btnMenu       = $('#btnMenu');
   const btnCategories = $('#btnCategories');
@@ -370,7 +371,7 @@
     });
   }
 
-  /* ===================== Bottom Sheet (kept) ===================== */
+  /* ===================== Bottom Sheet ===================== */
   function openSheet(){
     if (!sheet) return;
     const now = new Date();
@@ -425,259 +426,301 @@
     render(); sheetForm.reset(); closeSheet();
   });
 
-/* ===================== Fullscreen Composer (single, corrected) ===================== */
-const composer      = document.getElementById('eventComposer');
-const compPanel     = composer ? composer.querySelector('.composer__panel') : null;
-const compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
-const compForm      = document.getElementById('composerForm');
-const compTitle     = document.getElementById('compTitle');
-const compDate      = document.getElementById('compDate');
-const compTime      = document.getElementById('compTime');
-const compMic       = document.getElementById('compMic');
-const compMicNote   = document.getElementById('compMicNote');
-const compPencil    = document.getElementById('compPencil');
+  /* ===================== Fullscreen Composer (single, corrected) ===================== */
+  const composer      = document.getElementById('eventComposer');
+  const compPanel     = composer ? composer.querySelector('.composer__panel') : null;
+  const compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
+  const compForm      = document.getElementById('composerForm');
+  const compTitle     = document.getElementById('compTitle');
+  const compDate      = document.getElementById('compDate');
+  const compTime      = document.getElementById('compTime');
+  const compMic       = document.getElementById('compMic');
+  const compMicNote   = document.getElementById('compMicNote');
+  const compPencil    = document.getElementById('compPencil');
 
-const MIN_TITLE_CHARS = 2; // do NOT advance on a single char
+  const MIN_TITLE_CHARS = 2; // do NOT advance on a single char
 
-/* ---------- hidden mirror for caret width ---------- */
-const _mirror = document.createElement('div');
-_mirror.style.cssText = [
-  'position:absolute','visibility:hidden','white-space:pre','pointer-events:none',
-  'top:-9999px','right:-9999px'
-].join(';');
-document.body.appendChild(_mirror);
+  /* ---------- hidden mirror for caret width ---------- */
+  const _mirror = document.createElement('div');
+  _mirror.style.cssText = [
+    'position:absolute','visibility:hidden','white-space:pre','pointer-events:none',
+    'top:-9999px','right:-9999px'
+  ].join(';');
+  document.body.appendChild(_mirror);
 
-function _copyInputStyles(src, dst){
-  const cs = getComputedStyle(src);
-  const props = ['fontFamily','fontSize','fontWeight','letterSpacing','textTransform','padding','border','boxSizing','direction'];
-  props.forEach(p => dst.style[p] = cs[p]);
-  dst.style.width = cs.width;
-}
+  function _copyInputStyles(src, dst){
+    const cs = getComputedStyle(src);
+    const props = ['fontFamily','fontSize','fontWeight','letterSpacing','textTransform','padding','border','boxSizing','direction'];
+    props.forEach(p => dst.style[p] = cs[p]);
+    dst.style.width = cs.width;
+  }
 
-function updatePencilAnchor(){
-  if (!composer || !compPencil || !compTitle || !compPanel) return;
+  function updatePencilAnchor(){
+    if (!composer || !compPencil || !compTitle || !compPanel) return;
+    const step = Number(composer.getAttribute('data-step')||1);
+    const input = (step === 1 ? compTitle : null);
+    if (!input) { compPencil.style.display='none'; return; }
 
-  const step = Number(composer.getAttribute('data-step')||1);
-  const input = (step === 1 ? compTitle : null);
-  if (!input) { compPencil.style.display='none'; return; }
+    const inputRect = input.getBoundingClientRect();
+    const panelRect = compPanel.getBoundingClientRect();
 
-  const inputRect = input.getBoundingClientRect();
-  const panelRect = compPanel.getBoundingClientRect();
+    _copyInputStyles(input, _mirror);
 
-  _copyInputStyles(input, _mirror);
+    const cs = getComputedStyle(input);
+    const isRTL    = (cs.direction === 'rtl');
+    const padStart = parseFloat(isRTL ? cs.paddingRight : cs.paddingLeft) || 0;
 
-  const cs = getComputedStyle(input);
-  const isRTL    = (cs.direction === 'rtl');
-  const padStart = parseFloat(isRTL ? cs.paddingRight : cs.paddingLeft) || 0;
+    const val   = input.value || '';
+    const caret = input.selectionStart ?? val.length;
 
-  const val   = input.value || '';
-  const caret = input.selectionStart ?? val.length;
+    _mirror.textContent = val.slice(0, caret);
+    const w = _mirror.getBoundingClientRect().width;
 
-  _mirror.textContent = val.slice(0, caret);
-  const w = _mirror.getBoundingClientRect().width;
+    const MIN_INSET = 6;
+    const xAbs = (val.length === 0)
+      ? (isRTL ? (inputRect.right - padStart - MIN_INSET)
+               : (inputRect.left  + padStart + MIN_INSET))
+      : (isRTL ? (inputRect.right - padStart - w)
+               : (inputRect.left  + padStart + w));
 
-  const MIN_INSET = 6;
-  const xAbs = (val.length === 0)
-    ? (isRTL ? (inputRect.right - padStart - MIN_INSET)
-             : (inputRect.left  + padStart + MIN_INSET))
-    : (isRTL ? (inputRect.right - padStart - w)
-             : (inputRect.left  + padStart + w));
+    // viewport → panel-relative
+    const x = Math.round(xAbs - panelRect.left) - 2;              // tiny nudge
+    const y = Math.round(inputRect.top - panelRect.top + inputRect.height/2);
 
-  // viewport → panel-relative
-  const x = Math.round(xAbs - panelRect.left) - 2;
-  const y = Math.round(inputRect.top - panelRect.top + inputRect.height/2);
+    compPencil.style.display = 'block';
+    compPencil.style.left = x + 'px';
+    compPencil.style.top  = y + 'px';
+  }
 
-  compPencil.style.display = 'block';
-  compPencil.style.left = x + 'px';
-  compPencil.style.top  = y + 'px';
-}
+  /* ---------- Mic alignment: same vertical line as X, under the field ---------- */
+  function updateMicAnchor(){
+    if (!composer || !compMic || !compPanel) return;
+    const step = Number(composer.getAttribute('data-step')||1);
+    if (step !== 1) { compMic.style.display = 'none'; return; }
 
-function updateMicAnchor(){
-  if (!composer || !compMic || !compTitle || !compPanel) return;
-  const step = Number(composer.getAttribute('data-step')||1);
-  if (step !== 1) { compMic.style.display = 'none'; return; }
+    const panelRect = compPanel.getBoundingClientRect();
+    const closeX    = composer.querySelector('.composer__close');
+    const field     = document.getElementById('compTitle'); // input field
+    if (!closeX || !field) return;
 
-  const inputRect = compTitle.getBoundingClientRect();
-  const panelRect = compPanel.getBoundingClientRect();
+    const xr = closeX.getBoundingClientRect();
+    const fr = field.getBoundingClientRect();
 
-  const centerX = Math.round(panelRect.width / 2);
-  const topY    = Math.round(inputRect.bottom - panelRect.top + 21); // Fibonacci 21px
+    const centerX = xr.left + xr.width / 2;  // vertical line with X
+    const gap = 12;
+    const topY = fr.bottom + gap;            // just below the field
 
-  compMic.style.display = 'inline-grid';
-  compMic.style.left = centerX + 'px';
-  compMic.style.top  = topY + 'px';
-  compMic.style.transform = 'translate(-50%,0)';
-}
+    compMic.style.display = 'inline-grid';
+    compMic.style.left = (centerX - panelRect.left) + 'px';
+    compMic.style.top  = (topY   - panelRect.top ) + 'px';
+    // CSS: transform: translate(-50%, 0) on the mic (keeps it centered)
+  }
 
+  /* ---------- step flow ---------- */
+  function setStep(n){
+    if (!composer) return;
+    composer.setAttribute('data-step', String(n));
+    if (n===1 && compTitle) compTitle.focus();
+    if (n===2 && compDate)  compDate.focus();
+    if (n===3 && compTime)  compTime.focus();
+    updatePencilAnchor(); updateMicAnchor();
+  }
 
+  function maybeAdvanceFromTitle(origin){
+    const t = (compTitle && compTitle.value || '').trim();
+    const ok =
+      (origin === 'enter') ||
+      ((origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS);
+    if (ok) setStep(2);
+  }
 
-/* ---------- step flow ---------- */
-function setStep(n){
-  if (!composer) return;
-  composer.setAttribute('data-step', String(n));
-  if (n===1 && compTitle) compTitle.focus();
-  if (n===2 && compDate)  compDate.focus();
-  if (n===3 && compTime)  compTime.focus();
-  updatePencilAnchor(); updateMicAnchor();
-}
+  function maybeAdvanceFromDate(){
+    const d = (compDate && compDate.value || '').trim();
+    if (d) setStep(3);
+  }
 
-function maybeAdvanceFromTitle(origin){
-  const t = (compTitle && compTitle.value || '').trim();
-  const ok =
-    (origin === 'enter') ||
-    ((origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS);
-  if (ok) setStep(2);
-}
+  /* ---------- open/close ---------- */
+  function openComposer(){
+    if(!composer) return;
+    const now = new Date();
+    if(compDate && !compDate.value) compDate.value = dateKey(now);
+    if(compTime && !compTime.value) compTime.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    composer.classList.remove('u-hidden');
+    composer.classList.add('is-open');
+    composer.setAttribute('aria-hidden','false');
+    setStep(1);
+    try { compTitle && compTitle.focus(); } catch {}
+    requestAnimationFrame(()=>{ updatePencilAnchor(); updateMicAnchor(); });
+  }
 
-function maybeAdvanceFromDate(){
-  const d = (compDate && compDate.value || '').trim();
-  if (d) setStep(3);
-}
+  function closeComposer(){
+    if(!composer) return;
+    composer.classList.remove('is-open');
+    composer.setAttribute('aria-hidden','true');
+    setTimeout(()=>composer.classList.add('u-hidden'),180);
+    stopMic(true);
+  }
 
-/* ---------- open/close ---------- */
-function openComposer(){
-  if(!composer) return;
-  const now = new Date();
-  if(compDate && !compDate.value) compDate.value = dateKey(now);
-  if(compTime && !compTime.value) compTime.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-  composer.classList.remove('u-hidden');
-  composer.classList.add('is-open');
-  composer.setAttribute('aria-hidden','false');
-  setStep(1);
-  try { compTitle && compTitle.focus(); } catch {}
-  requestAnimationFrame(()=>{ updatePencilAnchor(); updateMicAnchor(); });
-}
+  /* ---------- hooks ---------- */
+  createOrbBtn && createOrbBtn.addEventListener('click', e=>{ e.preventDefault(); openComposer(); });
+  compCloseBtns.forEach(b=>b.addEventListener('click', e=>{ e.preventDefault(); closeComposer(); }));
+  composer && composer.addEventListener('click', e=>{
+    if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer();
+  });
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Escape' && composer && composer.classList.contains('is-open')) closeComposer();
+  });
 
-function closeComposer(){
-  if(!composer) return;
-  composer.classList.remove('is-open');
-  composer.setAttribute('aria-hidden','true');
-  setTimeout(()=>composer.classList.add('u-hidden'),180);
-  stopMic(true);
-}
+  /* ---------- save ---------- */
+  compForm && compForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    const t=(compTitle&&compTitle.value||'').trim();
+    const d=(compDate&&compDate.value||'').trim();
+    const h=(compTime&&compTime.value||'').trim();
+    if(!t||!d||!h) return;
+    const id='t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+    state.tasks.push({id, title:t, date:d, time:h});
+    saveTasks();
+    state.current = fromKey(d);
+    state.view = 'day';
+    render();
+    const primary = document.querySelector('#eventComposer .c-btn--primary');
+    if(primary){ primary.classList.add('is-rippling'); setTimeout(()=>primary.classList.remove('is-rippling'),420); }
+    compForm.reset();
+    closeComposer();
+  });
 
-/* ---------- hooks ---------- */
-createOrbBtn && createOrbBtn.addEventListener('click', e=>{ e.preventDefault(); openComposer(); });
-compCloseBtns.forEach(b=>b.addEventListener('click', e=>{ e.preventDefault(); closeComposer(); }));
-composer && composer.addEventListener('click', e=>{
-  if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer();
-});
-document.addEventListener('keydown', e=>{
-  if(e.key==='Escape' && composer && composer.classList.contains('is-open')) closeComposer();
-});
+  /* ---------- Web Speech (append text + mic hold/swipe lock) ---------- */
+  let _rec=null, _listening=false, _lockBySwipe=false;
 
-/* ---------- save ---------- */
-compForm && compForm.addEventListener('submit', e=>{
-  e.preventDefault();
-  const t=(compTitle&&compTitle.value||'').trim();
-  const d=(compDate&&compDate.value||'').trim();
-  const h=(compTime&&compTime.value||'').trim();
-  if(!t||!d||!h) return;
-  const id='t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  state.tasks.push({id, title:t, date:d, time:h});
-  saveTasks();
-  state.current = fromKey(d);
-  state.view = 'day';
-  render();
-  const primary = document.querySelector('#eventComposer .c-btn--primary');
-  if(primary){ primary.classList.add('is-rippling'); setTimeout(()=>primary.classList.remove('is-rippling'),420); }
-  compForm.reset();
-  closeComposer();
-});
+  function ensureRecognizer(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR) return null;
+    if(_rec) return _rec;
 
-/* ---------- Web Speech ---------- */
-let _rec=null, _listening=false, _lockBySwipe=false;
+    const r = new SR();
+    r.lang = 'he-IL';
+    r.interimResults = true;
+    r.continuous = true;
+    r.maxAlternatives = 1;
 
-function ensureRecognizer(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR) return null;
-  if(_rec) return _rec;
-  const r=new SR();
-  r.lang='he-IL'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
-  r.onresult=(evt)=>{
-    let txt=''; for(let i=evt.resultIndex;i<evt.results.length;i++) txt+=evt.results[i][0].transcript;
-    if(compTitle) compTitle.value = txt.trim();
-    if(compMicNote) compMicNote.textContent='מזהה דיבור...';
-    updatePencilAnchor(); // keep the pencil on the caret while dictating
-  };
-  r.onerror=()=>{ if(compMicNote) compMicNote.textContent='שגיאת מיקרופון.'; stopMic(true); };
-  r.onend=()=>{ if(!_lockBySwipe) stopMic(); };
-  _rec=r; return r;
-}
+    r.onresult = (evt)=>{
+      let finalText = '', interimText = '';
+      for (let i = evt.resultIndex; i < evt.results.length; i++){
+        const res = evt.results[i];
+        if (res.isFinal) finalText += res[0].transcript;
+        else interimText += res[0].transcript;
+      }
+      const base = (compTitle && compTitle.value ? compTitle.value.replace(/\s+$/,'') : '');
+      const next = (base + ' ' + (finalText || interimText)).trim();
+      if (compTitle) compTitle.value = next;
+      if (compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
+      updatePencilAnchor();
+    };
+    r.onerror = ()=>{ if(compMicNote) compMicNote.textContent='שגיאת מיקרופון.'; stopMic(true); };
+    r.onend   = ()=>{ if(_lockBySwipe){ try{ r.start(); }catch(_){} } else { stopMic(); } };
 
-function startMic(){
-  const r=ensureRecognizer();
-  if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
-  if(_listening) return;
-  _listening=true;
-  compMic && compMic.setAttribute('aria-pressed','true');
-  compMic && compMic.classList.add('is-on');
-  compPencil && compPencil.classList.add('is-on');
-  if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'התחל/י לדבר...';
-  try{ r.start(); }catch(_){}
-}
+    _rec = r; 
+    return r;
+  }
 
-function stopMic(forceNote){
-  if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
-  _listening=false;
-  compMic && compMic.setAttribute('aria-pressed','false');
-  compMic && compMic.classList.remove('is-on');
-  compPencil && compPencil.classList.remove('is-on');
-  try{ _rec && _rec.stop(); }catch(_){}
-  if(!forceNote && compMicNote) compMicNote.textContent='';
-  maybeAdvanceFromTitle('mic'); // advance only if we now have ≥ MIN_TITLE_CHARS
-}
+  function startMic(){
+    const r = ensureRecognizer();
+    if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
+    if(_listening) return;
+    _listening = true;
+    compMic?.setAttribute('aria-pressed','true');
+    compMic?.classList.add('is-on');
+    compPencil?.classList.add('is-on');
+    if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
+    try{ r.start(); }catch(_){}
+  }
 
-/* mic click */
-compMic && compMic.addEventListener('click', e=>{
-  e.preventDefault();
-  if(_listening){ _lockBySwipe=false; stopMic(true); }
-  else { _lockBySwipe=false; startMic(); }
-});
+  function stopMic(forceNote){
+    if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
+    _listening = false;
+    compMic?.setAttribute('aria-pressed','false');
+    compMic?.classList.remove('is-on');
+    compPencil?.classList.remove('is-on');
+    try{ _rec && _rec.stop(); }catch(_){}
+    if(!forceNote && compMicNote) compMicNote.textContent='';
+    maybeAdvanceFromTitle('mic');
+  }
 
-/* ---------- pencil: hold to start, swipe-down to lock ---------- */
-window.addEventListener('resize', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
-window.addEventListener('orientationchange', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
+  /* Mic gestures: press & hold → talk; swipe-down (>30px) → lock; tap toggles */
+  let _micPointerId=null, _micDownY=0;
+  if (compMic){
+    compMic.addEventListener('pointerdown', (e)=>{
+      if(_micPointerId!==null) return;
+      _micPointerId = e.pointerId ?? 1;
+      compMic.setPointerCapture?.(_micPointerId);
+      _lockBySwipe = false;
+      _micDownY = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
+      startMic();
+    });
+    compMic.addEventListener('pointermove', (e)=>{
+      if(_micPointerId===null) return;
+      const y = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
+      if(!_lockBySwipe && (y - _micDownY) > 30){
+        _lockBySwipe = true;
+        if(compMicNote) compMicNote.textContent = 'הקלטה (נעול)';
+      }
+    });
+    compMic.addEventListener('pointerup', ()=>{
+      if(!_lockBySwipe) stopMic(true);
+      _micPointerId = null;
+    });
+    compMic.addEventListener('click', ()=>{
+      if(_listening){ _lockBySwipe=false; stopMic(true); }
+      else { _lockBySwipe=true; startMic(); }
+    });
+  }
 
-[compTitle, compDate, compTime].forEach(inp=>{
-  if(!inp) return;
-  inp.addEventListener('focus', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
-  inp.addEventListener('input', ()=>{ updatePencilAnchor(); updateMicAnchor(); }); // no auto-advance
-  inp.addEventListener('click', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
-  inp.addEventListener('keyup', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
-  inp.addEventListener('blur', ()=> setTimeout(()=>{ if(Number(composer.getAttribute('data-step')||1)!==1 && compPencil) compPencil.style.display='none'; }, 0));
-});
+  /* ---------- anchors & input events (single registration) ---------- */
+  window.addEventListener('resize', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
+  window.addEventListener('orientationchange', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
 
-/* Enter → advance; blur → advance only if ≥2 chars */
-compTitle && compTitle.addEventListener('keydown', (e)=>{
-  if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); }
-});
-compTitle && compTitle.addEventListener('blur', ()=> maybeAdvanceFromTitle('blur'));
-compDate  && compDate.addEventListener('change', maybeAdvanceFromDate);
-compDate  && compDate.addEventListener('blur',   maybeAdvanceFromDate);
+  [compTitle, compDate, compTime].forEach(inp=>{
+    if(!inp) return;
+    inp.addEventListener('focus', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
+    inp.addEventListener('input', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
+    inp.addEventListener('click', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
+    inp.addEventListener('keyup', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
+    inp.addEventListener('blur', ()=> setTimeout(()=>{
+      if(Number(composer.getAttribute('data-step')||1)!==1 && compPencil) compPencil.style.display='none';
+    }, 0));
+  });
 
-/* swipe/hold on the pencil */
-let holdTimer=null, startY=0, moved=false;
-function beginHold(y){
-  clearTimeout(holdTimer);
-  holdTimer=setTimeout(()=>{ _lockBySwipe=false; startMic(); },360);
-  startY=y; moved=false;
-}
-function endHold(){
-  clearTimeout(holdTimer);
-  if(_listening && !_lockBySwipe) stopMic(true);
-}
-compPencil && compPencil.addEventListener('pointerdown', e=>{ compPencil.setPointerCapture(e.pointerId); beginHold(e.clientY); });
-compPencil && compPencil.addEventListener('pointermove', e=>{
-  if(!startY) return;
-  const dy=e.clientY-startY;
-  if(dy>52){ _lockBySwipe=true; if(!_listening) startMic(); if(compMicNote) compMicNote.textContent='הקלטה (נעול)'; startY=0; moved=true; clearTimeout(holdTimer); }
-});
-compPencil && compPencil.addEventListener('pointerup', ()=>{ if(!moved) endHold(); startY=0; moved=false; });
-compPencil && compPencil.addEventListener('pointercancel', ()=>{ clearTimeout(holdTimer); startY=0; moved=false; });
-compPencil && compPencil.addEventListener('click', ()=>{ if(_lockBySwipe && _listening){ _lockBySwipe=false; stopMic(true); } });
+  /* Enter → advance; blur → advance only if ≥2 chars */
+  compTitle && compTitle.addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); }
+  });
+  compTitle && compTitle.addEventListener('blur', ()=> maybeAdvanceFromTitle('blur'));
+  compDate  && compDate.addEventListener('change', maybeAdvanceFromDate);
+  compDate  && compDate.addEventListener('blur',   maybeAdvanceFromDate);
 
-  /* ===================== Effects & INLINE CSS (tiny keep) ===================== */
+  /* ---------- Pencil: hold to start, swipe-down to lock ---------- */
+  let holdTimer=null, startY=0, moved=false;
+  function beginHold(y){
+    clearTimeout(holdTimer);
+    holdTimer=setTimeout(()=>{ _lockBySwipe=false; startMic(); },360);
+    startY=y; moved=false;
+  }
+  function endHold(){
+    clearTimeout(holdTimer);
+    if(_listening && !_lockBySwipe) stopMic(true);
+  }
+  compPencil && compPencil.addEventListener('pointerdown', e=>{ compPencil.setPointerCapture(e.pointerId); beginHold(e.clientY); });
+  compPencil && compPencil.addEventListener('pointermove', e=>{
+    if(!startY) return;
+    const dy=e.clientY-startY;
+    if(dy>52){ _lockBySwipe=true; if(!_listening) startMic(); if(compMicNote) compMicNote.textContent='הקלטה (נעול)'; startY=0; moved=true; clearTimeout(holdTimer); }
+  });
+  compPencil && compPencil.addEventListener('pointerup', ()=>{ if(!moved) endHold(); startY=0; moved=false; });
+  compPencil && compPencil.addEventListener('pointercancel', ()=>{ clearTimeout(holdTimer); startY=0; moved=false; });
+  compPencil && compPencil.addEventListener('click', ()=>{ if(_lockBySwipe && _listening){ _lockBySwipe=false; stopMic(true); } });
+
+  /* ===================== Effects & tiny inline fix ===================== */
   function blastConfetti(x,y,scale){
     const layer = document.createElement('div'); layer.className='fx-confetti'; document.body.appendChild(layer);
     const N=110;
@@ -692,7 +735,6 @@ compPencil && compPencil.addEventListener('click', ()=>{ if(_lockBySwipe && _lis
     setTimeout(()=>layer.remove(),1600);
   }
 
-  // small safety style injection kept
   const prev = document.getElementById('looz-fixes-v12'); if (prev) prev.remove();
   const style = document.createElement('style');
   style.id = 'looz-fixes-v12';
@@ -705,28 +747,24 @@ compPencil && compPencil.addEventListener('click', ()=>{ if(_lockBySwipe && _lis
   formatTitle(_today);
   render();
 
-// Ensure firstName exists + greeting update (kept)
-(function ensureFirstNameAndGreeting() {
-  try {
-    var prof = JSON.parse(localStorage.getItem('profile') || '{}');
-    var au   = JSON.parse(localStorage.getItem('authUser') || 'null');
-
-    if (!prof.firstName) {
-      var guess = (prof.name || (au && au.displayName) || '').split(' ')[0];
-      if (guess) {
-        prof.firstName = guess;
-        localStorage.setItem('profile', JSON.stringify(prof));
+  // Best-effort: ensure firstName in profile once, update greeting element if exists
+  (function ensureFirstNameAndGreeting() {
+    try {
+      var prof = JSON.parse(localStorage.getItem('profile') || '{}');
+      var au   = JSON.parse(localStorage.getItem('authUser') || 'null');
+      if (!prof.firstName) {
+        var guess = (prof.name || (au && au.displayName) || '').split(' ')[0];
+        if (guess) {
+          prof.firstName = guess;
+          localStorage.setItem('profile', JSON.stringify(prof));
+        }
       }
+      var greetEl = document.querySelector('#greeting');
+      if (greetEl && prof.firstName) {
+        greetEl.textContent = `שלום, ${prof.firstName}!`;
+      }
+    } catch (e) {
+      console.warn("Greeting setup failed", e);
     }
-
-    // Update greeting section if available
-    var greetEl = document.querySelector('#greeting');
-    if (greetEl && prof.firstName) {
-      greetEl.textContent = `שלום, ${prof.firstName}!`;
-    }
-  } catch (e) {
-    console.warn("Greeting setup failed", e);
-  }
+  })();
 })();
-})();
-

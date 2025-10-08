@@ -2255,3 +2255,45 @@ html[data-theme="dark"] .p-day__count{
 }
 #compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
 html[data-theme="dark"] #compMic.mic-ico{ background:#1f2937; color:#e5e7eb; border-color:#e5e7eb; }
+/* --- Header: X + Title on same line --- */
+.composer__header{
+  display: grid;
+  grid-template-columns: auto 1fr; /* [X] [Title] */
+  align-items: center;
+  column-gap: 8px;
+  margin-bottom: 8px;
+  padding-inline: 8px;
+}
+
+.composer__close{
+  /* no absolute — it lives inline at the LEFT */
+  position: static;
+  justify-self: start;           /* lock to left edge */
+  width: 32px; height: 32px;
+  border-radius: 12px;
+  appearance: none; border: none; cursor: pointer;
+  display: grid; place-items: center;
+  background: #fff; color: #0f172a;
+  box-shadow: 0 8px 20px rgba(2,6,23,.12);
+}
+html[data-theme="dark"] .composer__close{
+  background:#111827; color:#f8fafc; box-shadow:0 8px 20px rgba(0,0,0,.35);
+}
+
+.composer__title{
+  margin:0; font-weight:800; font-size:18px;
+  text-align:center; justify-self: center;
+}
+
+/* Mic stays absolutely positioned; JS will align it under the field,
+   vertically with the X by centering on the X's midline */
+#compMic.mic-ico{
+  position:absolute; z-index:7;
+  width:36px; height:36px; border-radius:999px;
+  display:grid; place-items:center; cursor:pointer;
+  background:#fff; color:#0f172a; border:1.5px solid currentColor;
+  transform: translate(-50%, 0); /* we set LEFT to X center in JS */
+  box-shadow:0 8px 18px rgba(2,6,23,.14);
+}
+html[data-theme="dark"] #compMic.mic-ico{ background:#1f2937; color:var(--composer-ink); }
+#compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }

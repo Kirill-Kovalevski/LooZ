@@ -51,53 +51,56 @@ html[data-theme="dark"] #eventComposer .composer__panel{
   background:#111827; border-color:#1f2937; color:#e5e7eb;
   box-shadow:0 22px 60px rgba(0,0,0,.55);
 }
-
-/* Header + close (✕) — pill style like app buttons */
-.composer__header{ display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px; }
-.composer__title{ margin-inline-end:auto; font-weight:700; font-size:18px; }
+/* --- Header: X on the TOP-LEFT, title on the same line & centered --- */
+.composer__header{
+  display:grid;
+  grid-template-columns:auto 1fr; /* [X] [Title] */
+  align-items:center;
+  column-gap:8px;
+  margin-bottom:8px;
+  padding-inline:8px;
+}
+.composer__title{
+  margin:0; font-weight:800; font-size:18px; text-align:center; justify-self:center;
+}
 .composer__close{
-  appearance:none; border:none; cursor:pointer;
-  width:32px; height:32px; border-radius:12px;
-  display:grid; place-items:center;
-  background:#fff; color:#0f172a; box-shadow:0 8px 20px rgba(2,6,23,.12);
-  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+  position:static;              /* inline, not absolute */
+  justify-self:start;           /* lock at the left edge */
+  width:32px;height:32px;border-radius:12px;
+  appearance:none;border:none;cursor:pointer;
+  display:grid;place-items:center;
+  background:#fff;color:#0f172a;box-shadow:0 8px 20px rgba(2,6,23,.12);
 }
-.composer__close:hover{ transform:translateY(-1px); box-shadow:0 10px 26px rgba(2,6,23,.16); }
-.composer__close:active{ transform:none; box-shadow:0 6px 16px rgba(2,6,23,.12); }
-html[data-theme="dark"] .composer__close{ background:#111827; color:#f8fafc; box-shadow:0 8px 20px rgba(0,0,0,.35); }
+html[data-theme="dark"] .composer__close{ background:#111827;color:#f8fafc;box-shadow:0 8px 20px rgba(0,0,0,.35); }
 
-/* Lines + inputs (hide native caret so pencil can be the cursor) */
-#eventComposer .line{ position:relative; margin:12px 0 34px; } /* bottom space grows below */
-#eventComposer .line input{
-  width:100%; font-size:16px; padding:12px 12px;
-  border:none; border-bottom:1.5px solid #cbd5e1; background:transparent; color:inherit;
-  caret-color:transparent;
-}
-html[data-theme="dark"] #eventComposer .line input{ border-bottom-color:#374151; }
+/* Mic is absolutely positioned; JS sets its left/top.
+   Keep this so LEFT = X center and translate(-50%,0) centers it perfectly. */
+#compMic.mic-ico{ transform: translate(-50%, 0); }
 
-/* Pencil = flickering cursor INSIDE the panel (panel is already position:relative) */
+
+/* --- Pencil cursor INSIDE the panel --- */
 #compPencil.pencil-icon{
-  position:absolute;                /* <-- was fixed */
-  width:22px; height:22px;
-  z-index:4; display:none;
-  pointer-events:none;              /* don’t block typing */
+  position:absolute;             /* panel-relative (panel is position:relative) */
+  width:22px; height:22px; z-index:6;
+  display:none; pointer-events:none;
   animation:pencil-flicker .9s infinite;
   filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));
 }
 
-/* Mic = dead center under the task line, INSIDE the panel */
+/* --- Mic INSIDE the panel (dead-center above Save) --- */
 #compMic.mic-ico{
-  position:absolute;                /* <-- was fixed */
-  width:36px; height:36px; border-radius:9999px;
+  position:absolute;             /* panel-relative */
+  width:36px; height:36px; border-radius:9999px; z-index:6;
   display:inline-grid; place-items:center; font-size:14px; cursor:pointer;
   background:#fff; color:#0f172a; border:1.5px solid #0f172a;
   box-shadow:0 8px 18px rgba(2,6,23,.14);
-  z-index:4;
+  transform:translate(-50%,0);   /* we set left to panel center in JS */
 }
 #compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
 html[data-theme="dark"] #compMic.mic-ico{ background:#1f2937; color:#e5e7eb; border-color:#e5e7eb; }
 
-
+/* Keep the native caret hidden so the pencil is the cursor */
+#eventComposer .line input{ caret-color:transparent; }
 
 /* Step reveal (task→date→time). Mic only on step 1 */
 #eventComposer .line[data-step]{ display:none; }
@@ -130,6 +133,11 @@ html[data-theme="dark"] .p-day__count, html[data-theme="dark"] .c-headbtn, html[
   background:#111827; color:#f8fafc; box-shadow:0 8px 20px rgba(0,0,0,.35);
 }
 
+/* Flicker animation */
+@keyframes pencil-flicker{
+  0%,48%{ opacity:1 }
+  49%,100%{ opacity:0 }
+}
  </style>
 
   <script>
@@ -343,19 +351,18 @@ html[data-theme="dark"] .p-day__count, html[data-theme="dark"] .c-headbtn, html[
         <button class="composer__backdrop" type="button" data-close aria-label="סגור"></button>
 
         <div class="composer__panel" role="dialog" aria-modal="true" aria-labelledby="compTitleLabel">
-          <header class="composer__header">
-            <button class="composer__close" type="button" data-close aria-label="סגור">✕</button>
-            <h3 class="composer__title">אירוע חדש</h3>
-          </header>
+       <header class="composer__header">
+  <!-- X stays on the TOP-LEFT, on the SAME LINE as the title -->
+  <button class="composer__close" type="button" data-close aria-label="סגור">✕</button>
+  <h3 class="composer__title">אירוע חדש</h3>
+</header>
+
 
       <form id="composerForm" class="composer__form" autocomplete="off">
-<!-- Step 1: Task (pencil = flickering cursor; mic under the line) -->
 <div class="line" data-step="1">
   <label class="visually-hidden" for="compTitle">תיאור המשימה</label>
   <input id="compTitle" type="text" placeholder="תיאור המשימה…" autocomplete="off" />
-  <!-- pencil flicker; will be positioned exactly at the caret -->
-  <img id="compPencil" class="pencil-icon" src="icons/pencil.svg" alt="סמן כתיבה" />
-  <!-- tiny mic under the line -->
+  <img id="compPencil" class="pencil-icon" src="icons/pencil.svg" alt="" aria-hidden="true" />
   <button id="compMic" class="mic-ico" type="button" aria-pressed="false" title="דבר/י" aria-label="דבר/י">
     <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
       <rect x="9" y="3" width="6" height="12" rx="3" fill="currentColor"></rect>
@@ -364,6 +371,7 @@ html[data-theme="dark"] .p-day__count, html[data-theme="dark"] .c-headbtn, html[
   </button>
   <div id="compMicNote" class="mic-note" aria-live="polite"></div>
 </div>
+
 
 
   <!-- Step 2: Date -->
