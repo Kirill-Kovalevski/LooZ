@@ -1,4 +1,4 @@
-/* ===== LooZ — Planner App (home) — vFinal.14 (mic fix after typing + dark-mode) ===== */
+/* ===== LooZ — Planner App (home) — vFinal.15 (month→day jump, prefilled date, auto-advance) ===== */
 (function () {
   'use strict';
 
@@ -96,7 +96,14 @@
 
   const prefs = loadPrefs();
   const weekStart = (prefs.weekStart==='mon') ? 1 : 0;
-  let state = { view: (prefs.defaultView || 'month'), current: new Date(), tasks: loadTasks() };
+
+  // Keep track of the last selected day (used to prefill composer)
+  let state = {
+    view: (prefs.defaultView || 'month'),
+    current: new Date(),
+    tasks: loadTasks(),
+    selectedDate: dateKey(new Date())
+  };
 
   const formatTitle = (d) => {
     if (titleDay)  titleDay.textContent  = HEB_DAYS[d.getDay()];
@@ -149,6 +156,9 @@
   /* ===================== Renderers ===================== */
   function render(){
     formatTitle(state.current); markToday();
+    // keep selectedDate aligned to the day we're viewing
+    state.selectedDate = dateKey(state.current);
+
     if (!plannerRoot) return;
     btnDay   && btnDay.classList.toggle('is-active', state.view==='day');
     btnWeek  && btnWeek.classList.toggle('is-active', state.view==='week');
@@ -183,6 +193,8 @@
         else if (k==='next') state.current = addMonths(startOfMonth(state.current),  1);
         else state.current = new Date();
       }
+      // update selected day whenever navigation happens
+      state.selectedDate = dateKey(state.current);
       render(); persistPrefs();
     });
     return bar;
@@ -312,7 +324,12 @@
   btnWeek  && btnWeek.addEventListener('click', ()=>{ state.view='week';  render(); prefs.defaultView='week';  persistPrefs(); });
   btnMonth && btnMonth.addEventListener('click',()=>{ state.view='month'; render(); prefs.defaultView='month'; persistPrefs(); });
 
-  createOrbBtn && createOrbBtn.addEventListener('click', (e) => { e.preventDefault(); openComposer(); });
+  // Create new uses the currently selected day
+  createOrbBtn && createOrbBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    state.selectedDate = dateKey(state.current);
+    openComposer();
+  });
 
   if (plannerRoot){
     plannerRoot.addEventListener('click', (e)=>{
@@ -324,8 +341,12 @@
       }
       const hostGoto = e.target.closest && e.target.closest('[data-goto]');
       if (hostGoto && !e.target.closest('[data-open]')){
+        // Jump to that day in Day view AND remember it for composer
         state.current = fromKey(hostGoto.dataset.goto);
-        state.view = 'day'; render(); return;
+        state.selectedDate = hostGoto.dataset.goto;
+        state.view = 'day';
+        render();
+        return;
       }
       const doneId = e.target && e.target.getAttribute('data-done');
       const delId  = e.target && e.target.getAttribute('data-del');
@@ -409,15 +430,15 @@
   const compMicNote   = document.getElementById('compMicNote');
 
   const MIN_TITLE_CHARS = 2;
-  let _pendingSave = false;        // למניעת כפילות שמירה
-  let _suppressBlurAdvance = false; // מונע קפיצה לשלב 2 כשנלחץ מיקרופון לאחר כתיבה
+  let _pendingSave = false;         // למניעת כפילות שמירה
+  let _suppressBlurAdvance = false; // מונע קפיצה כשנלחץ מיקרופון
 
   // Bottom-center mic (step 1 only)
   function updateMicAnchor(){
     if (!composer || !compMic || !compPanel) return;
     const step = Number(composer.getAttribute('data-step')||1);
     if (step !== 1){ compMic.style.display='none'; return; }
-    const bottomOffset = 14; // closer to the bottom
+    const bottomOffset = 16;
     const x = (compPanel.clientWidth  / 2) + compPanel.scrollLeft;
     const y = (compPanel.scrollTop + compPanel.clientHeight - bottomOffset);
     compMic.style.display = 'inline-grid';
@@ -477,8 +498,10 @@
 
   function openComposer(){
     if(!composer) return;
+    // Prefill date from last selected day (calendar/day view)
+    const base = state.selectedDate ? fromKey(state.selectedDate) : new Date();
     if (compTitle) compTitle.value = '';
-    if (compDate)  compDate.value  = '';
+    if (compDate)  compDate.value  = dateKey(base);
     if (compTime)  compTime.value  = '';
     composer.classList.remove('u-hidden'); composer.classList.add('is-open');
     composer.setAttribute('aria-hidden','false');
@@ -593,7 +616,6 @@
   let _micPointerId=null, _micDownY=0;
   if (compMic){
     compMic.addEventListener('pointerdown', (e)=>{
-      // prevent blur on title from advancing when mic is tapped after typing
       _suppressBlurAdvance = true;
       e.preventDefault();
       if(_micPointerId!==null) return;
@@ -601,8 +623,7 @@
       compMic.setPointerCapture?.(_micPointerId);
       _lockBySwipe = false;
       _micDownY = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
-      // keep focus in the title field while starting mic
-      compTitle && compTitle.focus();
+      compTitle && compTitle.focus(); // keep focus in title
       startMic();
       setTimeout(()=>{ _suppressBlurAdvance = false; }, 300);
     });
@@ -624,6 +645,18 @@
       else { _lockBySwipe=true; startMic(); }
     });
   }
+
+  // Auto-advance to date when user taps/clicks anywhere after typing (except on title/mic)
+  document.addEventListener('pointerdown', (e)=>{
+    if (!composer || !composer.classList.contains('is-open')) return;
+    const step = Number(composer.getAttribute('data-step')||1);
+    if (step !== 1) return;
+    const t = (compTitle && compTitle.value || '').trim();
+    if (t.length < MIN_TITLE_CHARS) return;
+    const isTitle = e.target.closest && e.target.closest('#compTitle');
+    const isMic   = e.target.closest && e.target.closest('#compMic');
+    if (!isTitle && !isMic) { setStep(2); }
+  }, {capture:true});
 
   // Pause/resume on tab visibility changes
   document.addEventListener('visibilitychange', ()=>{
@@ -679,6 +712,7 @@
   /* ===================== Initial ===================== */
   const _today = new Date();
   state.current = _today;
+  state.selectedDate = dateKey(_today);
   formatTitle(_today);
   render();
 

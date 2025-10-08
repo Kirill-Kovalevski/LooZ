@@ -32,596 +32,146 @@
     })();
   </script>
 
-  <!-- Styles -->
+  <!-- App styles -->
   <link rel="stylesheet" href="css/dist/main.css" />
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
   <link rel="stylesheet" href="css/dist/settings.css" />
 
-<style id="looz-hotfix-compact-week-and-actions">
-/* ================== DAY VIEW — ✓ / ✕ buttons ===================== */
-.p-daytask__actions{
-  display:flex; align-items:center; gap:.35rem;
-}
-.p-daytask__actions .p-ico{
-  inline-size:28px; block-size:18px;
-  border-radius:999px;
-  display:grid; place-items:center;
-  font:700 12px/1 'Rubik',system-ui,sans-serif;
-  background:linear-gradient(180deg,#fff,#fff9ef);
-  border:1px solid #cbd5e1; color:#4b5563;
-  cursor:pointer; user-select:none;
-}
-.p-daytask__actions .p-ico:active{ transform:translateY(1px); }
-
-/* ensure glyphs exist even if button text is empty */
-.p-daytask__actions .p-ico--ok::before { content:"✓"; }
-.p-daytask__actions .p-ico--del::before{ content:"✕"; }
-
-/* subtle accents */
-.p-daytask__actions .p-ico--ok  { background:linear-gradient(180deg,#f6ffef,#fff); }
-.p-daytask__actions .p-ico--del { background:linear-gradient(180deg,#fff5f6,#fff); }
-
-/* ================== DARK MODE — readable golden text + glow ====== */
-@keyframes loozGoldGlow {
-  0%,100% { text-shadow:0 0 6px rgba(255,210,120,.35), 0 0 12px rgba(255,210,120,.18); }
-  50%     { text-shadow:0 0 10px rgba(255,210,120,.65), 0 0 18px rgba(255,210,120,.32); }
-}
-
-/* task text (day + week) */
-html[data-theme="dark"] .p-daytask__text,
-html[data-theme="dark"] .p-task__text,
-body.is-dark            .p-daytask__text,
-body.is-dark            .p-task__text{
-  color:#ffe8a3;                    /* golden readable */
-  animation: loozGoldGlow 2.6s ease-in-out infinite;
-}
-
-/* time chip in dark (keeps your vibe) */
-html[data-theme="dark"] .p-daytask__time,
-body.is-dark            .p-daytask__time{
-  background:linear-gradient(180deg,#0f1b2f,#0d1728);
-  border:1px solid #3b588b; color:#e4ecff;
-}
-
-/* ✓ / ✕ in dark */
-html[data-theme="dark"] .p-daytask__actions .p-ico,
-body.is-dark            .p-daytask__actions .p-ico{
-  background:#111827; border-color:#2c4676; color:#e5e7eb;
-}
-html[data-theme="dark"] .p-daytask__actions .p-ico--ok {
-  background:#0f2a1c; border-color:#1a7f47; color:#7ee787;
-}
-html[data-theme="dark"] .p-daytask__actions .p-ico--del{
-  background:#2b0f18; border-color:#b91c1c; color:#fda4af;
-}
-
-/* ================== WEEK VIEW — same size as day rows ============= */
-/* Your day row height is driven by padding ~0.55rem.
-   Mirror that on the week “card” and its head row. */
-.p-week{ gap:.55rem; }
-
-.p-week .p-day{
-  border-radius:14px;
-  padding:.55rem .7rem;               /* match day-view card padding */
-}
-
-/* HEAD: three zones laid out like space-between, with true center for counter */
-.p-week .p-day__head{
-  display:grid !important;
-  grid-template-columns: auto 1fr auto;   /* Left | Center | Right */
-  align-items:center;                      /* vertical centering */
-  column-gap:.5rem;
-  min-block-size: 42px;                    /* same apparent height as day row */
-  padding-inline:.6rem;
-}
-
-/* Right edge: numeric date (DD.MM) */
-.p-week .p-day__date{
-  grid-column:3; justify-self:end; text-align:right;
-  margin:0; font-weight:800; color:#64748b;
-}
-
-/* Center: circular counter — dead center, number centered inside */
-.p-week .p-day__count{
-  grid-column:2; justify-self:center; align-self:center;
-  inline-size: 28px; block-size: 28px;
-  border-radius: 50%;
-  display:grid; place-items:center;      /* center the number */
-  font: 800 12px/1 'Rubik',system-ui,sans-serif;
-  background:#fff; color:#0f172a;
-  border:1px solid rgba(0,0,0,.08);
-  box-shadow:0 2px 6px rgba(0,0,0,.06);
-}
-
-/* Left edge: Hebrew weekday name */
-.p-week .p-day__name{
-  grid-column:1; justify-self:start; text-align:left;
-  margin:0; font-weight:800; color:#0f172a;
-}
-
-/* DARK — match day row look */
-html[data-theme="dark"] .p-week .p-day{
-  background:#162540; border:1px solid #2c4676;
-  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04);
-}
-html[data-theme="dark"] .p-week .p-day__name{ color:#eaf2ff; }
-html[data-theme="dark"] .p-week .p-day__date{ color:#9cb3d6; }
-html[data-theme="dark"] .p-week .p-day__count{
-  background:#0f1b2f; color:#e5ecf5; border-color:#2c4676;
-}
-/* Create a new event window */
-/* === Dark-mode polish + caret + mic === */
-
-/* keep caret visible everywhere in the composer */
-#eventComposer .line input{ caret-color:auto !important; }
-
-/* title field styling */
-#compTitle{
-  width:100%;
-  box-sizing:border-box;
-  padding:12px 14px;
-  border-radius:14px;
-  border:1px solid #e5e7eb;
-  background:#ffffff;
-  color:#0f172a;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 2px 10px rgba(0,0,0,.06);
-}
-#compTitle::placeholder{ color:#94a3b8; }
-
-/* focus */
-#compTitle:focus{
-  outline:none;
-  border-color:#93c5fd;
-  box-shadow:0 0 0 3px rgba(147,197,253,.35);
-}
-
-/* dark mode for the panel + fields + mic + note */
-html[data-theme="dark"] #eventComposer .composer__panel{
-  background:#0b1220;              /* deep navy */
-  border-color:#1f2937;
-  color:#e5e7eb;
-  box-shadow:0 22px 60px rgba(0,0,0,.55);
-}
-html[data-theme="dark"] #compTitle{
-  background:#0f1b2f;              /* slightly lighter than panel */
-  border-color:#2c4676;
-  color:#eaf2ff;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 12px rgba(0,0,0,.25);
-}
-html[data-theme="dark"] #compTitle::placeholder{ color:#94a3b8; }
-html[data-theme="dark"] #compTitle:focus{
-  border-color:#60a5fa;
-  box-shadow:0 0 0 3px rgba(96,165,250,.28);
-}
-
-/* mic sits near bottom-center; JS sets left/top */
-#compMic.mic-ico{
-  position:absolute;
-  transform:translate(-50%, 0);
-  background:#fff;
-  color:#0f172a;
-  border:1.5px solid #0f172a;
-  box-shadow:0 8px 18px rgba(2,6,23,.14);
-}
-#compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
-
-html[data-theme="dark"] #compMic.mic-ico{
-  background:#122139;
-  color:#e5e7eb;
-  border-color:#d1d5db;
-  box-shadow:0 10px 22px rgba(0,0,0,.45);
-}
-html[data-theme="dark"] #compMic.mic-ico.is-on{
-  box-shadow:0 0 0 4px rgba(99,102,241,.28);
-}
-
-/* mic note */
-#compMicNote{ margin-top:8px; text-align:center; font-size:.85rem; color:#6b7280; }
-html[data-theme="dark"] #compMicNote{ color:#9ca3af; }
-
-</style>
-<style>
-/* ========== shared tokens ========== */
-:root{
-  --row-h: 44px;                 /* height for task row + week row */
-  --row-r: 14px;                 /* corner radius like day view */
-  --chip-w: 28px;                /* week counter diameter */
-  --chip-f: 700 12px/28px 'Rubik',system-ui,sans-serif;
-}
-
-/* ========== DAY VIEW ✓ / ✕ CHIPS ========== */
-/* Base pill (so they never appear as empty grey squares) */
-.task-item__actions .task-ico{
-  display:grid; place-items:center;
-  inline-size: 30px; block-size: 20px;
-  border-radius: 999px;
-  font: 800 12px/1 'Rubik',system-ui,sans-serif;
-  border:1px solid #d6dbe4; background:#fff; color:#475569;
-  user-select:none; cursor:pointer;
-  box-shadow:0 1px 0 rgba(0,0,0,.03);
-}
-.task-ico--ok::before{ content:"✓"; }  /* fallback glyphs */
-.task-ico--del::before{ content:"✕"; }
-
-/* Light theme colors */
-.task-ico--ok{
-  background: linear-gradient(180deg,#ecfee7,#ffffff);
-  border-color:#9ad69b; color:#15803d;
-}
-.task-ico--del{
-  background: linear-gradient(180deg,#ffe8ea,#ffffff);
-  border-color:#f3b5b9; color:#be123c;
-}
-
-/* Dark theme (support both switches you use) */
-html[data-theme="dark"] .task-ico,
-body.is-dark .task-ico{
-  border-color:#2c4676; background:#111827; color:#e5e7eb;
-}
-
-/* ✓ golden-yellow, ✕ golden-red with a soft glow in dark */
-@keyframes loozGlow{0%,100%{box-shadow:0 0 0 rgba(0,0,0,0),0 0 10px rgba(255,208,86,.18)}50%{box-shadow:0 0 0 rgba(0,0,0,0),0 0 16px rgba(255,208,86,.28)}}
-@keyframes loozGlowRed{0%,100%{box-shadow:0 0 0 rgba(0,0,0,0),0 0 10px rgba(255,132,132,.18)}50%{box-shadow:0 0 0 rgba(0,0,0,0),0 0 16px rgba(255,132,132,.28)}}
-
-html[data-theme="dark"] .task-ico--ok,
-body.is-dark .task-ico--ok{
-  background: linear-gradient(180deg,#1c2b12,#13230e);
-  border-color:#a08b3a;           /* warm rim */
-  color:#ffd456;                  /* golden yellow */
-  animation: loozGlow 2.4s ease-in-out infinite;
-}
-html[data-theme="dark"] .task-ico--del,
-body.is-dark .task-ico--del{
-  background: linear-gradient(180deg,#2b1716,#201011);
-  border-color:#b0604e;
-  color:#ff8a6b;                  /* golden red */
-  animation: loozGlowRed 2.4s ease-in-out infinite;
-}
-
-/* ========== WEEK VIEW ROW ========== */
-/* Make each week row look/size like a day task container */
-.p-week .p-day{
-  padding: 0;                                    /* let header control height */
-  border-radius: var(--row-r);
-  border: 1px solid rgba(197,154,33,.25);
-  background: radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%);
-  box-shadow: 0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06);
-}
-
-/* Header line inside each .p-day: horizontally spaced, vertically centered,
-   and the same height as day view rows */
-.p-week .p-day__head{
-  display: flex !important;
-  justify-content: space-between;    /* date —— counter —— name */
-  align-items: center;               /* dead center vertically */
-  min-height: var(--row-h);
-  padding: 6px 10px;
-  gap: .5rem;
-}
-
-/* Right: numeric date */
-.p-week .p-day__date{
-  margin: 0; font-weight: 800; color:#64748b;
-}
-
-/* Left: Hebrew weekday */
-.p-week .p-day__name{
-  margin: 0; font-weight: 800; color:#0f172a;
-}
-
-/* Middle: task counter chip — number perfectly centered */
-.p-week .p-day__count{
-  display: grid; place-items: center;            /* centers number */
-  inline-size: var(--chip-w); block-size: var(--chip-w);
-  border-radius: 50%;
-  font: var(--chip-f);
-  background:#fff; color:#0f172a;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 6px rgba(0,0,0,.06);
-  margin-inline: .5rem;                          /* keeps it visually centered */
-}
-
-/* Dark mode for week rows */
-html[data-theme="dark"] .p-week .p-day,
-body.is-dark .p-week .p-day{
-  background:#162540 !important;
-  border-color:#2c4676 !important;
-  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
-}
-html[data-theme="dark"] .p-week .p-day__name,
-body.is-dark .p-week .p-day__name{ color:#eaf2ff; }
-html[data-theme="dark"] .p-week .p-day__date,
-body.is-dark .p-week .p-day__date{ color:#9cb3d6; }
-html[data-theme="dark"] .p-week .p-day__count,
-body.is-dark .p-week .p-day__count{
-  background:#0f1b2f; color:#e5ecf5; border-color:#2c4676;
-}
-
-/* ========== ensure day task row height matches token (visual parity) ========== */
-.task-item{
-  display:grid; grid-template-columns:auto 1fr auto;
-  align-items:center; gap:.6rem;
-  min-height: var(--row-h);
-  padding:.55rem .7rem;
-  border-radius: var(--row-r);
-  background:#fff8ea;
-  border:1px solid #f1e4c6;
-  box-shadow:0 1px 0 rgba(0,0,0,.03);
-}
-html[data-theme="dark"] .task-item,
-body.is-dark .task-item{
-  background:#162540; border-color:#2c4676;
-}
-.task-item__time{
-  direction:ltr; font-weight:700; font-size:.95rem;
-  background:#ffefc0; color:#374151;
-  padding:.15rem .55rem; border-radius:999px;
-}
-html[data-theme="dark"] .task-item__time{
-  background:#0f1b2f; color:#e4ecff; border:1px solid #3b588b;
-}
-.task-item__text{ min-width:0; border:0; background:transparent; color:#1f2937; }
-html[data-theme="dark"] .task-item__text{ color:#e5ecf5; }
-/* keep caret visible */
-#eventComposer .line input{ caret-color:auto !important; }
-
-/* dark-mode composer polish (wins by source order) */
-html[data-theme="dark"] #eventComposer .composer__panel{
-  background:#0b1220; border-color:#1f2937; color:#e5e7eb;
-  box-shadow:0 22px 60px rgba(0,0,0,.55);
-}
-html[data-theme="dark"] #compTitle{
-  background:#0f1b2f; border-color:#2c4676; color:#eaf2ff;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 12px rgba(0,0,0,.25);
-}
-html[data-theme="dark"] #compTitle::placeholder{ color:#94a3b8; }
-html[data-theme="dark"] #compTitle:focus{
-  border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,.28);
-}
-
-/* mic bottom-center; make sure it’s above everything */
-#compMic.mic-ico{
-  position:absolute; transform:translate(-50%,0); z-index:20;
-}
-
-/* hide any legacy save row completely */
-#eventComposer .composer__actions{ display:none !important; }
-
-/* mic note colors */
-#compMicNote{ margin-top:8px; text-align:center; font-size:.85rem; color:#6b7280; }
-html[data-theme="dark"] #compMicNote{ color:#9ca3af; }
-/* keep caret visible */
-#eventComposer .line input{ caret-color:auto !important; }
-
-/* dark-mode composer polish (wins by source order) */
-html[data-theme="dark"] #eventComposer .composer__panel{
-  background:#0b1220; border-color:#1f2937; color:#e5e7eb;
-  box-shadow:0 22px 60px rgba(0,0,0,.55);
-}
-html[data-theme="dark"] #compTitle{
-  background:#0f1b2f; border-color:#2c4676; color:#eaf2ff;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 12px rgba(0,0,0,.25);
-}
-html[data-theme="dark"] #compTitle::placeholder{ color:#94a3b8; }
-html[data-theme="dark"] #compTitle:focus{
-  border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,.28);
-}
-
-/* mic bottom-center; make sure it’s above everything */
-#compMic.mic-ico{
-  position:absolute; transform:translate(-50%,0); z-index:20;
-}
-
-/* hide any legacy save row completely */
-#eventComposer .composer__actions{ display:none !important; }
-
-/* mic note colors */
-#compMicNote{ margin-top:8px; text-align:center; font-size:.85rem; color:#6b7280; }
-html[data-theme="dark"] #compMicNote{ color:#9ca3af; }
-/* caret must be visible */
-#eventComposer .line input{ caret-color:auto !important; }
-
-/* kill any legacy Save row */
-#eventComposer .composer__actions{ display:none !important; }
-
-/* mic position (JS sets left/top); keep above content */
-#compMic.mic-ico{ position:absolute; transform:translate(-50%,0); z-index:20; }
-
-/* dark mode polish */
-html[data-theme="dark"] #eventComposer .composer__panel{
-  background:#0b1220; border-color:#1f2937; color:#e5e7eb; box-shadow:0 22px 60px rgba(0,0,0,.55);
-}
-html[data-theme="dark"] #compTitle{
-  background:#0f1b2f; border-color:#2c4676; color:#eaf2ff;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 12px rgba(0,0,0,.25);
-}
-html[data-theme="dark"] #compTitle::placeholder{ color:#94a3b8; }
-html[data-theme="dark"] #compTitle:focus{ border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,.28); }
-
-html[data-theme="dark"] #compMic.mic-ico{ background:#122139; color:#e5e7eb; border-color:#d1d5db; box-shadow:0 10px 22px rgba(0,0,0,.45); }
-html[data-theme="dark"] #compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.28); }
-
-</style>
-<style>
-/* =========================================================
-   LOOZ – FINAL OVERRIDES
-   - ✓ / ✕ chips (light + dark)
-   - Week rows = same size as day rows, perfectly centered
-   ========================================================= */
-
-/* ------- tokens ------- */
-:root{
-  --row-h: 44px;              /* day-task row height */
-  --row-r: 14px;              /* rounded corners */
-  --wk-chip: 28px;            /* week counter size */
-  --wk-font: 800 12px/28px 'Rubik',system-ui,sans-serif;
-}
-
-/* =========================================================
-   1) DAY VIEW: ✓ / ✕ chips
-   Works for: .task-ico--ok / .task-ico--del
-              and fallback buttons using data-act="ok|del"
-   ========================================================= */
-
-/* base pill so they never look like empty squares */
-.task-item__actions .task-ico,
-.task-item__actions [data-act]{
-  display:grid; place-items:center;
-  inline-size:30px; block-size:20px;
-  border-radius:999px;
-  font:800 12px/1 'Rubik',system-ui,sans-serif;
-  border:1px solid #cbd5e1; background:#fff; color:#475569;
-  user-select:none; cursor:pointer;
-  box-shadow:0 1px 0 rgba(0,0,0,.03);
-}
-
-/* ensure glyphs even if the button has no text */
-.task-ico--ok::before,  [data-act="ok"]::before  { content:"✓"; }
-.task-ico--del::before, [data-act="del"]::before { content:"✕"; }
-
-/* light theme colors */
-.task-ico--ok,  [data-act="ok"]{
-  background:linear-gradient(180deg,#ecfee7,#ffffff) !important;
-  border-color:#9ad69b !important;
-  color:#15803d !important;
-}
-.task-ico--del, [data-act="del"]{
-  background:linear-gradient(180deg,#ffe8ea,#ffffff) !important;
-  border-color:#f3b5b9 !important;
-  color:#be123c !important;
-}
-
-/* dark theme – golden tones + soft glow */
-@keyframes loozGlowY { 0%,100%{box-shadow:0 0 12px rgba(255,208,86,.18)} 50%{box-shadow:0 0 18px rgba(255,208,86,.30)} }
-@keyframes loozGlowR { 0%,100%{box-shadow:0 0 12px rgba(255,138,107,.18)}50%{box-shadow:0 0 18px rgba(255,138,107,.30)} }
-
-html[data-theme="dark"] .task-item__actions .task-ico,
-body.is-dark            .task-item__actions .task-ico,
-html[data-theme="dark"] .task-item__actions [data-act],
-body.is-dark            .task-item__actions [data-act]{
-  background:#111827 !important;
-  border-color:#2c4676 !important;
-  color:#e5e7eb !important;
-}
-
-html[data-theme="dark"] .task-ico--ok,
-body.is-dark            .task-ico--ok,
-html[data-theme="dark"] [data-act="ok"],
-body.is-dark            [data-act="ok"]{
-  background:linear-gradient(180deg,#1c2b12,#13230e) !important;
-  border-color:#a08b3a !important;
-  color:#ffd456 !important;         /* golden yellow */
-  animation:loozGlowY 2.4s ease-in-out infinite;
-}
-html[data-theme="dark"] .task-ico--del,
-body.is-dark            .task-ico--del,
-html[data-theme="dark"] [data-act="del"],
-body.is-dark            [data-act="del"]{
-  background:linear-gradient(180deg,#2b1716,#201011) !important;
-  border-color:#b0604e !important;
-  color:#ff8a6b !important;         /* golden red */
-  animation:loozGlowR 2.4s ease-in-out infinite;
-}
-
-/* keep caret visible in composer inputs */
-#eventComposer .line input{ caret-color:auto !important; }
-
-/* =========================================================
-   2) WEEK VIEW: same size as day rows + perfect alignment
-   Supports:
-     - .p-week .p-day > .p-day__head (new)
-     - .c-week .row (legacy)
-   ========================================================= */
-
-/* the card itself (match day-view container look) */
-.p-week .p-day,
-.c-week .row-card{
-  border-radius:var(--row-r) !important;
-  background:radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%) !important;
-  border:1px solid rgba(197,154,33,.25) !important;
-  box-shadow:0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06) !important;
-  padding:0 !important;              /* header controls the height */
-}
-
-/* header row: space-between horizontally, centered vertically */
-.p-week .p-day__head,
-.c-week .row{
-  display:flex !important;
-  justify-content:space-between !important;
-  align-items:center !important;               /* dead center vertically */
-  min-height:var(--row-h) !important;          /* same height as day row */
-  padding:6px 10px !important;
-  gap:.5rem !important;
-}
-
-/* right: numeric date (DD.MM) */
-.p-week .p-day__date,
-.c-week .row .date{
-  margin:0 !important; font-weight:800 !important; color:#64748b !important;
-}
-
-/* left: weekday name */
-.p-week .p-day__name,
-.c-week .row .name{
-  margin:0 !important; font-weight:800 !important; color:#0f172a !important;
-}
-
-/* center: counter chip – number perfectly centered */
-.p-week .p-day__count,
-.c-week .row .count{
-  display:grid !important; place-items:center !important;
-  inline-size:var(--wk-chip) !important; block-size:var(--wk-chip) !important;
-  border-radius:50% !important;
-  font:var(--wk-font) !important;
-  background:#fff !important; color:#0f172a !important;
-  border:1px solid #e5e7eb !important;
-  box-shadow:0 2px 6px rgba(0,0,0,.06) !important;
-  margin-inline:.5rem !important;              /* helps visual centering */
-}
-
-/* dark card styling like day view */
-html[data-theme="dark"] .p-week .p-day,
-body.is-dark            .p-week .p-day,
-html[data-theme="dark"] .c-week .row-card,
-body.is-dark            .c-week .row-card{
-  background:#162540 !important;
-  border-color:#2c4676 !important;
-  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
-}
-html[data-theme="dark"] .p-week .p-day__name,
-body.is-dark            .p-week .p-day__name,
-html[data-theme="dark"] .c-week .row .name,
-body.is-dark            .c-week .row .name{ color:#eaf2ff !important; }
-
-html[data-theme="dark"] .p-week .p-day__date,
-body.is-dark            .p-week .p-day__date,
-html[data-theme="dark"] .c-week .row .date,
-body.is-dark            .c-week .row .date{ color:#9cb3d6 !important; }
-
-html[data-theme="dark"] .p-week .p-day__count,
-body.is-dark            .p-week .p-day__count,
-html[data-theme="dark"] .c-week .row .count,
-body.is-dark            .c-week .row .count{
-  background:#0f1b2f !important; color:#e5ecf5 !important; border-color:#2c4676 !important;
-}
-</style>
-
-  <!-- Resilient auth guard loader -->
-  <script>
-    (function () {
-      function load(primary, fallback) {
-        var s = document.createElement('script');
-        s.src = primary; s.defer = true;
-        s.onerror = function () {
-          var f = document.createElement('script');
-          f.src = fallback; f.defer = true;
-          document.head.appendChild(f);
-        };
-        document.head.appendChild(s);
-      }
-      load('js/auth-guard.js', './auth-guard.js');
-    })();
-  </script>
+  <!-- =============== LOOZ — FINAL FIXES (single block) =============== -->
+  <style id="looz-fixes">
+  /* ---------- sizing tokens (tune if needed) ---------- */
+  :root{
+    /* Inspect showed ~35px day row; we lock both day & week rows to 36px */
+    --row-h: 36px;
+    --row-r: 14px;
+    --wk-chip: 28px;
+    --wk-font: 800 12px/28px 'Rubik',system-ui,sans-serif;
+  }
+
+  /* =====================================================
+     1) DAY VIEW — ✓ / ✕ chips
+     - Works with .task-ico--ok / .task-ico--del or data-act="ok|del"
+     ===================================================== */
+  .task-item__actions .task-ico,
+  .task-item__actions [data-act]{
+    display:grid; place-items:center;
+    inline-size:30px; block-size:20px;
+    border-radius:999px;
+    font:800 12px/1 'Rubik',system-ui,sans-serif;
+    border:1px solid #d6dbe4; background:#fff; color:#475569;
+    user-select:none; cursor:pointer;
+    box-shadow:0 1px 0 rgba(0,0,0,.03);
+  }
+  .task-ico--ok::before,  [data-act="ok"]::before  { content:"✓"; }
+  .task-ico--del::before, [data-act="del"]::before { content:"✕"; }
+
+  /* Light: green ✓ / red ✕ */
+  .task-ico--ok,  [data-act="ok"]{
+    background:linear-gradient(180deg,#ecfee7,#ffffff) !important;
+    border-color:#9ad69b !important; color:#15803d !important;
+  }
+  .task-ico--del, [data-act="del"]{
+    background:linear-gradient(180deg,#ffe8ea,#ffffff) !important;
+    border-color:#f3b5b9 !important; color:#be123c !important;
+  }
+
+  /* Dark: golden hues + gentle glow */
+  @keyframes loozGlowY { 0%,100%{box-shadow:0 0 12px rgba(255,208,86,.18)} 50%{box-shadow:0 0 18px rgba(255,208,86,.30)} }
+  @keyframes loozGlowR { 0%,100%{box-shadow:0 0 12px rgba(255,138,107,.18)}50%{box-shadow:0 0 18px rgba(255,138,107,.30)} }
+
+  html[data-theme="dark"] .task-item__actions .task-ico,
+  body.is-dark            .task-item__actions .task-ico,
+  html[data-theme="dark"] .task-item__actions [data-act],
+  body.is-dark            .task-item__actions [data-act]{
+    background:#111827 !important; color:#e5e7eb !important; border-color:#2c4676 !important;
+  }
+  html[data-theme="dark"] .task-ico--ok,
+  body.is-dark            .task-ico--ok,
+  html[data-theme="dark"] [data-act="ok"],
+  body.is-dark            [data-act="ok"]{
+    background:linear-gradient(180deg,#1c2b12,#13230e) !important;
+    border-color:#a08b3a !important; color:#ffd456 !important;     /* golden-yellow */
+    animation:loozGlowY 2.2s ease-in-out infinite;
+  }
+  html[data-theme="dark"] .task-ico--del,
+  body.is-dark            .task-ico--del,
+  html[data-theme="dark"] [data-act="del"],
+  body.is-dark            [data-act="del"]{
+    background:linear-gradient(180deg,#2b1716,#201011) !important;
+    border-color:#b0604e !important; color:#ff8a6b !important;     /* golden-red */
+    animation:loozGlowR 2.2s ease-in-out infinite;
+  }
+
+  /* =====================================================
+     2) WEEK VIEW — same size as day rows + alignment
+        (Right=date | Center=counter | Left=weekday)
+     ===================================================== */
+
+  /* Card shell matches day-view feel, height driven by head row */
+  .p-week .p-day{
+    padding:0 !important;
+    border-radius:var(--row-r) !important;
+    border:1px solid rgba(197,154,33,.25) !important;
+    background:radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%) !important;
+    box-shadow:0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06) !important;
+  }
+
+  /* Head row: space-between horizontally, dead-center vertically,
+     exact same height & padding as a day row */
+  .p-week .p-day__head{
+    display:flex !important;
+    justify-content:space-between !important;
+    align-items:center !important;
+    min-height:var(--row-h) !important;
+    padding:.45rem .55rem !important;     /* ~7.2px 8.8px like your day row */
+    gap:.5rem !important;
+  }
+
+  /* Right: date (DD.MM) */
+  .p-week .p-day__date{
+    margin:0 !important; font-weight:800 !important; color:#64748b !important;
+  }
+
+  /* Center: circular counter — number perfectly centered */
+  .p-week .p-day__count{
+    display:grid !important; place-items:center !important;
+    inline-size:var(--wk-chip) !important; block-size:var(--wk-chip) !important;
+    border-radius:50% !important;
+    font:var(--wk-font) !important;
+    background:#fff !important; color:#0f172a !important;
+    border:1px solid #e5e7eb !important;
+    box-shadow:0 2px 6px rgba(0,0,0,.06) !important;
+  }
+
+  /* Left: weekday name */
+  .p-week .p-day__name{
+    margin:0 !important; font-weight:800 !important; color:#0f172a !important;
+  }
+
+  /* Dark parity for the week card */
+  html[data-theme="dark"] .p-week .p-day{
+    background:#162540 !important; border-color:#2c4676 !important;
+    box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
+  }
+  html[data-theme="dark"] .p-week .p-day__name{ color:#eaf2ff !important; }
+  html[data-theme="dark"] .p-week .p-day__date{ color:#9cb3d6 !important; }
+  html[data-theme="dark"] .p-week .p-day__count{
+    background:#0f1b2f !important; color:#e5ecf5 !important; border-color:#2c4676 !important;
+  }
+
+  /* =====================================================
+     3) Day task container: ensure locked height & radius
+     ===================================================== */
+  .task-item{
+    display:grid; grid-template-columns:auto 1fr auto;
+    align-items:center; gap:.6rem;
+    min-height:var(--row-h) !important;
+    border-radius:var(--row-r) !important;
+  }
+
+  /* Keep caret visible in composer inputs (small UX fix) */
+  #eventComposer .line input{ caret-color:auto !important; }
+  </style>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -648,7 +198,7 @@ body.is-dark            .c-week .row .count{
           </svg>
         </button>
 
-        <!-- LOGO (dark-aware) -->
+        <!-- LOGו -->
         <a class="looz-logo" href="index.html" aria-label="LooZ">
           <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ" />
           <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
@@ -680,13 +230,10 @@ body.is-dark            .c-week .row .count{
           <div class="task-item" tabindex="0" data-id="">
             <span class="task-item__time" dir="ltr"></span>
             <input class="task-item__text" type="text" placeholder="תיאור המשימה…" value="" inputmode="text" />
-          <!-- inside .task-item/.p-daytask/.p-task actions -->
-<div class="task-item__actions">
-  <button class="task-ico" data-act="ok"  aria-label="בוצע"></button>
-  <button class="task-ico" data-act="del" aria-label="מחק"></button>
-</div>
-
-
+            <div class="task-item__actions">
+              <button class="task-ico" data-act="ok"  aria-label="בוצע"></button>
+              <button class="task-ico" data-act="del" aria-label="מחק"></button>
+            </div>
           </div>
         </template>
 
@@ -756,11 +303,10 @@ body.is-dark            .c-week .row .count{
       <!-- planner -->
       <section id="planner" class="c-planner o-inner" aria-live="polite"></section>
 
-     <!-- Fixed bottom-center orb (one place for all views) -->
-<div class="fab-rail">
-  <button id="fabCreate" class="btn-create-orb" aria-label="Create new event"></button>
-</div>
-
+      <!-- Fixed bottom-center orb -->
+      <div class="fab-rail">
+        <button id="fabCreate" class="btn-create-orb" aria-label="Create new event"></button>
+      </div>
 
       <!-- Fullscreen Event Composer -->
       <section id="eventComposer" class="composer composer--card u-hidden" dir="rtl" aria-hidden="true">
@@ -775,7 +321,6 @@ body.is-dark            .c-week .row .count{
             <div class="line" data-step="1">
               <label class="visually-hidden" for="compTitle">תיאור המשימה</label>
               <input id="compTitle" type="text" placeholder="תיאור המשימה…" autocomplete="off" />
-          
               <button id="compMic" class="mic-ico" type="button" aria-pressed="false" title="דבר/י" aria-label="דבר/י">
                 <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                   <rect x="9" y="3" width="6" height="12" rx="3" fill="currentColor"></rect>
@@ -795,9 +340,7 @@ body.is-dark            .c-week .row .count{
               <input id="compTime" type="time" />
             </div>
 
-        <!-- AFTER (no button) -->
-<div class="composer__actions" aria-hidden="true"></div>
-
+            <div class="composer__actions" aria-hidden="true"></div>
           </form>
         </div>
       </section>
@@ -835,9 +378,8 @@ body.is-dark            .c-week .row .count{
     })();
   </script>
 
-  <!-- Task row focus delegation + optional helper -->
+  <!-- Focus delegation + helper -->
   <script>
-    // Delegate container focus to the inner input
     document.addEventListener('focusin', function(e){
       const row = e.target.closest && e.target.closest('.task-item');
       if (row && e.target === row) {
@@ -846,7 +388,6 @@ body.is-dark            .c-week .row .count{
       }
     });
 
-    // Helper to create a task row programmatically (kept for reuse)
     function createTaskRow({id, time, text=''}) {
       const div = document.createElement('div');
       div.className = 'task-item';
@@ -862,7 +403,6 @@ body.is-dark            .c-week .row .count{
         </div>
       `;
 
-      // click container -> focus text
       div.addEventListener('click', (ev)=>{
         if (!ev.target.closest('.task-ico')) {
           const inp = div.querySelector('.task-item__text');
@@ -870,15 +410,11 @@ body.is-dark            .c-week .row .count{
         }
       });
 
-      // sample action buttons (hook into your existing handlers)
       div.querySelector('.task-ico--ok') .addEventListener('click', ()=> div.classList.add('is-done'));
       div.querySelector('.task-ico--del').addEventListener('click', ()=> div.remove());
 
       return div;
     }
-
-    // Example usage (disabled):
-    // document.querySelector('#someList')?.appendChild(createTaskRow({ id:'t1', time:'19:23', text:'שם המשימה' }));
   </script>
 </body>
 </html>
