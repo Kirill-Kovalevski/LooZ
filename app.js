@@ -1,8 +1,8 @@
-/* ===== LooZ — Planner App (home) — vFinal.9 (refined) ===== */
+/* ===== LooZ — Planner App (home) — vFinal.9 (refined & stable) ===== */
 (function () {
   'use strict';
 
-  /* -------- AUTH GUARD (runs before anything else) -------- */
+  /* -------- AUTH GUARD -------- */
   (function guard() {
     try {
       var u = localStorage.getItem('authUser') || localStorage.getItem('auth.user');
@@ -61,13 +61,8 @@
   const createOrbBtn = $('.btn-create-orb');
 
   /* ===================== Greeting ===================== */
-  function getAuth() {
-    try { const raw = localStorage.getItem('authUser') || localStorage.getItem('auth.user'); return raw ? JSON.parse(raw) : null; }
-    catch { return null; }
-  }
-  function getProfile() {
-    try { return JSON.parse(localStorage.getItem('profile') || '{}'); } catch { return {}; }
-  }
+  function getAuth() { try { const raw = localStorage.getItem('authUser') || localStorage.getItem('auth.user'); return raw ? JSON.parse(raw) : null; } catch { return null; } }
+  function getProfile() { try { return JSON.parse(localStorage.getItem('profile') || '{}'); } catch { return {}; } }
   function getDisplayName() {
     const prof = getProfile();
     if (prof.firstName) return prof.firstName;
@@ -81,7 +76,6 @@
     const au = getAuth();
     const SPECIAL_EMAIL = 'daniellagg21@gmail.com';
     const isSpecial = au && String(au.email||'').toLowerCase()===SPECIAL_EMAIL.toLowerCase();
-
     if (subtitleEl) {
       subtitleEl.innerHTML = isSpecial
         ? '<div style="font-weight:800;margin-bottom:.15rem">נשמולית שלי</div>'
@@ -101,7 +95,6 @@
 
   const prefs = loadPrefs();
   const weekStart = (prefs.weekStart==='mon') ? 1 : 0;
-
   let state = { view: (prefs.defaultView || 'month'), current: new Date(), tasks: loadTasks() };
 
   const formatTitle = (d) => {
@@ -110,13 +103,12 @@
   };
   const markToday = () => { titleBadge && titleBadge.setAttribute('data-today','1'); };
 
-  /* ===================== Lemon nav open/close ===================== */
+  /* ===================== Lemon nav ===================== */
   (function initNav(){
     if (!lemonToggle || !appNav || !navPanel) return;
     appNav.classList.add('u-is-collapsed');
     lemonToggle.setAttribute('aria-expanded','false');
     appNav.setAttribute('aria-hidden','true');
-
     function open(){
       appNav.classList.remove('u-is-collapsed');
       appNav.setAttribute('aria-hidden','false');
@@ -145,13 +137,9 @@
   function pastelFor(n){
     let b = n<=0 ? 0 : Math.min(6, Math.floor((n-1)/3)+1);
     const tones = [
-      { fg:'#475569', ring:'#e5e7eb' }, // 0
-      { fg:'#0ea5e9', ring:'#93c5fd' }, // 1
-      { fg:'#16a34a', ring:'#86efac' }, // 2
-      { fg:'#f59e0b', ring:'#fde68a' }, // 3
-      { fg:'#a855f7', ring:'#ddd6fe' }, // 4
-      { fg:'#db2777', ring:'#fbcfe8' }, // 5
-      { fg:'#1d4ed8', ring:'#bfdbfe' }, // 6
+      { fg:'#475569', ring:'#e5e7eb' }, { fg:'#0ea5e9', ring:'#93c5fd' }, { fg:'#16a34a', ring:'#86efac' },
+      { fg:'#f59e0b', ring:'#fde68a' }, { fg:'#a855f7', ring:'#ddd6fe' }, { fg:'#db2777', ring:'#fbcfe8' },
+      { fg:'#1d4ed8', ring:'#bfdbfe' },
     ];
     return {band:b, ...tones[b]};
   }
@@ -160,11 +148,9 @@
   function render(){
     formatTitle(state.current); markToday();
     if (!plannerRoot) return;
-
     btnDay   && btnDay.classList.toggle('is-active', state.view==='day');
     btnWeek  && btnWeek.classList.toggle('is-active', state.view==='week');
     btnMonth && btnMonth.classList.toggle('is-active', state.view==='month');
-
     if (state.view==='day') renderDay();
     else if (state.view==='week') renderWeek();
     else renderMonth();
@@ -324,10 +310,7 @@
   btnWeek  && btnWeek.addEventListener('click', ()=>{ state.view='week';  render(); prefs.defaultView='week';  persistPrefs(); });
   btnMonth && btnMonth.addEventListener('click',()=>{ state.view='month'; render(); prefs.defaultView='month'; persistPrefs(); });
 
-  // Hook the static create-orb button → open the fullscreen composer
-  if (createOrbBtn) {
-    createOrbBtn.addEventListener('click', (e) => { e.preventDefault(); openComposer(); });
-  }
+  if (createOrbBtn) createOrbBtn.addEventListener('click', (e) => { e.preventDefault(); openComposer(); });
 
   if (plannerRoot){
     plannerRoot.addEventListener('click', (e)=>{
@@ -438,20 +421,16 @@
   const compMicNote   = document.getElementById('compMicNote');
   const compPencil    = document.getElementById('compPencil');
 
-  const MIN_TITLE_CHARS = 2; // do NOT advance on a single char
+  const MIN_TITLE_CHARS = 2;
 
   /* ---------- hidden mirror for caret width ---------- */
   const _mirror = document.createElement('div');
-  _mirror.style.cssText = [
-    'position:absolute','visibility:hidden','white-space:pre','pointer-events:none',
-    'top:-9999px','right:-9999px'
-  ].join(';');
+  _mirror.style.cssText = ['position:absolute','visibility:hidden','white-space:pre','pointer-events:none','top:-9999px','right:-9999px'].join(';');
   document.body.appendChild(_mirror);
 
   function _copyInputStyles(src, dst){
     const cs = getComputedStyle(src);
-    const props = ['fontFamily','fontSize','fontWeight','letterSpacing','textTransform','padding','border','boxSizing','direction'];
-    props.forEach(p => dst.style[p] = cs[p]);
+    ['fontFamily','fontSize','fontWeight','letterSpacing','textTransform','padding','border','boxSizing','direction'].forEach(p => dst.style[p] = cs[p]);
     dst.style.width = cs.width;
   }
 
@@ -463,58 +442,59 @@
 
     const inputRect = input.getBoundingClientRect();
     const panelRect = compPanel.getBoundingClientRect();
-
     _copyInputStyles(input, _mirror);
-
     const cs = getComputedStyle(input);
     const isRTL    = (cs.direction === 'rtl');
     const padStart = parseFloat(isRTL ? cs.paddingRight : cs.paddingLeft) || 0;
-
     const val   = input.value || '';
     const caret = input.selectionStart ?? val.length;
-
     _mirror.textContent = val.slice(0, caret);
     const w = _mirror.getBoundingClientRect().width;
-
     const MIN_INSET = 6;
     const xAbs = (val.length === 0)
-      ? (isRTL ? (inputRect.right - padStart - MIN_INSET)
-               : (inputRect.left  + padStart + MIN_INSET))
-      : (isRTL ? (inputRect.right - padStart - w)
-               : (inputRect.left  + padStart + w));
-
-    // viewport → panel-relative
-    const x = Math.round(xAbs - panelRect.left) - 2;              // tiny nudge
+      ? (isRTL ? (inputRect.right - padStart - MIN_INSET) : (inputRect.left  + padStart + MIN_INSET))
+      : (isRTL ? (inputRect.right - padStart - w)        : (inputRect.left  + padStart + w));
+    const x = Math.round(xAbs - panelRect.left) - 2;
     const y = Math.round(inputRect.top - panelRect.top + inputRect.height/2);
-
     compPencil.style.display = 'block';
     compPencil.style.left = x + 'px';
     compPencil.style.top  = y + 'px';
   }
 
-  /* ---------- Mic alignment: same vertical line as X, under the field ---------- */
-  function updateMicAnchor(){
-    if (!composer || !compMic || !compPanel) return;
-    const step = Number(composer.getAttribute('data-step')||1);
-    if (step !== 1) { compMic.style.display = 'none'; return; }
+  /* ---------- Mic alignment: vertical with X, under the field ---------- */
+/* ---------- Mic alignment: vertical with X, under the field (scroll-aware) ---------- */
+function updateMicAnchor(){
+  if (!composer || !compMic || !compPanel) return;
 
-    const panelRect = compPanel.getBoundingClientRect();
-    const closeX    = composer.querySelector('.composer__close');
-    const field     = document.getElementById('compTitle'); // input field
-    if (!closeX || !field) return;
+  const step = Number(composer.getAttribute('data-step')||1);
+  if (step !== 1) { compMic.style.display = 'none'; return; }
 
-    const xr = closeX.getBoundingClientRect();
-    const fr = field.getBoundingClientRect();
+  const panRect = compPanel.getBoundingClientRect();
+  const closeX  = composer.querySelector('.composer__close');
+  const field   = compTitle; // #compTitle input
 
-    const centerX = xr.left + xr.width / 2;  // vertical line with X
-    const gap = 12;
-    const topY = fr.bottom + gap;            // just below the field
+  if (!closeX || !field) return;
 
-    compMic.style.display = 'inline-grid';
-    compMic.style.left = (centerX - panelRect.left) + 'px';
-    compMic.style.top  = (topY   - panelRect.top ) + 'px';
-    // CSS: transform: translate(-50%, 0) on the mic (keeps it centered)
-  }
+  const xr = closeX.getBoundingClientRect();
+  const fr = field.getBoundingClientRect();
+
+  // Same vertical line as the X — use X center in viewport coords:
+  const centerX_vp = xr.left + xr.width / 2;
+
+  // Just below the field:
+  const gap = 12;
+  const top_vp = fr.bottom + gap;
+
+  // Convert viewport -> panel absolute coordinates (include panel scroll!)
+  const left_in_panel = centerX_vp - panRect.left + compPanel.scrollLeft;
+  const top_in_panel  = top_vp    - panRect.top  + compPanel.scrollTop;
+
+  compMic.style.display = 'inline-grid';
+  compMic.style.left = `${left_in_panel}px`;
+  compMic.style.top  = `${top_in_panel}px`;
+  // CSS transform keeps it centered: translate(-50%, 0)
+}
+
 
   /* ---------- step flow ---------- */
   function setStep(n){
@@ -525,19 +505,12 @@
     if (n===3 && compTime)  compTime.focus();
     updatePencilAnchor(); updateMicAnchor();
   }
-
   function maybeAdvanceFromTitle(origin){
     const t = (compTitle && compTitle.value || '').trim();
-    const ok =
-      (origin === 'enter') ||
-      ((origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS);
+    const ok = (origin === 'enter') || ((origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS);
     if (ok) setStep(2);
   }
-
-  function maybeAdvanceFromDate(){
-    const d = (compDate && compDate.value || '').trim();
-    if (d) setStep(3);
-  }
+  function maybeAdvanceFromDate(){ const d = (compDate && compDate.value || '').trim(); if (d) setStep(3); }
 
   /* ---------- open/close ---------- */
   function openComposer(){
@@ -545,18 +518,14 @@
     const now = new Date();
     if(compDate && !compDate.value) compDate.value = dateKey(now);
     if(compTime && !compTime.value) compTime.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-    composer.classList.remove('u-hidden');
-    composer.classList.add('is-open');
+    composer.classList.remove('u-hidden'); composer.classList.add('is-open');
     composer.setAttribute('aria-hidden','false');
     setStep(1);
-    try { compTitle && compTitle.focus(); } catch {}
     requestAnimationFrame(()=>{ updatePencilAnchor(); updateMicAnchor(); });
   }
-
   function closeComposer(){
     if(!composer) return;
-    composer.classList.remove('is-open');
-    composer.setAttribute('aria-hidden','true');
+    composer.classList.remove('is-open'); composer.setAttribute('aria-hidden','true');
     setTimeout(()=>composer.classList.add('u-hidden'),180);
     stopMic(true);
   }
@@ -590,7 +559,7 @@
     closeComposer();
   });
 
-  /* ---------- Web Speech (append text + mic hold/swipe lock) ---------- */
+  /* ---------- Web Speech (append; hold; swipe-down lock) ---------- */
   let _rec=null, _listening=false, _lockBySwipe=false;
 
   function ensureRecognizer(){
@@ -623,7 +592,6 @@
     _rec = r; 
     return r;
   }
-
   function startMic(){
     const r = ensureRecognizer();
     if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
@@ -635,7 +603,6 @@
     if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
     try{ r.start(); }catch(_){}
   }
-
   function stopMic(forceNote){
     if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
     _listening = false;
@@ -647,7 +614,7 @@
     maybeAdvanceFromTitle('mic');
   }
 
-  /* Mic gestures: press & hold → talk; swipe-down (>30px) → lock; tap toggles */
+  // Mic gestures: hold → talk; swipe-down (>30px) → lock; tap toggles
   let _micPointerId=null, _micDownY=0;
   if (compMic){
     compMic.addEventListener('pointerdown', (e)=>{
@@ -677,48 +644,27 @@
   }
 
   /* ---------- anchors & input events (single registration) ---------- */
-  window.addEventListener('resize', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
-  window.addEventListener('orientationchange', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
+  function tickAnchors(){ updatePencilAnchor(); updateMicAnchor(); }
+  window.addEventListener('resize', tickAnchors);
+  window.addEventListener('orientationchange', tickAnchors);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(tickAnchors); }
 
   [compTitle, compDate, compTime].forEach(inp=>{
     if(!inp) return;
-    inp.addEventListener('focus', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
-    inp.addEventListener('input', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
-    inp.addEventListener('click', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
-    inp.addEventListener('keyup', ()=>{ updatePencilAnchor(); updateMicAnchor(); });
+    inp.addEventListener('focus', tickAnchors);
+    inp.addEventListener('input', tickAnchors);
+    inp.addEventListener('click', tickAnchors);
+    inp.addEventListener('keyup', tickAnchors);
     inp.addEventListener('blur', ()=> setTimeout(()=>{
       if(Number(composer.getAttribute('data-step')||1)!==1 && compPencil) compPencil.style.display='none';
     }, 0));
   });
 
-  /* Enter → advance; blur → advance only if ≥2 chars */
-  compTitle && compTitle.addEventListener('keydown', (e)=>{
-    if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); }
-  });
+  // Enter → advance; blur → advance only if ≥2 chars
+  compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
   compTitle && compTitle.addEventListener('blur', ()=> maybeAdvanceFromTitle('blur'));
   compDate  && compDate.addEventListener('change', maybeAdvanceFromDate);
   compDate  && compDate.addEventListener('blur',   maybeAdvanceFromDate);
-
-  /* ---------- Pencil: hold to start, swipe-down to lock ---------- */
-  let holdTimer=null, startY=0, moved=false;
-  function beginHold(y){
-    clearTimeout(holdTimer);
-    holdTimer=setTimeout(()=>{ _lockBySwipe=false; startMic(); },360);
-    startY=y; moved=false;
-  }
-  function endHold(){
-    clearTimeout(holdTimer);
-    if(_listening && !_lockBySwipe) stopMic(true);
-  }
-  compPencil && compPencil.addEventListener('pointerdown', e=>{ compPencil.setPointerCapture(e.pointerId); beginHold(e.clientY); });
-  compPencil && compPencil.addEventListener('pointermove', e=>{
-    if(!startY) return;
-    const dy=e.clientY-startY;
-    if(dy>52){ _lockBySwipe=true; if(!_listening) startMic(); if(compMicNote) compMicNote.textContent='הקלטה (נעול)'; startY=0; moved=true; clearTimeout(holdTimer); }
-  });
-  compPencil && compPencil.addEventListener('pointerup', ()=>{ if(!moved) endHold(); startY=0; moved=false; });
-  compPencil && compPencil.addEventListener('pointercancel', ()=>{ clearTimeout(holdTimer); startY=0; moved=false; });
-  compPencil && compPencil.addEventListener('click', ()=>{ if(_lockBySwipe && _listening){ _lockBySwipe=false; stopMic(true); } });
 
   /* ===================== Effects & tiny inline fix ===================== */
   function blastConfetti(x,y,scale){
@@ -734,7 +680,6 @@
     }
     setTimeout(()=>layer.remove(),1600);
   }
-
   const prev = document.getElementById('looz-fixes-v12'); if (prev) prev.remove();
   const style = document.createElement('style');
   style.id = 'looz-fixes-v12';
@@ -747,24 +692,16 @@
   formatTitle(_today);
   render();
 
-  // Best-effort: ensure firstName in profile once, update greeting element if exists
   (function ensureFirstNameAndGreeting() {
     try {
       var prof = JSON.parse(localStorage.getItem('profile') || '{}');
       var au   = JSON.parse(localStorage.getItem('authUser') || 'null');
       if (!prof.firstName) {
         var guess = (prof.name || (au && au.displayName) || '').split(' ')[0];
-        if (guess) {
-          prof.firstName = guess;
-          localStorage.setItem('profile', JSON.stringify(prof));
-        }
+        if (guess) { prof.firstName = guess; localStorage.setItem('profile', JSON.stringify(prof)); }
       }
       var greetEl = document.querySelector('#greeting');
-      if (greetEl && prof.firstName) {
-        greetEl.textContent = `שלום, ${prof.firstName}!`;
-      }
-    } catch (e) {
-      console.warn("Greeting setup failed", e);
-    }
+      if (greetEl && prof.firstName) { greetEl.textContent = `שלום, ${prof.firstName}!`; }
+    } catch (e) { console.warn("Greeting setup failed", e); }
   })();
 })();

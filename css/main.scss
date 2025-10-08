@@ -2175,7 +2175,7 @@ body.dark #eventComposer .composer__panel { background:#1f2937; }
 html[data-theme="dark"] #eventComposer .composer__panel { background:#1f2937; }
 
 /* === Line + inputs === */
-#eventComposer .line { position: relative; margin:12px 0 32px; } /* bottom space for mic */
+#eventComposer .line { position: relative; margin:0; } /* bottom space for mic */
 #eventComposer .line input{
   width:100%; font-size:16px; padding:12px 46px 12px 12px;
   border:none; border-bottom:1.5px solid #cbd5e1; background:transparent; color:#0f172a;
@@ -2297,3 +2297,9 @@ html[data-theme="dark"] .composer__close{
 }
 html[data-theme="dark"] #compMic.mic-ico{ background:#1f2937; color:var(--composer-ink); }
 #compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.18); }
+#compMic.mic-ico { transform: translate(-50%, 0); } // center on the X’s vertical
+/* must exist for absolute mic anchoring */
+#eventComposer .composer__panel { position: relative; }
+
+/* keep this so left = center line of X */
+#compMic.mic-ico { transform: translate(-50%, 0); }

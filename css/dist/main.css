@@ -3735,7 +3735,7 @@ html[data-theme=dark] #eventComposer .composer__panel {
 /* === Line + inputs === */
 #eventComposer .line {
   position: relative;
-  margin: 12px 0 32px;
+  margin: 0;
 }
 
 /* bottom space for mic */
@@ -3989,4 +3989,18 @@ html[data-theme=dark] #compMic.mic-ico {
 
 #compMic.mic-ico.is-on {
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
+}
+
+#compMic.mic-ico {
+  transform: translate(-50%, 0);
+}
+
+/* must exist for absolute mic anchoring */
+#eventComposer .composer__panel {
+  position: relative;
+}
+
+/* keep this so left = center line of X */
+#compMic.mic-ico {
+  transform: translate(-50%, 0);
 }
