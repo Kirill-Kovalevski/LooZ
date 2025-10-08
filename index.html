@@ -17,10 +17,8 @@
     })();
   </script>
 
-  <!-- Global theme (keep early so dark mode styles resolve immediately) -->
+  <!-- Theme + base (your existing JS) -->
   <script src="js/theme.js"></script>
-
-  <!-- Optional: base for GitHub Pages -->
   <script>
     (function () {
       if (/github\.io$/.test(location.hostname)) {
@@ -32,108 +30,113 @@
     })();
   </script>
 
-  <!-- App styles -->
+  <!-- Your base styles -->
   <link rel="stylesheet" href="css/dist/main.css" />
   <link rel="stylesheet" href="css/dist/dark-overrides.css" />
   <link rel="stylesheet" href="css/dist/settings.css" />
 
-  <!-- =============== LOOZ — FINAL FIXES (single block) =============== -->
-  <style id="looz-fixes">
-  /* ---------- sizing tokens (tune if needed) ---------- */
+  <!-- ===== LOOZ – FINAL OVERRIDES (compact, no duplicates) ===== -->
+  <style>
+  /* Tokens: keep day + week rows visually identical */
   :root{
-    /* Inspect showed ~35px day row; we lock both day & week rows to 36px */
-    --row-h: 36px;
-    --row-r: 14px;
-    --wk-chip: 28px;
+    --row-h: 44px;                         /* day-task row height */
+    --row-r: 14px;                         /* container radius   */
+    --wk-chip: 28px;                       /* week counter size  */
     --wk-font: 800 12px/28px 'Rubik',system-ui,sans-serif;
   }
 
-  /* =====================================================
-     1) DAY VIEW — ✓ / ✕ chips
-     - Works with .task-ico--ok / .task-ico--del or data-act="ok|del"
-     ===================================================== */
+  /* ---------------- DAY VIEW: ✓ / ✕ chips ---------------- */
+  /* Support both your new (.task-ico) and legacy (.p-ico) buttons */
   .task-item__actions .task-ico,
-  .task-item__actions [data-act]{
+  .p-daytask__actions .p-ico{
     display:grid; place-items:center;
     inline-size:30px; block-size:20px;
     border-radius:999px;
     font:800 12px/1 'Rubik',system-ui,sans-serif;
-    border:1px solid #d6dbe4; background:#fff; color:#475569;
+    border:1px solid #cbd5e1; background:#fff; color:#475569;
     user-select:none; cursor:pointer;
     box-shadow:0 1px 0 rgba(0,0,0,.03);
   }
-  .task-ico--ok::before,  [data-act="ok"]::before  { content:"✓"; }
-  .task-ico--del::before, [data-act="del"]::before { content:"✕"; }
+  /* Always show glyphs even if the button is empty */
+  .task-ico--ok::before,   [data-act="ok"]::before,   .p-ico--ok::before  { content:"✓"; }
+  .task-ico--del::before,  [data-act="del"]::before,  .p-ico--del::before { content:"✕"; }
 
-  /* Light: green ✓ / red ✕ */
-  .task-ico--ok,  [data-act="ok"]{
+  /* Light theme colors */
+  .task-ico--ok,  [data-act="ok"],  .p-ico--ok{
     background:linear-gradient(180deg,#ecfee7,#ffffff) !important;
     border-color:#9ad69b !important; color:#15803d !important;
   }
-  .task-ico--del, [data-act="del"]{
+  .task-ico--del, [data-act="del"], .p-ico--del{
     background:linear-gradient(180deg,#ffe8ea,#ffffff) !important;
     border-color:#f3b5b9 !important; color:#be123c !important;
   }
 
-  /* Dark: golden hues + gentle glow */
+  /* Dark theme: smooth golden hues + soft glow */
   @keyframes loozGlowY { 0%,100%{box-shadow:0 0 12px rgba(255,208,86,.18)} 50%{box-shadow:0 0 18px rgba(255,208,86,.30)} }
   @keyframes loozGlowR { 0%,100%{box-shadow:0 0 12px rgba(255,138,107,.18)}50%{box-shadow:0 0 18px rgba(255,138,107,.30)} }
 
   html[data-theme="dark"] .task-item__actions .task-ico,
   body.is-dark            .task-item__actions .task-ico,
-  html[data-theme="dark"] .task-item__actions [data-act],
-  body.is-dark            .task-item__actions [data-act]{
+  html[data-theme="dark"] .p-daytask__actions .p-ico,
+  body.is-dark            .p-daytask__actions .p-ico{
     background:#111827 !important; color:#e5e7eb !important; border-color:#2c4676 !important;
   }
   html[data-theme="dark"] .task-ico--ok,
   body.is-dark            .task-ico--ok,
   html[data-theme="dark"] [data-act="ok"],
-  body.is-dark            [data-act="ok"]{
+  body.is-dark            [data-act="ok"],
+  html[data-theme="dark"] .p-ico--ok,
+  body.is-dark            .p-ico--ok{
     background:linear-gradient(180deg,#1c2b12,#13230e) !important;
-    border-color:#a08b3a !important; color:#ffd456 !important;     /* golden-yellow */
+    border-color:#a08b3a !important; color:#ffd456 !important;   /* golden yellow */
     animation:loozGlowY 2.2s ease-in-out infinite;
   }
   html[data-theme="dark"] .task-ico--del,
   body.is-dark            .task-ico--del,
   html[data-theme="dark"] [data-act="del"],
-  body.is-dark            [data-act="del"]{
+  body.is-dark            [data-act="del"],
+  html[data-theme="dark"] .p-ico--del,
+  body.is-dark            .p-ico--del{
     background:linear-gradient(180deg,#2b1716,#201011) !important;
-    border-color:#b0604e !important; color:#ff8a6b !important;     /* golden-red */
+    border-color:#b0604e !important; color:#ff8a6b !important;   /* golden red */
     animation:loozGlowR 2.2s ease-in-out infinite;
   }
 
-  /* =====================================================
-     2) WEEK VIEW — same size as day rows + alignment
-        (Right=date | Center=counter | Left=weekday)
-     ===================================================== */
+  /* ---------------- Day task row baseline (for parity) ---------------- */
+  .task-item{
+    display:grid; grid-template-columns:auto 1fr auto;
+    align-items:center; gap:.6rem;
+    min-height:var(--row-h);
+    padding:.55rem .7rem;
+    border-radius:var(--row-r);
+  }
 
-  /* Card shell matches day-view feel, height driven by head row */
+  /* ---------------- WEEK VIEW: same size + perfect alignment ---------------- */
+  /* Card shell should look/size like a day row */
   .p-week .p-day{
-    padding:0 !important;
+    padding:0 !important;                        /* header controls height */
     border-radius:var(--row-r) !important;
     border:1px solid rgba(197,154,33,.25) !important;
     background:radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%) !important;
     box-shadow:0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06) !important;
   }
 
-  /* Head row: space-between horizontally, dead-center vertically,
-     exact same height & padding as a day row */
+  /* Header line = exact day height, items centered vertically, spaced-between horizontally
+     We force LTR here so we can set a clear left→right visual order regardless of RTL page. */
   .p-week .p-day__head{
     display:flex !important;
     justify-content:space-between !important;
     align-items:center !important;
     min-height:var(--row-h) !important;
-    padding:.45rem .55rem !important;     /* ~7.2px 8.8px like your day row */
+    padding:.55rem .7rem !important;
     gap:.5rem !important;
+    direction:ltr !important;
   }
 
-  /* Right: date (DD.MM) */
-  .p-week .p-day__date{
-    margin:0 !important; font-weight:800 !important; color:#64748b !important;
-  }
-
-  /* Center: circular counter — number perfectly centered */
+  /* Order: LEFT name, CENTER counter, RIGHT date */
+  .p-week .p-day__name { order:1; margin:0 !important; font-weight:800 !important; color:#0f172a !important; }
   .p-week .p-day__count{
+    order:2;
     display:grid !important; place-items:center !important;
     inline-size:var(--wk-chip) !important; block-size:var(--wk-chip) !important;
     border-radius:50% !important;
@@ -142,13 +145,9 @@
     border:1px solid #e5e7eb !important;
     box-shadow:0 2px 6px rgba(0,0,0,.06) !important;
   }
+  .p-week .p-day__date { order:3; margin:0 !important; font-weight:800 !important; color:#64748b !important; }
 
-  /* Left: weekday name */
-  .p-week .p-day__name{
-    margin:0 !important; font-weight:800 !important; color:#0f172a !important;
-  }
-
-  /* Dark parity for the week card */
+  /* Dark parity for week rows */
   html[data-theme="dark"] .p-week .p-day{
     background:#162540 !important; border-color:#2c4676 !important;
     box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
@@ -158,19 +157,6 @@
   html[data-theme="dark"] .p-week .p-day__count{
     background:#0f1b2f !important; color:#e5ecf5 !important; border-color:#2c4676 !important;
   }
-
-  /* =====================================================
-     3) Day task container: ensure locked height & radius
-     ===================================================== */
-  .task-item{
-    display:grid; grid-template-columns:auto 1fr auto;
-    align-items:center; gap:.6rem;
-    min-height:var(--row-h) !important;
-    border-radius:var(--row-r) !important;
-  }
-
-  /* Keep caret visible in composer inputs (small UX fix) */
-  #eventComposer .line input{ caret-color:auto !important; }
   </style>
 
   <!-- Fonts -->
@@ -198,7 +184,7 @@
           </svg>
         </button>
 
-        <!-- LOGו -->
+        <!-- LOGO (dark-aware) -->
         <a class="looz-logo" href="index.html" aria-label="LooZ">
           <img class="brand-logo brand-logo--light" src="icons/main-logo.png" alt="LooZ" />
           <img class="brand-logo brand-logo--dark"  src="icons/dark-logo.png"  alt="LooZ" />
@@ -225,7 +211,7 @@
           </svg>
         </button>
 
-        <!-- Template: Task Row -->
+        <!-- Template: Task Row (buttons can be empty; CSS inserts ✓/✕) -->
         <template id="task-item-template">
           <div class="task-item" tabindex="0" data-id="">
             <span class="task-item__time" dir="ltr"></span>
@@ -260,7 +246,6 @@
                   </svg>
                 </button>
 
-                <!-- suggestions dropdown -->
                 <div id="sugWrap" class="sug-wrap u-hidden" role="listbox" aria-label="הצעות">
                   <div class="sug-head">הצעות</div>
                   <div id="sugList" class="sug-list"></div>
@@ -364,7 +349,7 @@
         const token = dd + '.' + mm;
 
         PLANNER.querySelectorAll('.is-today').forEach(el => el.classList.remove('is-today'));
-        PLANNER.querySelectorAll('.p-day__head--flex, .c-week .row').forEach(row => {
+        PLANNER.querySelectorAll('.p-day__head, .p-day__head--flex, .c-week .row').forEach(row => {
           const dateEl = row.querySelector('.p-day__date, .date');
           if (dateEl && (dateEl.textContent || '').trim().startsWith(token)) {
             row.classList.add('is-today');
@@ -378,7 +363,7 @@
     })();
   </script>
 
-  <!-- Focus delegation + helper -->
+  <!-- Focus delegation for task rows (unchanged) -->
   <script>
     document.addEventListener('focusin', function(e){
       const row = e.target.closest && e.target.closest('.task-item');
@@ -387,34 +372,6 @@
         if (inp) { requestAnimationFrame(()=> inp.focus()); }
       }
     });
-
-    function createTaskRow({id, time, text=''}) {
-      const div = document.createElement('div');
-      div.className = 'task-item';
-      div.tabIndex = 0;
-      div.dataset.id = id;
-
-      div.innerHTML = `
-        <span class="task-item__time" dir="ltr">${time || ''}</span>
-        <input class="task-item__text" type="text" placeholder="תיאור המשימה…" value="${text || ''}">
-        <div class="task-item__actions">
-          <button class="task-ico task-ico--ok"  title="בוצע" aria-label="בוצע">✓</button>
-          <button class="task-ico task-ico--del" title="מחק"  aria-label="מחק">×</button>
-        </div>
-      `;
-
-      div.addEventListener('click', (ev)=>{
-        if (!ev.target.closest('.task-ico')) {
-          const inp = div.querySelector('.task-item__text');
-          inp && inp.focus();
-        }
-      });
-
-      div.querySelector('.task-ico--ok') .addEventListener('click', ()=> div.classList.add('is-done'));
-      div.querySelector('.task-ico--del').addEventListener('click', ()=> div.remove());
-
-      return div;
-    }
   </script>
 </body>
 </html>
