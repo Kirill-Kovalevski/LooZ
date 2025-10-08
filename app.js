@@ -1,4 +1,4 @@
-/* ===== LooZ — Planner App (home) — vFinal.15 (month→day jump, prefilled date, auto-advance) ===== */
+/* ===== LooZ — Planner App (home) — vFinal.16 (mic start fix + time gating) ===== */
 (function () {
   'use strict';
 
@@ -97,7 +97,7 @@
   const prefs = loadPrefs();
   const weekStart = (prefs.weekStart==='mon') ? 1 : 0;
 
-  // Keep track of the last selected day (used to prefill composer)
+  // Track last selected calendar date for prefill
   let state = {
     view: (prefs.defaultView || 'month'),
     current: new Date(),
@@ -156,9 +156,7 @@
   /* ===================== Renderers ===================== */
   function render(){
     formatTitle(state.current); markToday();
-    // keep selectedDate aligned to the day we're viewing
     state.selectedDate = dateKey(state.current);
-
     if (!plannerRoot) return;
     btnDay   && btnDay.classList.toggle('is-active', state.view==='day');
     btnWeek  && btnWeek.classList.toggle('is-active', state.view==='week');
@@ -193,7 +191,6 @@
         else if (k==='next') state.current = addMonths(startOfMonth(state.current),  1);
         else state.current = new Date();
       }
-      // update selected day whenever navigation happens
       state.selectedDate = dateKey(state.current);
       render(); persistPrefs();
     });
@@ -378,13 +375,8 @@
   }
 
   /* ===================== Bottom Sheet (optional) ===================== */
-  function openSheet(){
-    if (!sheet) return;
-    sheet.classList.remove('u-hidden'); sheet.classList.add('is-open');
-    try { titleInput && titleInput.focus(); } catch {}
-  }
+  function openSheet(){ if (!sheet) return; sheet.classList.remove('u-hidden'); sheet.classList.add('is-open'); try { titleInput && titleInput.focus(); } catch {} }
   function closeSheet(){ if (!sheet) return; sheet.classList.remove('is-open'); setTimeout(()=>sheet.classList.add('u-hidden'), 220); }
-
   if (sheet){
     sheetClose && sheetClose.addEventListener('click', e=>{ e.preventDefault(); closeSheet(); });
     sheetPanel && sheetPanel.addEventListener('click', (e)=>{
@@ -415,7 +407,6 @@
     sheet.addEventListener('click', (e)=>{ if (e.target && e.target.matches('.c-sheet__backdrop')) closeSheet(); });
   }
   document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeSheet(); });
-
   sheetForm && sheetForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
 
   /* ===================== Fullscreen Composer ===================== */
@@ -430,8 +421,9 @@
   const compMicNote   = document.getElementById('compMicNote');
 
   const MIN_TITLE_CHARS = 2;
-  let _pendingSave = false;         // למניעת כפילות שמירה
-  let _suppressBlurAdvance = false; // מונע קפיצה כשנלחץ מיקרופון
+  let _pendingSave = false;         // מניעת כפילות שמירה
+  let _suppressBlurAdvance = false; // שלא נקפוץ לשלב 2 בלחיצת מיקרופון
+  let _userTouchedTime = false;     // שמור רק אחרי שהמשתמש בחר שעה בפועל
 
   // Bottom-center mic (step 1 only)
   function updateMicAnchor(){
@@ -459,7 +451,7 @@
     const t = (compTitle && compTitle.value || '').trim();
     const d = (compDate  && compDate.value  || '').trim();
     const h = (compTime  && compTime.value  || '').trim();
-    return (t.length >= MIN_TITLE_CHARS && d && h);
+    return (t.length >= MIN_TITLE_CHARS && d && h && _userTouchedTime);
   }
 
   function performSave(){
@@ -498,11 +490,12 @@
 
   function openComposer(){
     if(!composer) return;
-    // Prefill date from last selected day (calendar/day view)
     const base = state.selectedDate ? fromKey(state.selectedDate) : new Date();
+    // Prefill date from calendar, clear time fully (and kill any browser “memory”)
     if (compTitle) compTitle.value = '';
-    if (compDate)  compDate.value  = dateKey(base);
-    if (compTime)  compTime.value  = '';
+    if (compDate)  { compDate.autocomplete='off'; compDate.value = dateKey(base); }
+    if (compTime)  { compTime.autocomplete='off'; compTime.value = ''; compTime.defaultValue=''; }
+    _userTouchedTime = false;
     composer.classList.remove('u-hidden'); composer.classList.add('is-open');
     composer.setAttribute('aria-hidden','false');
     _pendingSave = false;
@@ -540,7 +533,7 @@
     r.continuous = true;
     r.maxAlternatives = 1;
 
-    // Hardening
+    // iOS/Chrome hardening
     r.onspeechend = ()=>{};
     r.onnomatch   = ()=>{ if(compMicNote) compMicNote.textContent='לא נשמע קול… נסו שוב'; };
 
@@ -594,12 +587,11 @@
     compMic?.classList.add('is-on');
     if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
 
-    // Permission nudge on mobile
+    // Start immediately inside the gesture, then nudge permission
+    safeStart(r);
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({audio:true})
-        .catch(()=>{})
-        .finally(()=> safeStart(r));
-    } else safeStart(r);
+      navigator.mediaDevices.getUserMedia({audio:true}).catch(()=>{}).finally(()=> safeStart(r));
+    }
   }
 
   function stopMic(forceNote){
@@ -609,7 +601,7 @@
     compMic?.classList.remove('is-on');
     try{ _rec && _rec.stop(); }catch(_){}
     if(!forceNote && compMicNote) compMicNote.textContent='';
-    maybeAdvanceFromTitle('mic'); // advance to date (no save here)
+    maybeAdvanceFromTitle('mic'); // advance to date
   }
 
   // gestures: hold→record; swipe-down→lock; tap→toggle
@@ -677,17 +669,21 @@
   // Inputs
   compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
   compTitle && compTitle.addEventListener('blur', ()=>{ if (!_suppressBlurAdvance) maybeAdvanceFromTitle('blur'); });
-  [compDate, compTime].forEach(inp=>{
-    if(!inp) return;
-    inp.addEventListener('focus', tickAnchors);
-    inp.addEventListener('input', tickAnchors);
-    inp.addEventListener('keyup', tickAnchors);
-    inp.addEventListener('click', tickAnchors);
-  });
+
+  // Date
   compDate && compDate.addEventListener('change', ()=>{ tickAnchors(); maybeAdvanceFromDate(); });
   compDate && compDate.addEventListener('blur',   ()=>{ maybeAdvanceFromDate(); });
-  compTime && compTime.addEventListener('change', ()=>{ tickAnchors(); autoSaveComposer(); });
-  compTime && compTime.addEventListener('blur',   ()=>{ autoSaveComposer(); });
+
+  // Time — gate saving until user really sets time
+  if (compTime){
+    compTime.addEventListener('focus', ()=>{
+      // clear any browser-retained value on first focus
+      if(!_userTouchedTime && compTime.value){ compTime.value=''; }
+    });
+    compTime.addEventListener('input', ()=>{ _userTouchedTime = true; });
+    compTime.addEventListener('change', ()=>{ _userTouchedTime = true; tickAnchors(); autoSaveComposer(); });
+    compTime.addEventListener('blur',   ()=>{ if (_userTouchedTime) autoSaveComposer(); });
+  }
 
   /* ===================== Effects & tiny inline fix ===================== */
   function blastConfetti(x,y,scale){
