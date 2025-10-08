@@ -1,4 +1,4 @@
-/* ===== LooZ — Planner App (home) — vFinal.9 (refined & stable) ===== */
+/* ===== LooZ — Planner App (home) — vFinal.11 (auto-save, he, cleaned) ===== */
 (function () {
   'use strict';
 
@@ -6,13 +6,12 @@
   (function guard() {
     try {
       var u = localStorage.getItem('authUser') || localStorage.getItem('auth.user');
-      if (!u) { location.replace('auth.html'); }
+      if (!u) location.replace('auth.html');
     } catch (_) { location.replace('auth.html'); }
   })();
 
   /* ===================== Helpers ===================== */
   const $  = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
   const go = (href) => (window.location.href = href);
   const pad2 = (n) => String(n).padStart(2, '0');
   const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -31,10 +30,11 @@
   const btnMenu       = $('#btnMenu');
   const btnCategories = $('#btnCategories');
   const btnSocial     = $('#btnSocial');
-  if (btnProfile)    btnProfile.addEventListener('click', () => go('profile.html'));
-  if (btnMenu)       btnMenu.addEventListener('click', () => go('settings.html'));
-  if (btnCategories) btnCategories.addEventListener('click', () => go('categories.html'));
-  if (btnSocial)     btnSocial.addEventListener('click', () => go('social.html'));
+
+  btnProfile   && btnProfile.addEventListener('click', () => go('profile.html'));
+  btnMenu      && btnMenu.addEventListener('click', () => go('settings.html'));
+  btnCategories&& btnCategories.addEventListener('click', () => go('categories.html'));
+  btnSocial    && btnSocial.addEventListener('click', () => go('social.html'));
 
   const lemonToggle = $('#lemonToggle');
   const appNav      = $('#appNav');
@@ -49,6 +49,7 @@
   const btnWeek  = $('#btnWeek');
   const btnMonth = $('#btnMonth');
 
+  // Legacy bottom sheet (no-op if elements don’t exist)
   const sheet      = $('#eventSheet');
   const sheetPanel = sheet ? sheet.querySelector('.c-sheet__panel') : null;
   const sheetClose = sheet ? sheet.querySelector('[data-close]') : null;
@@ -75,7 +76,7 @@
     const name = escapeHtml(getDisplayName());
     const au = getAuth();
     const SPECIAL_EMAIL = 'daniellagg21@gmail.com';
-    const isSpecial = au && String(au.email||'').toLowerCase()===SPECIAL_EMAIL.toLowerCase();
+    const isSpecial = !!(au && String(au.email||'').toLowerCase()===SPECIAL_EMAIL.toLowerCase());
     if (subtitleEl) {
       subtitleEl.innerHTML = isSpecial
         ? '<div style="font-weight:800;margin-bottom:.15rem">נשמולית שלי</div>'
@@ -109,6 +110,7 @@
     appNav.classList.add('u-is-collapsed');
     lemonToggle.setAttribute('aria-expanded','false');
     appNav.setAttribute('aria-hidden','true');
+
     function open(){
       appNav.classList.remove('u-is-collapsed');
       appNav.setAttribute('aria-hidden','false');
@@ -121,7 +123,7 @@
     function close(){
       const h = navPanel.scrollHeight;
       navPanel.style.maxHeight = h+'px';
-      void navPanel.offsetHeight;
+      void navPanel.offsetHeight; // reflow
       navPanel.style.maxHeight = '0px';
       lemonToggle.setAttribute('aria-expanded','false');
       appNav.setAttribute('aria-hidden','true');
@@ -135,13 +137,13 @@
 
   /* ===================== Color scale ===================== */
   function pastelFor(n){
-    let b = n<=0 ? 0 : Math.min(6, Math.floor((n-1)/3)+1);
+    const band = n<=0 ? 0 : Math.min(6, Math.floor((n-1)/3)+1);
     const tones = [
       { fg:'#475569', ring:'#e5e7eb' }, { fg:'#0ea5e9', ring:'#93c5fd' }, { fg:'#16a34a', ring:'#86efac' },
       { fg:'#f59e0b', ring:'#fde68a' }, { fg:'#a855f7', ring:'#ddd6fe' }, { fg:'#db2777', ring:'#fbcfe8' },
       { fg:'#1d4ed8', ring:'#bfdbfe' },
     ];
-    return {band:b, ...tones[b]};
+    return {band, ...tones[band]};
   }
 
   /* ===================== Renderers ===================== */
@@ -248,7 +250,7 @@
       if (state._openWeek===ymd){
         const items = state.tasks.filter(t=>t.date===ymd).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
         const list = document.createElement('div'); list.className='p-day__list';
-        if (!items.length) list.innerHTML = '<div class="p-empty small">אין אירועים</div>';
+        if (!items.length) list.innerHTML = '<div class="פ-empty small">אין אירועים</div>';
         else {
           items.forEach(t=>{
             const row = document.createElement('div');
@@ -310,24 +312,24 @@
   btnWeek  && btnWeek.addEventListener('click', ()=>{ state.view='week';  render(); prefs.defaultView='week';  persistPrefs(); });
   btnMonth && btnMonth.addEventListener('click',()=>{ state.view='month'; render(); prefs.defaultView='month'; persistPrefs(); });
 
-  if (createOrbBtn) createOrbBtn.addEventListener('click', (e) => { e.preventDefault(); openComposer(); });
+  createOrbBtn && createOrbBtn.addEventListener('click', (e) => { e.preventDefault(); openComposer(); });
 
   if (plannerRoot){
     plannerRoot.addEventListener('click', (e)=>{
-      const openBtn = e.target && e.target.closest('[data-open]');
+      const openBtn = e.target.closest && e.target.closest('[data-open]');
       if (openBtn){
         const dayKey = openBtn.getAttribute('data-open');
         state._openWeek = (state._openWeek===dayKey) ? null : dayKey;
         render(); return;
       }
-      const hostGoto = e.target && e.target.closest('[data-goto]');
+      const hostGoto = e.target.closest && e.target.closest('[data-goto]');
       if (hostGoto && !e.target.closest('[data-open]')){
         state.current = fromKey(hostGoto.dataset.goto);
         state.view = 'day'; render(); return;
       }
       const doneId = e.target && e.target.getAttribute('data-done');
       const delId  = e.target && e.target.getAttribute('data-del');
-      function bumpStat(kind){
+      const bumpStat = (kind)=>{
         try {
           const k = 'loozStats';
           const o = JSON.parse(localStorage.getItem(k) || '{"doneTotal":0,"removedTotal":0}');
@@ -335,7 +337,7 @@
           if (kind === 'removed') o.removedTotal = (o.removedTotal||0) + 1;
           localStorage.setItem(k, JSON.stringify(o));
         } catch(_) {}
-      }
+      };
       if (doneId){
         bumpStat('done');
         blastConfetti(e.clientX||0, e.clientY||0, 1.0);
@@ -343,7 +345,7 @@
         saveTasks(); render();
       } else if (delId){
         bumpStat('removed');
-        const row = e.target.closest('.p-task,.p-daytask');
+        const row = e.target.closest && e.target.closest('.p-task,.p-daytask');
         if (row){
           row.classList.add('is-scratching');
           setTimeout(()=>{ state.tasks = state.tasks.filter(t=>t.id!==delId); saveTasks(); render(); }, 520);
@@ -354,7 +356,7 @@
     });
   }
 
-  /* ===================== Bottom Sheet ===================== */
+  /* ===================== Bottom Sheet (guarded) ===================== */
   function openSheet(){
     if (!sheet) return;
     const now = new Date();
@@ -368,18 +370,18 @@
   if (sheet){
     sheetClose && sheetClose.addEventListener('click', e=>{ e.preventDefault(); closeSheet(); });
     sheetPanel && sheetPanel.addEventListener('click', (e)=>{
-      const qd = e.target && e.target.closest('.qp__chip[data-date]');
+      const qd = e.target.closest && e.target.closest('.qp__chip[data-date]');
       if (qd){
         e.preventDefault();
         const kind = qd.getAttribute('data-date');
         const base = new Date();
-        if (kind==='tomorrow') base.setDate(base.getDate()+1);
-        else if (kind==='nextweek') base.setDate(base.getDate()+7);
+        if (kind==='מחר' || kind==='tomorrow') base.setDate(base.getDate()+1);
+        else if (kind==='שבוע הבא' || kind==='nextweek') base.setDate(base.getDate()+7);
         else if (/^\+\d+$/.test(kind)) base.setDate(base.getDate()+parseInt(kind.slice(1),10));
         if (dateInput) dateInput.value = dateKey(base);
         return;
       }
-      const qt = e.target && e.target.closest('.qp__chip[data-time]');
+      const qt = e.target.closest && e.target.closest('.qp__chip[data-time]');
       if (qt){
         e.preventDefault();
         const k = qt.getAttribute('data-time');
@@ -396,20 +398,13 @@
   }
   document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeSheet(); });
 
+  // (השארנו את מאזין ה-submit בשביל Enter, אבל אין כפתור שמור)
   sheetForm && sheetForm.addEventListener('submit', (e)=>{
     e.preventDefault();
-    const t = (titleInput && titleInput.value || '').trim();
-    const d = (dateInput  && dateInput.value  || '').trim();
-    const h = (timeInput  && timeInput.value  || '').trim();
-    if (!t || !d || !h) return;
-    const id = 't_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-    state.tasks.push({ id, title:t, date:d, time:h });
-    saveTasks();
-    state.current = fromKey(d); state.view='day';
-    render(); sheetForm.reset(); closeSheet();
+    autoSaveComposer();
   });
 
-  /* ===================== Fullscreen Composer (single, corrected) ===================== */
+  /* ===================== Fullscreen Composer ===================== */
   const composer      = document.getElementById('eventComposer');
   const compPanel     = composer ? composer.querySelector('.composer__panel') : null;
   const compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
@@ -420,10 +415,12 @@
   const compMic       = document.getElementById('compMic');
   const compMicNote   = document.getElementById('compMicNote');
   const compPencil    = document.getElementById('compPencil');
+  const actionsHost   = composer ? composer.querySelector('.composer__actions') : null;
 
   const MIN_TITLE_CHARS = 2;
+  let _pendingSave = false; // מונע כפילות שמירה
 
-  /* ---------- hidden mirror for caret width ---------- */
+  // hidden mirror for caret width
   const _mirror = document.createElement('div');
   _mirror.style.cssText = ['position:absolute','visibility:hidden','white-space:pre','pointer-events:none','top:-9999px','right:-9999px'].join(';');
   document.body.appendChild(_mirror);
@@ -461,42 +458,32 @@
     compPencil.style.top  = y + 'px';
   }
 
-  /* ---------- Mic alignment: vertical with X, under the field ---------- */
-/* ---------- Mic alignment: vertical with X, under the field (scroll-aware) ---------- */
+// עיגון המיקרופון: למרכז של .composer__actions (10px מעליו), בלי כפתור שמור
 function updateMicAnchor(){
   if (!composer || !compMic || !compPanel) return;
 
   const step = Number(composer.getAttribute('data-step')||1);
-  if (step !== 1) { compMic.style.display = 'none'; return; }
+  if (step !== 1){ compMic.style.display='none'; return; }
 
-  const panRect = compPanel.getBoundingClientRect();
-  const closeX  = composer.querySelector('.composer__close');
-  const field   = compTitle; // #compTitle input
+  // host הוא הקונטיינר הריק של האקשנס
+  const host = composer.querySelector('.composer__actions') || compPanel;
+  const panRect  = compPanel.getBoundingClientRect();
+  const hostRect = host.getBoundingClientRect();
 
-  if (!closeX || !field) return;
+  const centerX_vp = hostRect.left + hostRect.width/2;
+  const top_vp     = hostRect.top - 10; // 10px מעל
 
-  const xr = closeX.getBoundingClientRect();
-  const fr = field.getBoundingClientRect();
-
-  // Same vertical line as the X — use X center in viewport coords:
-  const centerX_vp = xr.left + xr.width / 2;
-
-  // Just below the field:
-  const gap = 12;
-  const top_vp = fr.bottom + gap;
-
-  // Convert viewport -> panel absolute coordinates (include panel scroll!)
   const left_in_panel = centerX_vp - panRect.left + compPanel.scrollLeft;
   const top_in_panel  = top_vp    - panRect.top  + compPanel.scrollTop;
 
   compMic.style.display = 'inline-grid';
   compMic.style.left = `${left_in_panel}px`;
-  compMic.style.top  = `${top_in_panel}px`;
-  // CSS transform keeps it centered: translate(-50%, 0)
+  const micH = compMic.offsetHeight || 38;
+  compMic.style.top  = `${top_in_panel - micH}px`; // לשבת מעל
+  // translate(-50%,0) ב-CSS משלים יישור אופקי
 }
 
 
-  /* ---------- step flow ---------- */
   function setStep(n){
     if (!composer) return;
     composer.setAttribute('data-step', String(n));
@@ -505,14 +492,48 @@ function updateMicAnchor(){
     if (n===3 && compTime)  compTime.focus();
     updatePencilAnchor(); updateMicAnchor();
   }
+
+  function fieldsReadyForSave(){
+    const t = (compTitle && compTitle.value || '').trim();
+    const d = (compDate  && compDate.value  || '').trim();
+    const h = (compTime  && compTime.value  || '').trim();
+    return (t.length >= MIN_TITLE_CHARS && d && h);
+  }
+
+  function performSave(){
+    const t=(compTitle&&compTitle.value||'').trim();
+    const d=(compDate&&compDate.value||'').trim();
+    const h=(compTime&&compTime.value||'').trim();
+    const id='t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+    state.tasks.push({id, title:t, date:d, time:h});
+    saveTasks();
+    state.current = fromKey(d);
+    state.view = 'day';
+    render();
+    compForm && compForm.reset();
+    _pendingSave = false;
+    closeComposer();
+  }
+
+  function autoSaveComposer(){
+    if (_pendingSave) return;
+    if (fieldsReadyForSave()){
+      _pendingSave = true;
+      performSave();
+    }
+  }
+
+  // מעבר בין שלבים
   function maybeAdvanceFromTitle(origin){
     const t = (compTitle && compTitle.value || '').trim();
     const ok = (origin === 'enter') || ((origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS);
     if (ok) setStep(2);
   }
-  function maybeAdvanceFromDate(){ const d = (compDate && compDate.value || '').trim(); if (d) setStep(3); }
+  function maybeAdvanceFromDate(){
+    const d = (compDate && compDate.value || '').trim();
+    if (d) setStep(3);
+  }
 
-  /* ---------- open/close ---------- */
   function openComposer(){
     if(!composer) return;
     const now = new Date();
@@ -520,6 +541,7 @@ function updateMicAnchor(){
     if(compTime && !compTime.value) compTime.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
     composer.classList.remove('u-hidden'); composer.classList.add('is-open');
     composer.setAttribute('aria-hidden','false');
+    _pendingSave = false;
     setStep(1);
     requestAnimationFrame(()=>{ updatePencilAnchor(); updateMicAnchor(); });
   }
@@ -530,91 +552,95 @@ function updateMicAnchor(){
     stopMic(true);
   }
 
-  /* ---------- hooks ---------- */
-  createOrbBtn && createOrbBtn.addEventListener('click', e=>{ e.preventDefault(); openComposer(); });
   compCloseBtns.forEach(b=>b.addEventListener('click', e=>{ e.preventDefault(); closeComposer(); }));
-  composer && composer.addEventListener('click', e=>{
-    if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer();
-  });
-  document.addEventListener('keydown', e=>{
-    if(e.key==='Escape' && composer && composer.classList.contains('is-open')) closeComposer();
-  });
+  composer && composer.addEventListener('click', e=>{ if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && composer && composer.classList.contains('is-open')) closeComposer(); });
 
-  /* ---------- save ---------- */
-  compForm && compForm.addEventListener('submit', e=>{
-    e.preventDefault();
-    const t=(compTitle&&compTitle.value||'').trim();
-    const d=(compDate&&compDate.value||'').trim();
-    const h=(compTime&&compTime.value||'').trim();
-    if(!t||!d||!h) return;
-    const id='t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-    state.tasks.push({id, title:t, date:d, time:h});
-    saveTasks();
-    state.current = fromKey(d);
-    state.view = 'day';
-    render();
-    const primary = document.querySelector('#eventComposer .c-btn--primary');
-    if(primary){ primary.classList.add('is-rippling'); setTimeout(()=>primary.classList.remove('is-rippling'),420); }
-    compForm.reset();
-    closeComposer();
-  });
+  // תמיכה ב-Enter כדי לשמור מהר כשכל השדות מלאים
+  compForm && compForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
 
   /* ---------- Web Speech (append; hold; swipe-down lock) ---------- */
   let _rec=null, _listening=false, _lockBySwipe=false;
 
-  function ensureRecognizer(){
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SR) return null;
-    if(_rec) return _rec;
-
-    const r = new SR();
-    r.lang = 'he-IL';
-    r.interimResults = true;
-    r.continuous = true;
-    r.maxAlternatives = 1;
-
-    r.onresult = (evt)=>{
-      let finalText = '', interimText = '';
-      for (let i = evt.resultIndex; i < evt.results.length; i++){
-        const res = evt.results[i];
-        if (res.isFinal) finalText += res[0].transcript;
-        else interimText += res[0].transcript;
-      }
-      const base = (compTitle && compTitle.value ? compTitle.value.replace(/\s+$/,'') : '');
-      const next = (base + ' ' + (finalText || interimText)).trim();
-      if (compTitle) compTitle.value = next;
-      if (compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
-      updatePencilAnchor();
-    };
-    r.onerror = ()=>{ if(compMicNote) compMicNote.textContent='שגיאת מיקרופון.'; stopMic(true); };
-    r.onend   = ()=>{ if(_lockBySwipe){ try{ r.start(); }catch(_){} } else { stopMic(); } };
-
-    _rec = r; 
-    return r;
+function ensureRecognizer(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  // חייבים HTTPS/localhost ותמיכה בדפדפן
+  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+  if (!isSecure || !SR) {
+    if (compMicNote) compMicNote.textContent = 'זיהוי דיבור דורש דפדפן תומך ו־HTTPS.';
+    return null;
   }
-  function startMic(){
-    const r = ensureRecognizer();
-    if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
-    if(_listening) return;
-    _listening = true;
-    compMic?.setAttribute('aria-pressed','true');
-    compMic?.classList.add('is-on');
-    compPencil?.classList.add('is-on');
-    if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
-    try{ r.start(); }catch(_){}
-  }
-  function stopMic(forceNote){
-    if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
-    _listening = false;
-    compMic?.setAttribute('aria-pressed','false');
-    compMic?.classList.remove('is-on');
-    compPencil?.classList.remove('is-on');
-    try{ _rec && _rec.stop(); }catch(_){}
-    if(!forceNote && compMicNote) compMicNote.textContent='';
-    maybeAdvanceFromTitle('mic');
-  }
+  if(_rec) return _rec;
 
-  // Mic gestures: hold → talk; swipe-down (>30px) → lock; tap toggles
+  const r = new SR();
+  r.lang = 'he-IL';
+  r.interimResults = true;
+  r.continuous = true;      // ננסה רציף; נאתחל מחדש ב-onend אם נסגר
+  r.maxAlternatives = 1;
+
+  // תיקוני התאמה
+  r.onspeechend = ()=>{ /* מתעלמים; onend מטפל באתחול מחדש */ };
+  r.onnomatch   = ()=>{ if(compMicNote) compMicNote.textContent='לא נשמע קול… נסו שוב'; };
+
+  r.onresult = (evt)=>{
+    let finalText = '', interimText = '';
+    for (let i = evt.resultIndex; i < evt.results.length; i++){
+      const res = evt.results[i];
+      if (res.isFinal) finalText += res[0].transcript;
+      else interimText += res[0].transcript;
+    }
+    const base = (compTitle && compTitle.value ? compTitle.value.replace(/\s+$/,'') : '');
+    const next = (base + ' ' + (finalText || interimText)).trim();
+    if (compTitle) compTitle.value = next;
+    if (compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
+    updatePencilAnchor();
+  };
+
+  r.onerror = (e)=>{
+    if(compMicNote) compMicNote.textContent = 'שגיאת מיקרופון.';
+    // חלק מהדפדפנים זורקים "no-speech" תדיר — ננסה שוב אם עדיין במצב האזנה
+    try { if (_listening || _lockBySwipe) r.stop(); } catch(_){}
+  };
+
+  // 🔁 אתחול מחדש אוטומטי כשהדפדפן מסיים את הסשן, כל עוד עדיין אמורים להאזין
+  r.onend = ()=>{
+    if (_listening || _lockBySwipe) {
+      try { r.start(); return; } catch(_) {}
+    }
+    // אחרת נסיים נקי
+    stopMic();
+  };
+
+  _rec = r;
+  return r;
+}
+
+ function startMic(){
+  const r = ensureRecognizer();
+  if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
+  if(_listening) return;
+  _listening = true;
+  compMic?.setAttribute('aria-pressed','true');
+  compMic?.classList.add('is-on');
+  compPencil?.classList.add('is-on');
+  if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
+  try{ r.start(); }catch(_){}
+}
+
+function stopMic(forceNote){
+  if(!_listening){ maybeAdvanceFromTitle('mic'); autoSaveComposer(); return; }
+  _listening = false;
+  compMic?.setAttribute('aria-pressed','false');
+  compMic?.classList.remove('is-on');
+  compPencil?.classList.remove('is-on');
+  try{ _rec && _rec.stop(); }catch(_){}
+  if(!forceNote && compMicNote) compMicNote.textContent='';
+  maybeAdvanceFromTitle('mic');
+  autoSaveComposer();
+}
+
+
+  // מחוות: לחיצה רציפה → הקלטה; גרירה מטה (>30px) → נעילה; טאפ → טוגל
   let _micPointerId=null, _micDownY=0;
   if (compMic){
     compMic.addEventListener('pointerdown', (e)=>{
@@ -643,8 +669,8 @@ function updateMicAnchor(){
     });
   }
 
-  /* ---------- anchors & input events (single registration) ---------- */
-  function tickAnchors(){ updatePencilAnchor(); updateMicAnchor(); }
+  /* ---------- anchors & input events ---------- */
+  const tickAnchors = ()=>{ updatePencilAnchor(); updateMicAnchor(); };
   window.addEventListener('resize', tickAnchors);
   window.addEventListener('orientationchange', tickAnchors);
   if (document.fonts && document.fonts.ready) { document.fonts.ready.then(tickAnchors); }
@@ -652,19 +678,23 @@ function updateMicAnchor(){
   [compTitle, compDate, compTime].forEach(inp=>{
     if(!inp) return;
     inp.addEventListener('focus', tickAnchors);
-    inp.addEventListener('input', tickAnchors);
-    inp.addEventListener('click', tickAnchors);
+    inp.addEventListener('input', ()=>{ tickAnchors(); if (inp===compTitle) { /* אין שמירה עדיין */ } });
+    inp.addEventListener('change', ()=>{ tickAnchors(); autoSaveComposer(); });
     inp.addEventListener('keyup', tickAnchors);
+    inp.addEventListener('click', tickAnchors);
     inp.addEventListener('blur', ()=> setTimeout(()=>{
       if(Number(composer.getAttribute('data-step')||1)!==1 && compPencil) compPencil.style.display='none';
+      autoSaveComposer();
     }, 0));
   });
 
-  // Enter → advance; blur → advance only if ≥2 chars
+  // Enter בשדה הכותרת → התקדמות; בתאריך/שעה פשוט נשמור כשמלא
   compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
   compTitle && compTitle.addEventListener('blur', ()=> maybeAdvanceFromTitle('blur'));
-  compDate  && compDate.addEventListener('change', maybeAdvanceFromDate);
-  compDate  && compDate.addEventListener('blur',   maybeAdvanceFromDate);
+  compDate  && compDate.addEventListener('change', ()=>{ maybeAdvanceFromDate(); autoSaveComposer(); });
+  compDate  && compDate.addEventListener('blur',   ()=>{ maybeAdvanceFromDate(); autoSaveComposer(); });
+  compTime  && compTime.addEventListener('change', autoSaveComposer);
+  compTime  && compTime.addEventListener('blur',   autoSaveComposer);
 
   /* ===================== Effects & tiny inline fix ===================== */
   function blastConfetti(x,y,scale){
@@ -694,13 +724,13 @@ function updateMicAnchor(){
 
   (function ensureFirstNameAndGreeting() {
     try {
-      var prof = JSON.parse(localStorage.getItem('profile') || '{}');
-      var au   = JSON.parse(localStorage.getItem('authUser') || 'null');
+      const prof = JSON.parse(localStorage.getItem('profile') || '{}');
+      const au   = JSON.parse(localStorage.getItem('authUser') || 'null');
       if (!prof.firstName) {
-        var guess = (prof.name || (au && au.displayName) || '').split(' ')[0];
+        const guess = (prof.name || (au && au.displayName) || '').split(' ')[0];
         if (guess) { prof.firstName = guess; localStorage.setItem('profile', JSON.stringify(prof)); }
       }
-      var greetEl = document.querySelector('#greeting');
+      const greetEl = document.querySelector('#greeting');
       if (greetEl && prof.firstName) { greetEl.textContent = `שלום, ${prof.firstName}!`; }
     } catch (e) { console.warn("Greeting setup failed", e); }
   })();
