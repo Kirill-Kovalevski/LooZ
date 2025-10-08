@@ -390,7 +390,220 @@ html[data-theme="dark"] #compTitle:focus{
 /* mic note colors */
 #compMicNote{ margin-top:8px; text-align:center; font-size:.85rem; color:#6b7280; }
 html[data-theme="dark"] #compMicNote{ color:#9ca3af; }
+/* keep caret visible */
+#eventComposer .line input{ caret-color:auto !important; }
 
+/* dark-mode composer polish (wins by source order) */
+html[data-theme="dark"] #eventComposer .composer__panel{
+  background:#0b1220; border-color:#1f2937; color:#e5e7eb;
+  box-shadow:0 22px 60px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] #compTitle{
+  background:#0f1b2f; border-color:#2c4676; color:#eaf2ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 12px rgba(0,0,0,.25);
+}
+html[data-theme="dark"] #compTitle::placeholder{ color:#94a3b8; }
+html[data-theme="dark"] #compTitle:focus{
+  border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,.28);
+}
+
+/* mic bottom-center; make sure it’s above everything */
+#compMic.mic-ico{
+  position:absolute; transform:translate(-50%,0); z-index:20;
+}
+
+/* hide any legacy save row completely */
+#eventComposer .composer__actions{ display:none !important; }
+
+/* mic note colors */
+#compMicNote{ margin-top:8px; text-align:center; font-size:.85rem; color:#6b7280; }
+html[data-theme="dark"] #compMicNote{ color:#9ca3af; }
+/* caret must be visible */
+#eventComposer .line input{ caret-color:auto !important; }
+
+/* kill any legacy Save row */
+#eventComposer .composer__actions{ display:none !important; }
+
+/* mic position (JS sets left/top); keep above content */
+#compMic.mic-ico{ position:absolute; transform:translate(-50%,0); z-index:20; }
+
+/* dark mode polish */
+html[data-theme="dark"] #eventComposer .composer__panel{
+  background:#0b1220; border-color:#1f2937; color:#e5e7eb; box-shadow:0 22px 60px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] #compTitle{
+  background:#0f1b2f; border-color:#2c4676; color:#eaf2ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 12px rgba(0,0,0,.25);
+}
+html[data-theme="dark"] #compTitle::placeholder{ color:#94a3b8; }
+html[data-theme="dark"] #compTitle:focus{ border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,.28); }
+
+html[data-theme="dark"] #compMic.mic-ico{ background:#122139; color:#e5e7eb; border-color:#d1d5db; box-shadow:0 10px 22px rgba(0,0,0,.45); }
+html[data-theme="dark"] #compMic.mic-ico.is-on{ box-shadow:0 0 0 4px rgba(99,102,241,.28); }
+
+</style>
+<style>
+/* =========================================================
+   LOOZ – FINAL OVERRIDES
+   - ✓ / ✕ chips (light + dark)
+   - Week rows = same size as day rows, perfectly centered
+   ========================================================= */
+
+/* ------- tokens ------- */
+:root{
+  --row-h: 44px;              /* day-task row height */
+  --row-r: 14px;              /* rounded corners */
+  --wk-chip: 28px;            /* week counter size */
+  --wk-font: 800 12px/28px 'Rubik',system-ui,sans-serif;
+}
+
+/* =========================================================
+   1) DAY VIEW: ✓ / ✕ chips
+   Works for: .task-ico--ok / .task-ico--del
+              and fallback buttons using data-act="ok|del"
+   ========================================================= */
+
+/* base pill so they never look like empty squares */
+.task-item__actions .task-ico,
+.task-item__actions [data-act]{
+  display:grid; place-items:center;
+  inline-size:30px; block-size:20px;
+  border-radius:999px;
+  font:800 12px/1 'Rubik',system-ui,sans-serif;
+  border:1px solid #cbd5e1; background:#fff; color:#475569;
+  user-select:none; cursor:pointer;
+  box-shadow:0 1px 0 rgba(0,0,0,.03);
+}
+
+/* ensure glyphs even if the button has no text */
+.task-ico--ok::before,  [data-act="ok"]::before  { content:"✓"; }
+.task-ico--del::before, [data-act="del"]::before { content:"✕"; }
+
+/* light theme colors */
+.task-ico--ok,  [data-act="ok"]{
+  background:linear-gradient(180deg,#ecfee7,#ffffff) !important;
+  border-color:#9ad69b !important;
+  color:#15803d !important;
+}
+.task-ico--del, [data-act="del"]{
+  background:linear-gradient(180deg,#ffe8ea,#ffffff) !important;
+  border-color:#f3b5b9 !important;
+  color:#be123c !important;
+}
+
+/* dark theme – golden tones + soft glow */
+@keyframes loozGlowY { 0%,100%{box-shadow:0 0 12px rgba(255,208,86,.18)} 50%{box-shadow:0 0 18px rgba(255,208,86,.30)} }
+@keyframes loozGlowR { 0%,100%{box-shadow:0 0 12px rgba(255,138,107,.18)}50%{box-shadow:0 0 18px rgba(255,138,107,.30)} }
+
+html[data-theme="dark"] .task-item__actions .task-ico,
+body.is-dark            .task-item__actions .task-ico,
+html[data-theme="dark"] .task-item__actions [data-act],
+body.is-dark            .task-item__actions [data-act]{
+  background:#111827 !important;
+  border-color:#2c4676 !important;
+  color:#e5e7eb !important;
+}
+
+html[data-theme="dark"] .task-ico--ok,
+body.is-dark            .task-ico--ok,
+html[data-theme="dark"] [data-act="ok"],
+body.is-dark            [data-act="ok"]{
+  background:linear-gradient(180deg,#1c2b12,#13230e) !important;
+  border-color:#a08b3a !important;
+  color:#ffd456 !important;         /* golden yellow */
+  animation:loozGlowY 2.4s ease-in-out infinite;
+}
+html[data-theme="dark"] .task-ico--del,
+body.is-dark            .task-ico--del,
+html[data-theme="dark"] [data-act="del"],
+body.is-dark            [data-act="del"]{
+  background:linear-gradient(180deg,#2b1716,#201011) !important;
+  border-color:#b0604e !important;
+  color:#ff8a6b !important;         /* golden red */
+  animation:loozGlowR 2.4s ease-in-out infinite;
+}
+
+/* keep caret visible in composer inputs */
+#eventComposer .line input{ caret-color:auto !important; }
+
+/* =========================================================
+   2) WEEK VIEW: same size as day rows + perfect alignment
+   Supports:
+     - .p-week .p-day > .p-day__head (new)
+     - .c-week .row (legacy)
+   ========================================================= */
+
+/* the card itself (match day-view container look) */
+.p-week .p-day,
+.c-week .row-card{
+  border-radius:var(--row-r) !important;
+  background:radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%) !important;
+  border:1px solid rgba(197,154,33,.25) !important;
+  box-shadow:0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06) !important;
+  padding:0 !important;              /* header controls the height */
+}
+
+/* header row: space-between horizontally, centered vertically */
+.p-week .p-day__head,
+.c-week .row{
+  display:flex !important;
+  justify-content:space-between !important;
+  align-items:center !important;               /* dead center vertically */
+  min-height:var(--row-h) !important;          /* same height as day row */
+  padding:6px 10px !important;
+  gap:.5rem !important;
+}
+
+/* right: numeric date (DD.MM) */
+.p-week .p-day__date,
+.c-week .row .date{
+  margin:0 !important; font-weight:800 !important; color:#64748b !important;
+}
+
+/* left: weekday name */
+.p-week .p-day__name,
+.c-week .row .name{
+  margin:0 !important; font-weight:800 !important; color:#0f172a !important;
+}
+
+/* center: counter chip – number perfectly centered */
+.p-week .p-day__count,
+.c-week .row .count{
+  display:grid !important; place-items:center !important;
+  inline-size:var(--wk-chip) !important; block-size:var(--wk-chip) !important;
+  border-radius:50% !important;
+  font:var(--wk-font) !important;
+  background:#fff !important; color:#0f172a !important;
+  border:1px solid #e5e7eb !important;
+  box-shadow:0 2px 6px rgba(0,0,0,.06) !important;
+  margin-inline:.5rem !important;              /* helps visual centering */
+}
+
+/* dark card styling like day view */
+html[data-theme="dark"] .p-week .p-day,
+body.is-dark            .p-week .p-day,
+html[data-theme="dark"] .c-week .row-card,
+body.is-dark            .c-week .row-card{
+  background:#162540 !important;
+  border-color:#2c4676 !important;
+  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+html[data-theme="dark"] .p-week .p-day__name,
+body.is-dark            .p-week .p-day__name,
+html[data-theme="dark"] .c-week .row .name,
+body.is-dark            .c-week .row .name{ color:#eaf2ff !important; }
+
+html[data-theme="dark"] .p-week .p-day__date,
+body.is-dark            .p-week .p-day__date,
+html[data-theme="dark"] .c-week .row .date,
+body.is-dark            .c-week .row .date{ color:#9cb3d6 !important; }
+
+html[data-theme="dark"] .p-week .p-day__count,
+body.is-dark            .p-week .p-day__count,
+html[data-theme="dark"] .c-week .row .count,
+body.is-dark            .c-week .row .count{
+  background:#0f1b2f !important; color:#e5ecf5 !important; border-color:#2c4676 !important;
+}
 </style>
 
   <!-- Resilient auth guard loader -->

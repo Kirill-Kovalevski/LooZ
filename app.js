@@ -1,4 +1,4 @@
-/* ===== LooZ — Planner App (home) — vFinal.13 (dark-mode polish + robust mic) ===== */
+/* ===== LooZ — Planner App (home) — vFinal.14 (mic fix after typing + dark-mode) ===== */
 (function () {
   'use strict';
 
@@ -409,14 +409,15 @@
   const compMicNote   = document.getElementById('compMicNote');
 
   const MIN_TITLE_CHARS = 2;
-  let _pendingSave = false; // למניעת כפילות שמירה
+  let _pendingSave = false;        // למניעת כפילות שמירה
+  let _suppressBlurAdvance = false; // מונע קפיצה לשלב 2 כשנלחץ מיקרופון לאחר כתיבה
 
-  // Anchor mic at bottom-center (step 1 only)
+  // Bottom-center mic (step 1 only)
   function updateMicAnchor(){
     if (!composer || !compMic || !compPanel) return;
     const step = Number(composer.getAttribute('data-step')||1);
     if (step !== 1){ compMic.style.display='none'; return; }
-    const bottomOffset = 24;
+    const bottomOffset = 14; // closer to the bottom
     const x = (compPanel.clientWidth  / 2) + compPanel.scrollLeft;
     const y = (compPanel.scrollTop + compPanel.clientHeight - bottomOffset);
     compMic.style.display = 'inline-grid';
@@ -494,7 +495,7 @@
 
   compCloseBtns.forEach(b=>b.addEventListener('click', e=>{ e.preventDefault(); closeComposer(); }));
   composer && composer.addEventListener('click', e=>{ if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer(); });
-  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeComposer(); });
+  document.addEventListener('keydown', e=>{ if (e.key==='Escape') closeComposer(); });
 
   compForm && compForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
 
@@ -517,7 +518,7 @@
     r.maxAlternatives = 1;
 
     // Hardening
-    r.onspeechend = ()=>{ /* onend handles restart if locked */ };
+    r.onspeechend = ()=>{};
     r.onnomatch   = ()=>{ if(compMicNote) compMicNote.textContent='לא נשמע קול… נסו שוב'; };
 
     r.onresult = (evt)=>{
@@ -544,7 +545,6 @@
 
     r.onend = ()=>{
       if (_listening || _lockBySwipe) {
-        // Some engines need a tiny delay between stop→start
         setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
         return;
       }
@@ -556,8 +556,7 @@
 
   function safeStart(r){
     try { r.start(); }
-    catch (err){
-      // If already started, bounce stop→start
+    catch (_){
       try { r.stop(); } catch(_){}
       setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
     }
@@ -572,14 +571,12 @@
     compMic?.classList.add('is-on');
     if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
 
-    // Prompt permission on mobile Safari/Chrome, then start
+    // Permission nudge on mobile
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({audio:true})
-        .catch(()=>{})  // ignore — SpeechRecognition will still try
+        .catch(()=>{})
         .finally(()=> safeStart(r));
-    } else {
-      safeStart(r);
-    }
+    } else safeStart(r);
   }
 
   function stopMic(forceNote){
@@ -589,19 +586,25 @@
     compMic?.classList.remove('is-on');
     try{ _rec && _rec.stop(); }catch(_){}
     if(!forceNote && compMicNote) compMicNote.textContent='';
-    maybeAdvanceFromTitle('mic'); // go to date after speaking (no auto-save here)
+    maybeAdvanceFromTitle('mic'); // advance to date (no save here)
   }
 
-  // gestures: hold→record; swipe-down (>30px)→lock; tap→toggle
+  // gestures: hold→record; swipe-down→lock; tap→toggle
   let _micPointerId=null, _micDownY=0;
   if (compMic){
     compMic.addEventListener('pointerdown', (e)=>{
+      // prevent blur on title from advancing when mic is tapped after typing
+      _suppressBlurAdvance = true;
+      e.preventDefault();
       if(_micPointerId!==null) return;
       _micPointerId = e.pointerId ?? 1;
       compMic.setPointerCapture?.(_micPointerId);
       _lockBySwipe = false;
       _micDownY = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
+      // keep focus in the title field while starting mic
+      compTitle && compTitle.focus();
       startMic();
+      setTimeout(()=>{ _suppressBlurAdvance = false; }, 300);
     });
     compMic.addEventListener('pointermove', (e)=>{
       if(_micPointerId===null) return;
@@ -615,13 +618,14 @@
       if(!_lockBySwipe) stopMic(true);
       _micPointerId = null;
     });
-    compMic.addEventListener('click', ()=>{
+    compMic.addEventListener('click', (e)=>{
+      e.preventDefault();
       if(_listening){ _lockBySwipe=false; stopMic(true); }
       else { _lockBySwipe=true; startMic(); }
     });
   }
 
-  // Pause/resume when tab visibility changes (mobile browsers)
+  // Pause/resume on tab visibility changes
   document.addEventListener('visibilitychange', ()=>{
     if (document.hidden){
       try{ _rec && _rec.stop(); }catch(_){}
@@ -635,23 +639,22 @@
   window.addEventListener('resize', tickAnchors);
   window.addEventListener('orientationchange', tickAnchors);
   if (document.fonts && document.fonts.ready) { document.fonts.ready.then(tickAnchors); }
+  compPanel && compPanel.addEventListener('scroll', tickAnchors, {passive:true});
 
-  [compTitle, compDate, compTime].forEach(inp=>{
+  // Inputs
+  compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
+  compTitle && compTitle.addEventListener('blur', ()=>{ if (!_suppressBlurAdvance) maybeAdvanceFromTitle('blur'); });
+  [compDate, compTime].forEach(inp=>{
     if(!inp) return;
     inp.addEventListener('focus', tickAnchors);
     inp.addEventListener('input', tickAnchors);
-    inp.addEventListener('change', ()=>{ tickAnchors(); if (inp===compDate) maybeAdvanceFromDate(); if (inp===compTime) autoSaveComposer(); });
     inp.addEventListener('keyup', tickAnchors);
     inp.addEventListener('click', tickAnchors);
-    inp.addEventListener('blur', ()=> setTimeout(()=>{
-      if (inp===compDate) maybeAdvanceFromDate();
-      if (inp===compTime) autoSaveComposer();
-    }, 0));
   });
-
-  // Enter on title → advance
-  compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
-  compTitle && compTitle.addEventListener('blur', ()=> maybeAdvanceFromTitle('blur'));
+  compDate && compDate.addEventListener('change', ()=>{ tickAnchors(); maybeAdvanceFromDate(); });
+  compDate && compDate.addEventListener('blur',   ()=>{ maybeAdvanceFromDate(); });
+  compTime && compTime.addEventListener('change', ()=>{ tickAnchors(); autoSaveComposer(); });
+  compTime && compTime.addEventListener('blur',   ()=>{ autoSaveComposer(); });
 
   /* ===================== Effects & tiny inline fix ===================== */
   function blastConfetti(x,y,scale){
