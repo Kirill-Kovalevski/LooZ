@@ -1,4 +1,4 @@
-/* ===== LooZ — Planner App (home) — vFinal.16 (mic start fix + time gating) ===== */
+/* ===== LooZ — Planner App (home) — vFinal.17 (3-step flow + panel taps + mic ensured) ===== */
 (function () {
   'use strict';
 
@@ -82,7 +82,7 @@
         ? '<div style="font-weight:800;margin-bottom:.15rem">נשמולית שלי</div>'
           + '<div>איזה כיף שחזרת <strong>'+name+'</strong></div>'
           + '<div>לוז מושלם מחכה לך</div>'
-        : 'ברוכים השבים, <strong id="uiName">'+name+'</strong>!<br>מה בלוז сегодня?'.replace('сегодня','היום');
+        : 'ברוכים השבים, <strong id="uiName">'+name+'</strong>!<br>מה בלוז היום?';
     }
   })();
 
@@ -408,285 +408,275 @@
   }
   document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeSheet(); });
   sheetForm && sheetForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
-/* ===================== Fullscreen Composer ===================== */
-const composer      = document.getElementById('eventComposer');
-const compPanel     = composer ? composer.querySelector('.composer__panel') : null;
-const compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
-const compForm      = document.getElementById('composerForm');
-const compTitle     = document.getElementById('compTitle');
-const compDate      = document.getElementById('compDate');
-const compTime      = document.getElementById('compTime');
-let   compMic       = document.getElementById('compMic');     // ensure below
-let   compMicNote   = document.getElementById('compMicNote');
 
-const MIN_TITLE_CHARS = 2;
-let _pendingSave = false;
-let _suppressBlurAdvance = false;
-let _userTouchedTime = false;
+  /* ===================== Fullscreen Composer ===================== */
+  const composer      = document.getElementById('eventComposer');
+  const compPanel     = composer ? composer.querySelector('.composer__panel') : null;
+  const compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
+  const compForm      = document.getElementById('composerForm');
+  const compTitle     = document.getElementById('compTitle');
+  const compDate      = document.getElementById('compDate');
+  const compTime      = document.getElementById('compTime');
+  let   compMic       = document.getElementById('compMic');     // may inject if missing
+  let   compMicNote   = document.getElementById('compMicNote');
 
-/* ---------- Make sure the mic exists (bottom-center in Step 1) ---------- */
-(function ensureMicInDom(){
-  if (compMic && compMicNote) return;
-  if (!composer || !compForm) return;
-  const panel = compPanel || composer;
-  if (!compMic) {
-    const btn = document.createElement('button');
-    btn.id = 'compMic';
-    btn.type = 'button';
-    btn.className = 'mic-ico';
-    btn.setAttribute('aria-pressed','false');
-    btn.title = 'דבר/י';
-    btn.setAttribute('aria-label','דבר/י');
-    btn.innerHTML = '<img src="icons/mic.svg" alt="" width="20" height="20">';
-    panel.appendChild(btn);
-    compMic = btn;
-  }
-  if (!compMicNote) {
-    const note = document.createElement('div');
-    note.id = 'compMicNote';
-    note.className = 'mic-note';
-    note.setAttribute('aria-live','polite');
-    panel.appendChild(note);
-    compMicNote = note;
-  }
-})();
+  const MIN_TITLE_CHARS = 2;
+  let _pendingSave = false;
+  let _suppressBlurAdvance = false;
+  let _userTouchedTime = false;
 
-/* ---------- Step management ---------- */
-function setStep(n){
-  if (!composer) return;
-  composer.setAttribute('data-step', String(n));
-  if (n===1 && compTitle) compTitle.focus();
-  if (n===2 && compDate)  compDate.focus();
-  if (n===3 && compTime)  {
-    compTime.focus();
-    // Try to open the native time picker on supported browsers
-    try { compTime.showPicker && compTime.showPicker(); } catch(_) {}
-  }
-}
+  /* ---------- Ensure mic exists in DOM (and sits inside the panel) ---------- */
+  (function ensureMic(){
+    if (!composer || !compPanel) return;
+    if (!compMic){
+      const btn = document.createElement('button');
+      btn.id = 'compMic'; btn.type='button';
+      btn.className='mic-ico'; btn.setAttribute('aria-pressed','false');
+      btn.title='דבר/י'; btn.setAttribute('aria-label','דבר/י');
+      btn.innerHTML='<img src="icons/mic.svg" alt="" width="20" height="20" />';
+      compPanel.appendChild(btn);
+      compMic = btn;
+    }
+    if (!compMicNote){
+      const note = document.createElement('div');
+      note.id='compMicNote'; note.className='mic-note'; note.setAttribute('aria-live','polite');
+      compPanel.appendChild(note);
+      compMicNote = note;
+    }
+  })();
 
-function fieldsReadyForSave(){
-  const t = (compTitle?.value || '').trim();
-  const d = (compDate?.value  || '').trim();
-  const h = (compTime?.value  || '').trim();
-  return (t.length >= MIN_TITLE_CHARS && d && h && _userTouchedTime);
-}
-
-function performSave(){
-  const t=(compTitle?.value||'').trim();
-  const d=(compDate?.value||'').trim();
-  const h=(compTime?.value||'').trim();
-  const id='t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  state.tasks.push({id, title:t, date:d, time:h});
-  saveTasks();
-  state.current = fromKey(d);
-  state.view = 'day';
-  render();
-  compForm?.reset();
-  _pendingSave = false;
-  closeComposer();
-}
-
-function autoSaveComposer(){
-  if (_pendingSave) return;
-  if (fieldsReadyForSave()){
-    _pendingSave = true;
-    performSave();
-  }
-}
-
-/* ---------- Open / Close ---------- */
-function openComposer(){
-  if(!composer) return;
-  const base = state.selectedDate ? fromKey(state.selectedDate) : new Date();
-
-  // Step 1: title
-  if (compTitle){
-    compTitle.value = '';
-    compTitle.autocomplete='off';
-    compTitle.autocapitalize='off';
-    compTitle.autocorrect='off';
-    compTitle.spellcheck=false;
+  function setStep(n){
+    if (!composer) return;
+    composer.setAttribute('data-step', String(n));
+    if (n===1 && compTitle) compTitle.focus();
+    if (n===2 && compDate)  compDate.focus();
+    if (n===3 && compTime)  {
+      compTime.focus();
+      try { compTime.showPicker && compTime.showPicker(); } catch(_) {}
+    }
   }
 
-  // Step 2: prefill date (from calendar)
-  if (compDate){
-    compDate.autocomplete='off';
-    compDate.value = dateKey(base);
+  function fieldsReadyForSave(){
+    const t = (compTitle?.value || '').trim();
+    const d = (compDate?.value  || '').trim();
+    const h = (compTime?.value  || '').trim();
+    return (t.length >= MIN_TITLE_CHARS && d && h && _userTouchedTime);
   }
 
-  // Step 3: absolutely no auto-time
+  function performSave(){
+    const t=(compTitle?.value||'').trim();
+    const d=(compDate?.value||'').trim();
+    const h=(compTime?.value||'').trim();
+    const id='t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+    state.tasks.push({id, title:t, date:d, time:h});
+    saveTasks();
+    state.current = fromKey(d);
+    state.view = 'day';
+    render();
+    compForm?.reset();
+    _pendingSave = false;
+    closeComposer();
+  }
+
+  function autoSaveComposer(){
+    if (_pendingSave) return;
+    if (fieldsReadyForSave()){
+      _pendingSave = true;
+      performSave();
+    }
+  }
+
+  function openComposer(){
+    if(!composer) return;
+    const base = state.selectedDate ? fromKey(state.selectedDate) : new Date();
+
+    if (compTitle){
+      compTitle.value = '';
+      compTitle.autocomplete='off';
+      compTitle.autocapitalize='off';
+      compTitle.autocorrect='off';
+      compTitle.spellcheck=false;
+    }
+    if (compDate){
+      compDate.autocomplete='off';
+      compDate.value = dateKey(base); // prefill from calendar
+    }
+    if (compTime){
+      compTime.autocomplete='off';
+      compTime.value = '';
+      compTime.defaultValue = '';
+      compTime.removeAttribute('value');
+      compTime.name = 'time-'+Date.now(); // defeat autofill caches
+      _userTouchedTime = false;
+    }
+
+    composer.classList.remove('u-hidden'); composer.classList.add('is-open');
+    composer.setAttribute('aria-hidden','false');
+    _pendingSave = false;
+    setStep(1);
+  }
+  function closeComposer(){
+    if(!composer) return;
+    composer.classList.remove('is-open'); composer.setAttribute('aria-hidden','true');
+    setTimeout(()=>composer.classList.add('u-hidden'),180);
+    stopMic(true);
+  }
+
+  compCloseBtns.forEach(b=>b.addEventListener('click', e=>{ e.preventDefault(); closeComposer(); }));
+  composer && composer.addEventListener('click', e=>{ if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer(); });
+  document.addEventListener('keydown', e=>{ if (e.key==='Escape') closeComposer(); });
+  compForm && compForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
+
+  /* ---------- Web Speech (Hebrew) ---------- */
+  let _rec=null, _listening=false, _lockBySwipe=false;
+
+  function ensureRecognizer(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+    if (!isSecure || !SR) {
+      if (compMicNote) compMicNote.textContent = 'זיהוי דיבור דורש דפדפן תומך ו־HTTPS.';
+      return null;
+    }
+    if(_rec) return _rec;
+
+    const r = new SR();
+    r.lang = 'he-IL';
+    r.interimResults = true;
+    r.continuous = true;
+    r.maxAlternatives = 1;
+
+    r.onresult = (evt)=>{
+      let finalText = '', interimText = '';
+      for (let i = evt.resultIndex; i < evt.results.length; i++){
+        const res = evt.results[i];
+        if (res.isFinal) finalText += res[0].transcript;
+        else interimText += res[0].transcript;
+      }
+      const base = (compTitle?.value ? compTitle.value.replace(/\s+$/,'') : '');
+      const next = (base + ' ' + (finalText || interimText)).trim();
+      if (compTitle) compTitle.value = next;
+      if (compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
+    };
+
+    r.onerror = (e)=>{
+      if (compMicNote) compMicNote.textContent =
+        (e?.error === 'not-allowed') ? 'גישה למיקרופון נדחתה.' :
+        (e?.error === 'no-speech')   ? 'לא זוהה דיבור.' :
+        'שגיאת מיקרופון.';
+      try{ r.stop(); }catch(_){}
+    };
+
+    r.onend = ()=>{
+      if (_listening || _lockBySwipe) setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
+    };
+
+    _rec = r;
+    return r;
+  }
+  function safeStart(r){ try{ r.start(); }catch(_){ try{ r.stop(); }catch(_){ } setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120); } }
+  function startMic(){
+    const r = ensureRecognizer();
+    if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
+    if(_listening) return;
+    _listening = true;
+    compMic?.setAttribute('aria-pressed','true');
+    compMic?.classList.add('is-on');
+    if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
+    safeStart(r);
+    navigator.mediaDevices?.getUserMedia?.({audio:true}).catch(()=>{}).finally(()=> safeStart(r));
+  }
+  function stopMic(forceNote){
+    if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
+    _listening = false;
+    compMic?.setAttribute('aria-pressed','false');
+    compMic?.classList.remove('is-on');
+    try{ _rec && _rec.stop(); }catch(_){}
+    if(!forceNote && compMicNote) compMicNote.textContent='';
+    maybeAdvanceFromTitle('mic');
+  }
+
+  // gestures: hold→record; swipe-down→lock; tap→toggle
+  let _micPointerId=null, _micDownY=0;
+  if (compMic){
+    compMic.addEventListener('pointerdown', (e)=>{
+      _suppressBlurAdvance = true;
+      e.preventDefault();
+      if(_micPointerId!==null) return;
+      _micPointerId = e.pointerId ?? 1;
+      compMic.setPointerCapture?.(_micPointerId);
+      _lockBySwipe = false;
+      _micDownY = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
+      compTitle?.focus();
+      startMic();
+      setTimeout(()=>{ _suppressBlurAdvance = false; }, 300);
+    });
+    compMic.addEventListener('pointermove', (e)=>{
+      if(_micPointerId===null) return;
+      const y = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
+      if(!_lockBySwipe && (y - _micDownY) > 30){
+        _lockBySwipe = true;
+        compMicNote && (compMicNote.textContent = 'הקלטה (נעול)');
+      }
+    });
+    compMic.addEventListener('pointerup', ()=>{ if(!_lockBySwipe) stopMic(true); _micPointerId = null; });
+    compMic.addEventListener('click', (e)=>{ e.preventDefault(); if(_listening){ _lockBySwipe=false; stopMic(true);} else { _lockBySwipe=true; startMic(); } });
+  }
+
+  /* ---------- Tap-anywhere flow (bind on PANEL, not document/backdrop) ---------- */
+  function isInside(el, sel){ return !!(el && el.closest && el.closest(sel)); }
+
+  // Step 1 → Step 2
+  if (compPanel){
+    compPanel.addEventListener('pointerdown', (e)=>{
+      if (!composer || !composer.classList.contains('is-open')) return;
+      const step = Number(composer.getAttribute('data-step')||1);
+      if (step !== 1) return;
+      const t = (compTitle && compTitle.value || '').trim();
+      if (t.length < MIN_TITLE_CHARS) return;
+      if (isInside(e.target, '#compTitle') || isInside(e.target, '#compMic')) return;
+      setStep(2);
+    }, {capture:true});
+  }
+
+  // Step 2 → Step 3 (panel taps except on date) OR explicit date change
+  if (compPanel){
+    compPanel.addEventListener('pointerdown', (e)=>{
+      if (!composer || !composer.classList.contains('is-open')) return;
+      const step = Number(composer.getAttribute('data-step')||1);
+      if (step !== 2) return;
+      if (isInside(e.target, '#compDate')) return;
+      if (compDate && compDate.value) {
+        setStep(3);
+        try { compTime && compTime.showPicker && compTime.showPicker(); } catch(_) {}
+      }
+    }, {capture:true});
+  }
+  compDate && compDate.addEventListener('change', ()=>{
+    if (compDate.value){
+      setStep(3);
+      try { compTime && compTime.showPicker && compTime.showPicker(); } catch(_) {}
+    }
+  });
+
+  // Title helpers
+  function maybeAdvanceFromTitle(origin){
+    const t = (compTitle?.value || '').trim();
+    if ((origin === 'enter' || origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS){
+      setStep(2);
+    }
+  }
+  compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
+  compTitle && compTitle.addEventListener('blur',   ()=>{ if (!_suppressBlurAdvance) maybeAdvanceFromTitle('blur'); });
+
+  // Time → save
   if (compTime){
-    compTime.autocomplete='off';
-    compTime.value = '';
-    compTime.defaultValue = '';
-    compTime.removeAttribute('value');
-    compTime.name = 'time-'+Date.now(); // fights autofill caches
-    _userTouchedTime = false;
+    compTime.addEventListener('focus', ()=>{
+      if(!_userTouchedTime && compTime.value){ compTime.value=''; }
+    });
+    compTime.addEventListener('input', ()=>{ _userTouchedTime = true; });
+    compTime.addEventListener('change', ()=>{ _userTouchedTime = true; autoSaveComposer(); });
+    compTime.addEventListener('blur',   ()=>{ if (_userTouchedTime) autoSaveComposer(); });
   }
-
-  composer.classList.remove('u-hidden'); composer.classList.add('is-open');
-  composer.setAttribute('aria-hidden','false');
-  _pendingSave = false;
-  setStep(1);
-}
-
-function closeComposer(){
-  if(!composer) return;
-  composer.classList.remove('is-open'); composer.setAttribute('aria-hidden','true');
-  setTimeout(()=>composer.classList.add('u-hidden'),180);
-  stopMic(true);
-}
-
-compCloseBtns.forEach(b=>b.addEventListener('click', e=>{ e.preventDefault(); closeComposer(); }));
-composer && composer.addEventListener('click', e=>{ if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer(); });
-document.addEventListener('keydown', e=>{ if (e.key==='Escape') closeComposer(); });
-compForm && compForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
-
-/* ---------- Web Speech (he-IL) ---------- */
-let _rec=null, _listening=false, _lockBySwipe=false;
-
-function ensureRecognizer(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
-  if (!isSecure || !SR) {
-    if (compMicNote) compMicNote.textContent = 'זיהוי דיבור דורש דפדפן תומך ו־HTTPS.';
-    return null;
-  }
-  if(_rec) return _rec;
-
-  const r = new SR();
-  r.lang = 'he-IL';
-  r.interimResults = true;
-  r.continuous = true;
-  r.maxAlternatives = 1;
-
-  r.onresult = (evt)=>{
-    let finalText = '', interimText = '';
-    for (let i = evt.resultIndex; i < evt.results.length; i++){
-      const res = evt.results[i];
-      if (res.isFinal) finalText += res[0].transcript;
-      else interimText += res[0].transcript;
-    }
-    const base = (compTitle?.value ? compTitle.value.replace(/\s+$/,'') : '');
-    const next = (base + ' ' + (finalText || interimText)).trim();
-    if (compTitle) compTitle.value = next;
-    if (compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
-  };
-
-  r.onerror = (e)=>{
-    if (compMicNote) compMicNote.textContent =
-      (e?.error === 'not-allowed') ? 'גישה למיקרופון נדחתה.' :
-      (e?.error === 'no-speech')   ? 'לא זוהה דיבור.' :
-      'שגיאת מיקרופון.';
-    try{ r.stop(); }catch(_){}
-  };
-
-  r.onend = ()=>{
-    if (_listening || _lockBySwipe) setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
-  };
-
-  _rec = r;
-  return r;
-}
-function safeStart(r){ try{ r.start(); }catch(_){ try{ r.stop(); }catch(_){ } setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120); } }
-function startMic(){
-  const r = ensureRecognizer();
-  if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
-  if(_listening) return;
-  _listening = true;
-  compMic?.setAttribute('aria-pressed','true');
-  compMic?.classList.add('is-on');
-  if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
-  safeStart(r);
-  navigator.mediaDevices?.getUserMedia?.({audio:true}).catch(()=>{}).finally(()=> safeStart(r));
-}
-function stopMic(forceNote){
-  if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
-  _listening = false;
-  compMic?.setAttribute('aria-pressed','false');
-  compMic?.classList.remove('is-on');
-  try{ _rec && _rec.stop(); }catch(_){}
-  if(!forceNote && compMicNote) compMicNote.textContent='';
-  maybeAdvanceFromTitle('mic');
-}
-
-/* ---------- Mic gestures ---------- */
-let _micPointerId=null, _micDownY=0;
-if (compMic){
-  compMic.addEventListener('pointerdown', (e)=>{
-    _suppressBlurAdvance = true;
-    e.preventDefault();
-    if(_micPointerId!==null) return;
-    _micPointerId = e.pointerId ?? 1;
-    compMic.setPointerCapture?.(_micPointerId);
-    _lockBySwipe = false;
-    _micDownY = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
-    compTitle?.focus();
-    startMic();
-    setTimeout(()=>{ _suppressBlurAdvance = false; }, 300);
-  });
-  compMic.addEventListener('pointermove', (e)=>{
-    if(_micPointerId===null) return;
-    const y = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
-    if(!_lockBySwipe && (y - _micDownY) > 30){
-      _lockBySwipe = true;
-      compMicNote && (compMicNote.textContent = 'הקלטה (נעול)');
-    }
-  });
-  compMic.addEventListener('pointerup', ()=>{ if(!_lockBySwipe) stopMic(true); _micPointerId = null; });
-  compMic.addEventListener('click', (e)=>{ e.preventDefault(); if(_listening){ _lockBySwipe=false; stopMic(true);} else { _lockBySwipe=true; startMic(); } });
-}
-
-/* ---------- Tap-anywhere advance rules ---------- */
-// Step 1 → Step 2: tap anywhere except title/mic (with text present)
-document.addEventListener('pointerdown', (e)=>{
-  if (!composer || !composer.classList.contains('is-open')) return;
-  const step = Number(composer.getAttribute('data-step')||1);
-  if (step !== 1) return;
-  const t = (compTitle?.value || '').trim();
-  if (t.length < MIN_TITLE_CHARS) return;
-  const isTitle = e.target.closest?.('#compTitle');
-  const isMic   = e.target.closest?.('#compMic');
-  if (!isTitle && !isMic) setStep(2);
-}, {capture:true});
-
-// NEW: Step 2 → Step 3 options:
-// A) User actually changes the date (change event)
-// B) OR user taps anywhere outside the date input and a date value already exists (prefilled path)
-document.addEventListener('pointerdown', (e)=>{
-  if (!composer || !composer.classList.contains('is-open')) return;
-  const step = Number(composer.getAttribute('data-step')||1);
-  if (step !== 2) return;
-  const isDate = e.target.closest?.('#compDate');
-  if (isDate) return; // let the picker open
-  const hasDate = !!(compDate && compDate.value);
-  if (hasDate) setStep(3);
-}, {capture:true});
-
-// Change on date → go to time
-compDate && compDate.addEventListener('change', ()=>{ if (compDate.value) setStep(3); });
-
-/* ---------- Time events (save only after real user action) ---------- */
-if (compTime){
-  compTime.addEventListener('focus', ()=>{
-    if(!_userTouchedTime && compTime.value){ compTime.value=''; }
-  });
-  compTime.addEventListener('input', ()=>{ _userTouchedTime = true; });
-  compTime.addEventListener('change', ()=>{ _userTouchedTime = true; autoSaveComposer(); });
-  compTime.addEventListener('blur',   ()=>{ if (_userTouchedTime) autoSaveComposer(); });
-}
-
-/* ---------- Title events ---------- */
-function maybeAdvanceFromTitle(origin){
-  const t = (compTitle?.value || '').trim();
-  if ((origin === 'enter' || origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS){
-    setStep(2);
-  }
-}
-compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
-compTitle && compTitle.addEventListener('blur',   ()=>{ if (!_suppressBlurAdvance) maybeAdvanceFromTitle('blur'); });
-
-
 
   /* ===================== Effects & tiny inline fix ===================== */
   function blastConfetti(x,y,scale){

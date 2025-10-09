@@ -218,7 +218,13 @@ body {
 .p-dayview__date{ color:#475569; font-size:.95rem; }
 
 .p-daytask{
-  display:grid; grid-template-columns:minmax(0,1fr) 96px auto; align-items:center;
+  display:flex;
+  align-items: center;
+  justify-content: flex-start;  /* pack items on the right (RTL) */
+gap: .5rem;                   /* spacing between items */
+flex-direction: row;          /* normal flow */
+direction: rtl;               /* Hebrew content */
+
   padding:.7rem .8rem; border-radius:16px;
   background:radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%);
   border:1px solid #e7d8a1; box-shadow:0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06);
@@ -529,13 +535,15 @@ body {
 .u-hidden{display:none!important}
 
 /* ================== DARK MODE ==================================== */
-body.is-dark{
-  --dm-bg0:#0a1222;--dm-bg1:#0f1930;--dm-surface:#162540;--dm-border:#2c4676;
-  --dm-text:#eaf2ff;--dm-strong:#f6fbff;--dm-muted:#b5c3de;
-  --dm-chip:#0e1a31;--dm-cta1:#47d0ff;--dm-cta2:#6fa2ff;
-  background:radial-gradient(120% 140% at 50% -25%,var(--dm-bg1),var(--dm-bg0) 60%);
-  color:var(--dm-text)
+body.is-dark .p-day,
+body.is-dark .p-daytask,
+body.is-dark .p-task{
+  background:var(--dm-surface)!important;
+  /* color:var(--dm-text)!important;  <-- REMOVE this line */
+  border:1px solid var(--dm-border)!important;
+  box-shadow:0 10px 26px rgba(11,18,34,.55),inset 0 1px 0 rgba(255,255,255,.04)!important;
 }
+
 body.is-dark .o-phone{background:var(--dm-bg1);box-shadow:0 10px 26px rgba(11,18,34,.55)}
 body.is-dark .c-subtitle,body.is-dark .p-empty,body.is-dark .p-day__date{color:var(--dm-muted)}
 body.is-dark .c-title--date{
@@ -833,37 +841,6 @@ html[data-theme="dark"] .p-weekbar__btn,
 html[data-theme="dark"] .p-day__count{ background:#111827; color:#f8fafc; box-shadow:0 8px 20px rgba(0,0,0,.35); }
 
 /* === Task Row (RTL order) ========================================= */
-/* Works with your template (.task-item). If you also render .p-daytask,
-   duplicate the :is() targets like in my previous message. */
-.task-item{
-  display:grid;
-  grid-template-columns: auto 1fr auto;                 /* three columns */
-  grid-template-areas: "time text actions";             /* logical names */
-  direction: rtl;                                       /* Hebrew content */
-  align-items:center;
-  gap:.6rem;
-  padding:.55rem .7rem;
-  border-radius:14px;
-  background:#fff8ea;
-  border:1px solid #f1e4c6;
-  box-shadow:0 1px 0 rgba(0,0,0,.03);
-}
-.task-item:focus-within{ border-color:#ffd27a; box-shadow:0 0 0 3px rgba(255,210,122,.25); }
-
-/* Map elements to areas so we can flip visually later if needed */
-.task-item__time    { grid-area: time; }
-.task-item__text    { grid-area: text; }
-.task-item__actions { grid-area: actions; }
-
-/* — Time on the RIGHT (column 3 visually in RTL) —
-   We flip the areas here for RTL so the visual order is:
-   [RIGHT=time] [MIDDLE=text] [LEFT=actions] */
-html[dir="rtl"] .task-item{
-  grid-template-areas: "time text actions"; /* keep names */
-}
-html[dir="ltr"] .task-item{
-  grid-template-areas: "actions text time"; /* if you ever run LTR */
-}
 
 /* Time chip (smaller) */
 .task-item__time{
@@ -1316,13 +1293,6 @@ html[data-theme="dark"]{
   --looz-border:   #1f2937;
 }
 
-/* ========================= DAY ROW (reference) ========================= */
-.p-daytask {
-  min-height: var(--row-h);
-  padding: var(--pad-v) var(--pad-h);
-  border-radius: var(--row-r);
-}
-html[data-theme="dark"] .p-daytask__text { color:#EAF2FF; }
 
 /* ========================= ✓ / ✕ ACTION CHIPS ========================= */
 .p-daytask__actions,
@@ -1396,6 +1366,7 @@ html[data-theme="dark"] [data-act="del"]{
   min-height:var(--row-h) !important;
   padding:var(--pad-v) var(--pad-h) !important;
   gap:.5rem !important;
+  
 }
 
 /* Hebrew weekday → RIGHT (first in RTL row) */
@@ -1744,4 +1715,252 @@ html[data-theme="dark"] #planner .p-day .task-item__time{
   color:#e9f0ff !important;
   border-color:#4a4320 !important;
 }
+/* ===============================
+   Day Task Row — RTL order fixed
+   =============================== */
 
+.p-daytask {
+  display: flex !important;
+  align-items: center !important;
+  gap: .5rem !important;
+  flex-direction: row !important;   /* no reverse */
+  justify-content: flex-start !important;
+  direction: rtl !important;        /* Hebrew */
+  padding: .35rem .75rem !important;
+  border-radius: 12px;
+  background: #fffdf9;
+}
+
+/* Time pill — always same size, on the RIGHT */
+.p-daytask__time {
+  order: 0 !important;
+  flex: 0 0 auto !important;
+  inline-size: 56px !important;     /* fixed width */
+  text-align: center !important;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  padding: .18rem .4rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid #e5e7eb;
+  background: #fff8ea;
+  color: #374151;
+}
+
+/* Task text — in the middle */
+.p-daytask__text {
+  order: 1 !important;
+  flex: 1 1 auto !important;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+/* Actions — ✓ and ✗ on the LEFT */
+.p-daytask__actions {
+  order: 2 !important;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* Buttons (light mode) */
+.p-daytask__btn {
+  display: grid; place-items: center;
+  inline-size: 28px; block-size: 24px;
+  border-radius: 8px;
+  font-size: .9rem; line-height: 1;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+.p-daytask__btn--ok { background:#eaffea; border-color:#b9e5b9; color:#15803d; }
+.p-daytask__btn--del{ background:#fff1f1; border-color:#f5c2c2; color:#be123c; }
+
+/* Dark mode overrides */
+html[data-theme="dark"] .p-daytask__text {
+  color: #f8e6a8;
+  text-shadow: 0 0 .25px rgba(248,230,168,.35);
+}
+html[data-theme="dark"] .p-daytask__time {
+  background: linear-gradient(180deg,#2c2412,#1f1a0f);
+  border-color: #8a6b2b;
+  color: #ffe7a8;
+}
+html[data-theme="dark"] .p-daytask__btn {
+  background: #111827;
+  border: 1px solid #2b2b2b;
+  color: #e5e7eb;
+}
+html[data-theme="dark"] .p-daytask__btn--ok {
+  background: linear-gradient(180deg,#1c2b12,#13230e);
+  border-color: #a08b3a;
+  color: #ffd456;
+  box-shadow: 0 0 0 1px rgba(160,139,58,.22) inset, 0 6px 16px rgba(0,0,0,.25);
+}
+html[data-theme="dark"] .p-daytask__btn--del {
+  background: linear-gradient(180deg,#2b1716,#201011);
+  border-color: #a05252;
+  color: #ffb4a8;
+  box-shadow: 0 0 0 1px rgba(160,82,82,.22) inset, 0 6px 16px rgba(0,0,0,.25);
+}
+/* =========================================
+   FIX 1 — Day-view dark mode text contrast
+   ========================================= */
+html[data-theme="dark"] #planner .p-day .p-daytask__text,
+html[data-theme="dark"] #planner .p-day .task-text,
+html[data-theme="dark"] .p-daytask .p-daytask__text {
+  color: #ffeeba !important;          /* bright golden, high contrast */
+  text-shadow: none !important;        /* remove haze */
+  font-weight: 700;                    /* crisper on dark bg */
+}
+
+/* (keep your golden buttons from before)
+   If you need them again, these are the exact dark colors: */
+html[data-theme="dark"] .p-daytask__btn--ok{
+  background: linear-gradient(180deg,#1f240f,#161e0c) !important;
+  border-color:#ccb15a !important;
+  color:#ffd95a !important;
+  box-shadow:0 0 0 1px rgba(204,177,90,.22) inset, 0 6px 16px rgba(0,0,0,.35) !important;
+}
+html[data-theme="dark"] .p-daytask__btn--del{
+  background: linear-gradient(180deg,#2a1714,#1d110f) !important;
+  border-color:#c06b5a !important;
+  color:#ffb07a !important;
+  box-shadow:0 0 0 1px rgba(192,107,90,.22) inset, 0 6px 16px rgba(0,0,0,.35) !important;
+}
+
+/* ======================================================
+   FIX 2 — “Today” colorful border (Week & Day views)
+   Works on any element marked: .is-today / .today / [data-today="true"]
+   Uses a pseudo-element so it shows even if the cell has its own bg
+   ====================================================== */
+
+/* ---- LIGHT MODE ---- */
+#planner .p-week .is-today,
+#planner .p-week .today,
+#planner .p-week [data-today="true"],
+#planner .p-day  .is-today,
+#planner .p-day  .today,
+#planner .p-day  [data-today="true"]{
+  position: relative;                 /* needed for ::before */
+  border-radius: 14px;                /* matches your cards */
+  z-index: 0;                         /* create a stacking context */
+}
+
+#planner .p-week .is-today::before,
+#planner .p-week .today::before,
+#planner .p-week [data-today="true"]::before,
+#planner .p-day  .is-today::before,
+#planner .p-day  .today::before,
+#planner .p-day  [data-today="true"]::before{
+  content: "";
+  position: absolute;
+  inset: -2px;                        /* 2px border thickness */
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  background: linear-gradient(135deg,#8dd0ff,#9df0c7,#ffd08d,#f3a9ff);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0) padding-box;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0) padding-box;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px;                       /* creates the “stroke” effect */
+}
+
+/* ---- DARK MODE ---- */
+html[data-theme="dark"] #planner .p-week .is-today::before,
+html[data-theme="dark"] #planner .p-week .today::before,
+html[data-theme="dark"] #planner .p-week [data-today="true"]::before,
+html[data-theme="dark"] #planner .p-day  .is-today::before,
+html[data-theme="dark"] #planner .p-day  .today::before,
+html[data-theme="dark"] #planner .p-day  [data-today="true"]::before{
+  background: linear-gradient(135deg,#ffe27a,#ff9e7c,#9cc5ff,#b9ffb1);
+}
+
+/* Optional: ensure the inner background doesn't hide the border glow */
+#planner .p-week .is-today,
+#planner .p-week .today,
+#planner .p-week [data-today="true"],
+#planner .p-day  .is-today,
+#planner .p-day  .today,
+#planner .p-day  [data-today="true"]{
+  box-shadow: 0 0 0 0 transparent; /* reset any conflicting outlines */
+}
+/* ===================== LOOZ — hard dark-mode overrides ===================== */
+
+/* 1) Golden task text in day view (high contrast) */
+body.is-dark #planner .p-day .p-daytask__text,
+body.is-dark #planner .p-day .task-item__text,
+body.is-dark .p-daytask__text,
+body.is-dark .task-item__text{
+  color:#FFE8A3 !important;          /* rich golden */
+  font-weight:700 !important;
+  opacity:1 !important;
+  filter:none !important;
+  text-shadow:0 1px 0 rgba(0,0,0,.8) !important;
+}
+
+/* 2) Time pill stays readable */
+body.is-dark .p-daytask__time,
+body.is-dark .task-item__time{
+  background:linear-gradient(180deg,#2c2412,#1f1a0f) !important;
+  border:1px solid #8A6B2B !important;
+  color:#FFE7A8 !important;
+}
+
+/* 3) Ensure icons inherit the button color */
+body.is-dark .task-ico svg { fill:currentColor !important; stroke:currentColor !important; }
+
+/* 4) ✓ button — golden yellow with soft glow animation */
+body.is-dark .task-ico--ok,
+body.is-dark .p-ico--ok{
+  background:linear-gradient(180deg,#1f240f,#161e0c) !important;
+  border:1px solid #CCB15A !important;
+  color:#FFD95A !important;
+  box-shadow:
+    0 0 0 1px rgba(204,177,90,.45) inset,
+    0 0 12px 2px rgba(255,217,90,.28),
+    0 8px 18px rgba(0,0,0,.45) !important;
+  animation:loozGoldPulse 2.2s ease-in-out infinite !important;
+}
+
+/* 5) ✗ button — golden red */
+body.is-dark .task-ico--del,
+body.is-dark .p-ico--del{
+  background:linear-gradient(180deg,#2a1714,#1d110f) !important;
+  border:1px solid #C06B5A !important;
+  color:#FFB07A !important;
+  box-shadow:
+    0 0 0 1px rgba(192,107,90,.35) inset,
+    0 0 12px 2px rgba(255,119,89,.18),
+    0 8px 18px rgba(0,0,0,.45) !important;
+}
+
+/* 6) Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  body.is-dark .task-ico--ok { animation:none !important; }
+}
+
+/* 7) Glow keyframes for ✓ */
+@keyframes loozGoldPulse{
+  0%,100%{
+    box-shadow:
+      0 0 0 1px rgba(204,177,90,.45) inset,
+      0 0 12px 2px rgba(255,217,90,.28),
+      0 8px 18px rgba(0,0,0,.45);
+  }
+  50%{
+    box-shadow:
+      0 0 0 1px rgba(204,177,90,.65) inset,
+      0 0 20px 5px rgba(255,217,90,.45),
+      0 10px 22px rgba(0,0,0,.55);
+  }
+}
