@@ -416,77 +416,72 @@ const compForm      = document.getElementById('composerForm');
 const compTitle     = document.getElementById('compTitle');
 const compDate      = document.getElementById('compDate');
 const compTime      = document.getElementById('compTime');
-let   compMic       = document.getElementById('compMic');     // may be null → we’ll inject
+let   compMic       = document.getElementById('compMic');     // ensure below
 let   compMicNote   = document.getElementById('compMicNote');
 
 const MIN_TITLE_CHARS = 2;
-let _pendingSave = false;         // prevent double-saves
-let _suppressBlurAdvance = false; // don't advance when tapping mic
-let _userTouchedTime = false;     // only save after user actually sets time
+let _pendingSave = false;
+let _suppressBlurAdvance = false;
+let _userTouchedTime = false;
 
-/* ---- Inject mic if missing (keeps design consistent) ---- */
+/* ---------- Make sure the mic exists (bottom-center in Step 1) ---------- */
 (function ensureMicInDom(){
-  if (!composer || compMic) return;
-  const step1 = compForm && compForm.querySelector('[data-step="1"]');
-  if (!step1) return;
-  const btn = document.createElement('button');
-  btn.id = 'compMic';
-  btn.type = 'button';
-  btn.className = 'mic-ico';
-  btn.setAttribute('aria-pressed','false');
-  btn.title = 'דבר/י';
-  btn.setAttribute('aria-label','דבר/י');
-  btn.innerHTML = '<img src="icons/mic.svg" alt="" width="18" height="18">';
-  const note = document.createElement('div');
-  note.id = 'compMicNote';
-  note.className = 'mic-note';
-  note.setAttribute('aria-live','polite');
-  step1.appendChild(btn);
-  step1.appendChild(note);
-  compMic = btn;
-  compMicNote = note;
+  if (compMic && compMicNote) return;
+  if (!composer || !compForm) return;
+  const panel = compPanel || composer;
+  if (!compMic) {
+    const btn = document.createElement('button');
+    btn.id = 'compMic';
+    btn.type = 'button';
+    btn.className = 'mic-ico';
+    btn.setAttribute('aria-pressed','false');
+    btn.title = 'דבר/י';
+    btn.setAttribute('aria-label','דבר/י');
+    btn.innerHTML = '<img src="icons/mic.svg" alt="" width="20" height="20">';
+    panel.appendChild(btn);
+    compMic = btn;
+  }
+  if (!compMicNote) {
+    const note = document.createElement('div');
+    note.id = 'compMicNote';
+    note.className = 'mic-note';
+    note.setAttribute('aria-live','polite');
+    panel.appendChild(note);
+    compMicNote = note;
+  }
 })();
 
-/* ---- Bottom-center mic (step 1 only) ---- */
-function updateMicAnchor(){
-  if (!composer || !compMic || !compPanel) return;
-  const step = Number(composer.getAttribute('data-step')||1);
-  if (step !== 1){ compMic.style.display='none'; return; }
-  const bottomOffset = 16;
-  const x = (compPanel.clientWidth  / 2) + compPanel.scrollLeft;
-  const y = (compPanel.scrollTop + compPanel.clientHeight - bottomOffset);
-  compMic.style.display = 'inline-grid';
-  compMic.style.left = x + 'px';
-  compMic.style.top  = y + 'px';
-}
-
+/* ---------- Step management ---------- */
 function setStep(n){
   if (!composer) return;
   composer.setAttribute('data-step', String(n));
   if (n===1 && compTitle) compTitle.focus();
   if (n===2 && compDate)  compDate.focus();
-  if (n===3 && compTime)  compTime.focus();
-  updateMicAnchor();
+  if (n===3 && compTime)  {
+    compTime.focus();
+    // Try to open the native time picker on supported browsers
+    try { compTime.showPicker && compTime.showPicker(); } catch(_) {}
+  }
 }
 
 function fieldsReadyForSave(){
-  const t = (compTitle && compTitle.value || '').trim();
-  const d = (compDate  && compDate.value  || '').trim();
-  const h = (compTime  && compTime.value  || '').trim();
+  const t = (compTitle?.value || '').trim();
+  const d = (compDate?.value  || '').trim();
+  const h = (compTime?.value  || '').trim();
   return (t.length >= MIN_TITLE_CHARS && d && h && _userTouchedTime);
 }
 
 function performSave(){
-  const t=(compTitle&&compTitle.value||'').trim();
-  const d=(compDate&&compDate.value||'').trim();
-  const h=(compTime&&compTime.value||'').trim();
+  const t=(compTitle?.value||'').trim();
+  const d=(compDate?.value||'').trim();
+  const h=(compTime?.value||'').trim();
   const id='t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
   state.tasks.push({id, title:t, date:d, time:h});
   saveTasks();
   state.current = fromKey(d);
   state.view = 'day';
   render();
-  compForm && compForm.reset();
+  compForm?.reset();
   _pendingSave = false;
   closeComposer();
 }
@@ -499,45 +494,33 @@ function autoSaveComposer(){
   }
 }
 
-/* ---- Step flow ---- */
-function maybeAdvanceFromTitle(origin){
-  const t = (compTitle && compTitle.value || '').trim();
-  const ok = (origin === 'enter' || origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS;
-  if (ok) setStep(2); // go to date
-}
-function maybeAdvanceFromDateChange(){
-  // Advance to time ONLY when user actually changes the date (not on blur)
-  const d = (compDate && compDate.value || '').trim();
-  if (d) setStep(3);
-}
-
-/* ---- Open/Close ---- */
+/* ---------- Open / Close ---------- */
 function openComposer(){
   if(!composer) return;
   const base = state.selectedDate ? fromKey(state.selectedDate) : new Date();
 
-  // Step-1: title is empty
-  if (compTitle) {
+  // Step 1: title
+  if (compTitle){
     compTitle.value = '';
-    compTitle.setAttribute('autocomplete','off');
-    compTitle.setAttribute('autocapitalize','off');
-    compTitle.setAttribute('autocorrect','off');
-    compTitle.setAttribute('spellcheck','false');
+    compTitle.autocomplete='off';
+    compTitle.autocapitalize='off';
+    compTitle.autocorrect='off';
+    compTitle.spellcheck=false;
   }
 
-  // Step-2: date is PREFILLED from calendar (allowed), but we won't auto-advance from blur
+  // Step 2: prefill date (from calendar)
   if (compDate){
-    compDate.autocomplete = 'off';
+    compDate.autocomplete='off';
     compDate.value = dateKey(base);
   }
 
-  // Step-3: time must be chosen by the user (no auto, no retained default)
+  // Step 3: absolutely no auto-time
   if (compTime){
-    compTime.autocomplete = 'off';
-    compTime.value = '';                 // clear
-    compTime.defaultValue = '';          // clear browser memory
-    compTime.removeAttribute('value');   // iOS/Safari sometimes keeps this
-    compTime.name = 'time-'+Date.now();  // defeat autofill caches
+    compTime.autocomplete='off';
+    compTime.value = '';
+    compTime.defaultValue = '';
+    compTime.removeAttribute('value');
+    compTime.name = 'time-'+Date.now(); // fights autofill caches
     _userTouchedTime = false;
   }
 
@@ -545,8 +528,8 @@ function openComposer(){
   composer.setAttribute('aria-hidden','false');
   _pendingSave = false;
   setStep(1);
-  requestAnimationFrame(updateMicAnchor);
 }
+
 function closeComposer(){
   if(!composer) return;
   composer.classList.remove('is-open'); composer.setAttribute('aria-hidden','true');
@@ -557,10 +540,9 @@ function closeComposer(){
 compCloseBtns.forEach(b=>b.addEventListener('click', e=>{ e.preventDefault(); closeComposer(); }));
 composer && composer.addEventListener('click', e=>{ if(e.target && e.target.classList.contains('composer__backdrop')) closeComposer(); });
 document.addEventListener('keydown', e=>{ if (e.key==='Escape') closeComposer(); });
-
 compForm && compForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
 
-/* ---------- Web Speech (Hebrew) ---------- */
+/* ---------- Web Speech (he-IL) ---------- */
 let _rec=null, _listening=false, _lockBySwipe=false;
 
 function ensureRecognizer(){
@@ -578,9 +560,6 @@ function ensureRecognizer(){
   r.continuous = true;
   r.maxAlternatives = 1;
 
-  r.onspeechend = ()=>{};
-  r.onnomatch   = ()=>{ if(compMicNote) compMicNote.textContent='לא נשמע קול… נסו שוב'; };
-
   r.onresult = (evt)=>{
     let finalText = '', interimText = '';
     for (let i = evt.resultIndex; i < evt.results.length; i++){
@@ -588,38 +567,28 @@ function ensureRecognizer(){
       if (res.isFinal) finalText += res[0].transcript;
       else interimText += res[0].transcript;
     }
-    const base = (compTitle && compTitle.value ? compTitle.value.replace(/\s+$/,'') : '');
+    const base = (compTitle?.value ? compTitle.value.replace(/\s+$/,'') : '');
     const next = (base + ' ' + (finalText || interimText)).trim();
     if (compTitle) compTitle.value = next;
     if (compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
   };
 
   r.onerror = (e)=>{
-    if (compMicNote) compMicNote.textContent = (
-      e && e.error === 'not-allowed' ? 'גישה למיקרופון נדחתה.' :
-      e && e.error === 'no-speech'   ? 'לא זוהה דיבור.' :
-      'שגיאת מיקרופון.'
-    );
+    if (compMicNote) compMicNote.textContent =
+      (e?.error === 'not-allowed') ? 'גישה למיקרופון נדחתה.' :
+      (e?.error === 'no-speech')   ? 'לא זוהה דיבור.' :
+      'שגיאת מיקרופון.';
     try{ r.stop(); }catch(_){}
   };
 
   r.onend = ()=>{
-    if (_listening || _lockBySwipe) {
-      setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
-      return;
-    }
+    if (_listening || _lockBySwipe) setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
   };
 
   _rec = r;
   return r;
 }
-function safeStart(r){
-  try { r.start(); }
-  catch (_){
-    try { r.stop(); } catch(_){}
-    setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
-  }
-}
+function safeStart(r){ try{ r.start(); }catch(_){ try{ r.stop(); }catch(_){ } setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120); } }
 function startMic(){
   const r = ensureRecognizer();
   if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
@@ -628,11 +597,8 @@ function startMic(){
   compMic?.setAttribute('aria-pressed','true');
   compMic?.classList.add('is-on');
   if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
-
   safeStart(r);
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({audio:true}).catch(()=>{}).finally(()=> safeStart(r));
-  }
+  navigator.mediaDevices?.getUserMedia?.({audio:true}).catch(()=>{}).finally(()=> safeStart(r));
 }
 function stopMic(forceNote){
   if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
@@ -641,10 +607,10 @@ function stopMic(forceNote){
   compMic?.classList.remove('is-on');
   try{ _rec && _rec.stop(); }catch(_){}
   if(!forceNote && compMicNote) compMicNote.textContent='';
-  maybeAdvanceFromTitle('mic'); // advance to date
+  maybeAdvanceFromTitle('mic');
 }
 
-/* ---- gestures: hold→record; swipe-down→lock; tap→toggle ---- */
+/* ---------- Mic gestures ---------- */
 let _micPointerId=null, _micDownY=0;
 if (compMic){
   compMic.addEventListener('pointerdown', (e)=>{
@@ -655,7 +621,7 @@ if (compMic){
     compMic.setPointerCapture?.(_micPointerId);
     _lockBySwipe = false;
     _micDownY = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
-    compTitle && compTitle.focus(); // keep focus in title field
+    compTitle?.focus();
     startMic();
     setTimeout(()=>{ _suppressBlurAdvance = false; }, 300);
   });
@@ -664,56 +630,62 @@ if (compMic){
     const y = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
     if(!_lockBySwipe && (y - _micDownY) > 30){
       _lockBySwipe = true;
-      if(compMicNote) compMicNote.textContent = 'הקלטה (נעול)';
+      compMicNote && (compMicNote.textContent = 'הקלטה (נעול)');
     }
   });
-  compMic.addEventListener('pointerup', ()=>{
-    if(!_lockBySwipe) stopMic(true);
-    _micPointerId = null;
-  });
-  compMic.addEventListener('click', (e)=>{
-    e.preventDefault();
-    if(_listening){ _lockBySwipe=false; stopMic(true); }
-    else { _lockBySwipe=true; startMic(); }
-  });
+  compMic.addEventListener('pointerup', ()=>{ if(!_lockBySwipe) stopMic(true); _micPointerId = null; });
+  compMic.addEventListener('click', (e)=>{ e.preventDefault(); if(_listening){ _lockBySwipe=false; stopMic(true);} else { _lockBySwipe=true; startMic(); } });
 }
 
-/* ---- Advance from Step-1 by tapping anywhere (except title/mic) ---- */
+/* ---------- Tap-anywhere advance rules ---------- */
+// Step 1 → Step 2: tap anywhere except title/mic (with text present)
 document.addEventListener('pointerdown', (e)=>{
   if (!composer || !composer.classList.contains('is-open')) return;
   const step = Number(composer.getAttribute('data-step')||1);
   if (step !== 1) return;
-  const t = (compTitle && compTitle.value || '').trim();
+  const t = (compTitle?.value || '').trim();
   if (t.length < MIN_TITLE_CHARS) return;
-  const isTitle = e.target.closest && e.target.closest('#compTitle');
-  const isMic   = e.target.closest && e.target.closest('#compMic');
-  if (!isTitle && !isMic) { setStep(2); }
+  const isTitle = e.target.closest?.('#compTitle');
+  const isMic   = e.target.closest?.('#compMic');
+  if (!isTitle && !isMic) setStep(2);
 }, {capture:true});
 
-/* ---- anchors & input events ---- */
-const tickAnchors = ()=>{ updateMicAnchor(); };
-window.addEventListener('resize', tickAnchors);
-window.addEventListener('orientationchange', tickAnchors);
-if (document.fonts && document.fonts.ready) { document.fonts.ready.then(tickAnchors); }
-compPanel && compPanel.addEventListener('scroll', tickAnchors, {passive:true});
+// NEW: Step 2 → Step 3 options:
+// A) User actually changes the date (change event)
+// B) OR user taps anywhere outside the date input and a date value already exists (prefilled path)
+document.addEventListener('pointerdown', (e)=>{
+  if (!composer || !composer.classList.contains('is-open')) return;
+  const step = Number(composer.getAttribute('data-step')||1);
+  if (step !== 2) return;
+  const isDate = e.target.closest?.('#compDate');
+  if (isDate) return; // let the picker open
+  const hasDate = !!(compDate && compDate.value);
+  if (hasDate) setStep(3);
+}, {capture:true});
 
-/* Inputs */
-compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
-compTitle && compTitle.addEventListener('blur', ()=>{ if (!_suppressBlurAdvance) maybeAdvanceFromTitle('blur'); });
+// Change on date → go to time
+compDate && compDate.addEventListener('change', ()=>{ if (compDate.value) setStep(3); });
 
-/* Date: advance ONLY when user changes it (no blur auto-advance) */
-compDate && compDate.addEventListener('change', ()=>{ tickAnchors(); maybeAdvanceFromDateChange(); });
-
-/* Time — gate saving until user really sets time (no autofill) */
+/* ---------- Time events (save only after real user action) ---------- */
 if (compTime){
   compTime.addEventListener('focus', ()=>{
-    // clear any browser-retained value on first focus
     if(!_userTouchedTime && compTime.value){ compTime.value=''; }
   });
   compTime.addEventListener('input', ()=>{ _userTouchedTime = true; });
-  compTime.addEventListener('change', ()=>{ _userTouchedTime = true; tickAnchors(); autoSaveComposer(); });
+  compTime.addEventListener('change', ()=>{ _userTouchedTime = true; autoSaveComposer(); });
   compTime.addEventListener('blur',   ()=>{ if (_userTouchedTime) autoSaveComposer(); });
 }
+
+/* ---------- Title events ---------- */
+function maybeAdvanceFromTitle(origin){
+  const t = (compTitle?.value || '').trim();
+  if ((origin === 'enter' || origin === 'blur' || origin === 'mic') && t.length >= MIN_TITLE_CHARS){
+    setStep(2);
+  }
+}
+compTitle && compTitle.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); maybeAdvanceFromTitle('enter'); } });
+compTitle && compTitle.addEventListener('blur',   ()=>{ if (!_suppressBlurAdvance) maybeAdvanceFromTitle('blur'); });
+
 
 
   /* ===================== Effects & tiny inline fix ===================== */
