@@ -82,7 +82,7 @@
         ? '<div style="font-weight:800;margin-bottom:.15rem">נשמולית שלי</div>'
           + '<div>איזה כיף שחזרת <strong>'+name+'</strong></div>'
           + '<div>לוז מושלם מחכה לך</div>'
-        : 'ברוכים השבים, <strong id="uiName">'+name+'</strong>!<br>מה בלוז היום?';
+        : 'ברוכים השבים, <strong id="uiName">'+name+'</strong>!<br>מה בלוז сегодня?'.replace('сегодня','היום');
     }
   })();
 
@@ -409,7 +409,7 @@
   document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeSheet(); });
   sheetForm && sheetForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
 
-  /* ===================== Fullscreen Composer ===================== */
+ /* ===================== Fullscreen Composer ===================== */
   const composer      = document.getElementById('eventComposer');
   const compPanel     = composer ? composer.querySelector('.composer__panel') : null;
   const compCloseBtns = composer ? composer.querySelectorAll('[data-close]') : [];
@@ -421,9 +421,9 @@
   const compMicNote   = document.getElementById('compMicNote');
 
   const MIN_TITLE_CHARS = 2;
-  let _pendingSave = false;         // מניעת כפילות שמירה
-  let _suppressBlurAdvance = false; // שלא נקפוץ לשלב 2 בלחיצת מיקרופון
-  let _userTouchedTime = false;     // שמור רק אחרי שהמשתמש בחר שעה בפועל
+  let _pendingSave = false;         // prevent double-saves
+  let _suppressBlurAdvance = false; // don't advance when tapping mic
+  let _userTouchedTime = false;     // only save after user actually sets time
 
   // Bottom-center mic (step 1 only)
   function updateMicAnchor(){
@@ -491,7 +491,7 @@
   function openComposer(){
     if(!composer) return;
     const base = state.selectedDate ? fromKey(state.selectedDate) : new Date();
-    // Prefill date from calendar, clear time fully (and kill any browser “memory”)
+    // Prefill date from calendar; fully clear time (no browser memory)
     if (compTitle) compTitle.value = '';
     if (compDate)  { compDate.autocomplete='off'; compDate.value = dateKey(base); }
     if (compTime)  { compTime.autocomplete='off'; compTime.value = ''; compTime.defaultValue=''; }
@@ -515,7 +515,7 @@
 
   compForm && compForm.addEventListener('submit', (e)=>{ e.preventDefault(); autoSaveComposer(); });
 
-  /* ---------- Web Speech (append; hold; swipe-down lock) ---------- */
+  /* ---------- Web Speech (Hebrew) ---------- */
   let _rec=null, _listening=false, _lockBySwipe=false;
 
   function ensureRecognizer(){
@@ -533,7 +533,6 @@
     r.continuous = true;
     r.maxAlternatives = 1;
 
-    // iOS/Chrome hardening
     r.onspeechend = ()=>{};
     r.onnomatch   = ()=>{ if(compMicNote) compMicNote.textContent='לא נשמע קול… נסו שוב'; };
 
@@ -569,7 +568,6 @@
     _rec = r;
     return r;
   }
-
   function safeStart(r){
     try { r.start(); }
     catch (_){
@@ -577,7 +575,6 @@
       setTimeout(()=>{ try{ r.start(); }catch(_){} }, 120);
     }
   }
-
   function startMic(){
     const r = ensureRecognizer();
     if(!r){ if(compMicNote) compMicNote.textContent='הדפדפן לא תומך בזיהוי דיבור.'; return; }
@@ -587,13 +584,11 @@
     compMic?.classList.add('is-on');
     if(compMicNote) compMicNote.textContent = _lockBySwipe ? 'הקלטה (נעול)' : 'דבר/י…';
 
-    // Start immediately inside the gesture, then nudge permission
     safeStart(r);
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({audio:true}).catch(()=>{}).finally(()=> safeStart(r));
     }
   }
-
   function stopMic(forceNote){
     if(!_listening){ maybeAdvanceFromTitle('mic'); return; }
     _listening = false;
@@ -615,7 +610,7 @@
       compMic.setPointerCapture?.(_micPointerId);
       _lockBySwipe = false;
       _micDownY = e.clientY ?? (e.touches?.[0]?.clientY) ?? 0;
-      compTitle && compTitle.focus(); // keep focus in title
+      compTitle && compTitle.focus(); // keep focus in title field
       startMic();
       setTimeout(()=>{ _suppressBlurAdvance = false; }, 300);
     });
@@ -677,7 +672,6 @@
   // Time — gate saving until user really sets time
   if (compTime){
     compTime.addEventListener('focus', ()=>{
-      // clear any browser-retained value on first focus
       if(!_userTouchedTime && compTime.value){ compTime.value=''; }
     });
     compTime.addEventListener('input', ()=>{ _userTouchedTime = true; });

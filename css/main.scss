@@ -1620,4 +1620,97 @@ html[data-theme="dark"] .p-week .p-day__count{
   display: none;     /* JS toggles to block */
 }
 
-/* 
+/* Week-view row container (make same size as .p-daytask) */
+.week-row {
+  display: flex;
+  align-items: center;      /* vertical center */
+  justify-content: space-between; /* horizontal spacing */
+  height: 52px;             /* match .p-daytask height */
+  width: 358px;             /* match .p-daytask width */
+  background: #0F1A2B;      /* same background */
+  padding: 7.2px 8.8px;     /* same padding as .p-daytask */
+  box-sizing: border-box;
+  border-radius: 8px;       /* keep consistent look */
+}
+
+/* Task counter pill (make number dead center) */
+.task-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* center horizontally */
+  text-align: center;
+  font-weight: 600;
+  min-width: 28px;          /* ensures pill has enough space */
+  height: 28px;
+  border-radius: 999px;
+  background: #1E2A3C;
+  color: #fff;
+  line-height: 1;           /* avoids vertical offset */
+}
+/* === WEEK VIEW — make each row identical to .p-daytask === */
+/* paste at the very end of main.scss */
+
+.p-week .p-day{
+  /* אותו משטח/רדיוס/ריווח כמו .p-daytask */
+  padding:.5rem .6rem !important;
+  border-radius:14px !important;
+  border:1px solid #f1e4c6 !important;
+  background:#fff8ea !important;
+  box-shadow:0 1px 0 rgba(0,0,0,.03) !important;
+
+  /* גודל זהה בפועל */
+  width:100% !important;
+  min-block-size:52px !important;   /* = גובה של .p-daytask */
+  box-sizing:border-box !important;
+}
+
+/* הכותרת של השורה: מיושר אנכית למרכז ומרווח אופקית */
+.p-week .p-day__head{
+  display:flex !important;
+  align-items:center !important;             /* מרכז אנכי */
+  justify-content:space-between !important;  /* פיזור אופקי */
+  gap:.5rem !important;
+  min-block-size:inherit !important;         /* משתמש ב-52px מההורה */
+  padding-inline:0 !important;               /* לא להוסיף רוחב פנימי */
+  direction: rtl !important;                 /* סדר: ימני=שם עברי, אמצע=מונה, שמאל=תאריך מספרי */
+}
+
+/* שמות */
+.p-week .p-day__name{
+  margin:0 !important;
+  font-weight:800 !important;
+}
+
+/* המונה (המספר חייב להיות DEAD-CENTER בתוך ה"פיל") */
+.p-week .p-day__count{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  inline-size:28px !important;
+  block-size:28px !important;
+  border-radius:999px !important;
+  line-height:28px !important;   /* מרכז אנכי אמיתי */
+  text-align:center !important;
+  border:1px solid #e5e7eb !important;
+  background:#fff !important;
+  font-weight:800 !important;
+}
+
+/* תאריך מספרי משמאל (ב-RTL) */
+.p-week .p-day__date{
+  margin:0 !important;
+  font-weight:800 !important;
+  text-align:left !important;
+}
+
+/* — Dark mode keeps your existing palette — */
+html[data-theme="dark"] .p-week .p-day{
+  background:#162540 !important;
+  border-color:#2c4676 !important;
+  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+html[data-theme="dark"] .p-week .p-day__count{
+  background:#0f1b2f !important;
+  color:#e5ecf5 !important;
+  border-color:#2c4676 !important;
+}
