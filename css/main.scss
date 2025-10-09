@@ -2287,3 +2287,87 @@ body.is-dark #planner .p-month .p-cell:nth-child(-n+7)::before{
   box-shadow: 0 10px 24px rgba(0,0,0,.45);
   animation: chipGlow 2.2s ease-in-out infinite;
 }
+/* =========================================================
+   MONTH — push weekday letters higher (keeps perfect alignment)
+   Drop-in override. Increase --lift to move the chips up more.
+   ========================================================= */
+
+#planner .p-month{
+  /* keep your existing values, just add/override these: */
+  --pad: 16px;       /* your month card padding */
+  --chip-h: 34px;    /* chip height you use */
+  --lift: 18px;      /* ↑ raise letters by this many px (try 18–26) */
+
+  /* shrink the reserved space by exactly the same lift */
+  padding-top: calc(var(--pad) + var(--chip-h) - var(--lift)) !important;
+}
+
+/* move each weekday chip up by the same lift amount */
+#planner .p-month .p-cell:nth-child(-n+7)::before{
+  /* original anchor was: top: calc(-1 * (var(--chip-h) + var(--chip-gap)));
+     We subtract --lift to pull higher without breaking centering. */
+  top: calc(-1 * var(--chip-h) - 4px - var(--lift)) !important;
+  /* keep perfect horizontal centering over the cell */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 3 !important;
+}
+
+/* optional: if your first grid row has extra top gap, neutralize it */
+#planner .p-month{ row-gap: .35rem; }
+#planner .p-month .p-cell:nth-child(-n+7){ margin-top: 0 !important; }
+
+/* =========================================================
+   End month background
+   ========================================================= */
+
+   /* ======================= Compact day containers ======================= */
+/* Applies to the week/day rows that show: [date]  [count pill]  [weekday] */
+
+#planner .p-week .p-day{
+  padding: 0 !important;                 /* no extra outer padding */
+  border-radius: 14px;                    /* keep your shape */
+}
+
+/* Make the header line auto-height, just above content */
+#planner .p-week .p-day__head{
+  min-height: 0 !important;               /* remove fixed minimum */
+  padding: .28rem .55rem !important;      /* tight but breathable */
+  gap: .4rem !important;
+  align-items: center !important;
+}
+
+/* Slightly smaller centered counter pill */
+#planner .p-week .p-day__count{
+  width: 22px !important;
+  height: 22px !important;
+  line-height: 22px !important;
+  font: 800 11px/22px 'Rubik', system-ui, sans-serif !important;
+
+  /* keep absolute centering if you already use it */
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Tighten the text metrics so the row height hugs content */
+#planner .p-week .p-day__name,
+#planner .p-week .p-day__date{
+  line-height: 1.1 !important;
+  margin: 0 !important;
+}
+
+/* (Optional) If your rows still look tall, reduce vertical gaps in the grid */
+#planner .p-week{ row-gap: .4rem !important; }
+
+/* Day-view single task rows — compact too (if you use them under the week) */
+#planner .p-daytask{
+  padding: .4rem .55rem !important;
+  gap: .45rem !important;
+}
+#planner .p-daytask__time{ height: 24px !important; padding: 0 .5rem !important; }
+
+/* =========================================================
+   End of week rows
+   ========================================================= */
