@@ -3488,6 +3488,64 @@ body.is-dark .p-ico--del {
     box-shadow: 0 0 0 1px rgba(204, 177, 90, 0.65) inset, 0 0 20px 5px rgba(255, 217, 90, 0.45), 0 10px 22px rgba(0, 0, 0, 0.55);
   }
 }
+/* ======================= Compact day containers ======================= */
+/* Applies to the week/day rows that show: [date]  [count pill]  [weekday] */
+#planner .p-week .p-day {
+  padding: 0 !important;
+  /* no extra outer padding */
+  border-radius: 14px;
+  /* keep your shape */
+}
+
+/* Make the header line auto-height, just above content */
+#planner .p-week .p-day__head {
+  min-height: 0 !important;
+  /* remove fixed minimum */
+  padding: 0.28rem 0.55rem !important;
+  /* tight but breathable */
+  gap: 0.4rem !important;
+  align-items: center !important;
+}
+
+/* Slightly smaller centered counter pill */
+#planner .p-week .p-day__count {
+  width: 22px !important;
+  height: 22px !important;
+  line-height: 22px !important;
+  font: 800 11px/22px "Rubik", system-ui, sans-serif !important;
+  /* keep absolute centering if you already use it */
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Tighten the text metrics so the row height hugs content */
+#planner .p-week .p-day__name,
+#planner .p-week .p-day__date {
+  line-height: 1.1 !important;
+  margin: 0 !important;
+}
+
+/* (Optional) If your rows still look tall, reduce vertical gaps in the grid */
+#planner .p-week {
+  row-gap: 0.4rem !important;
+}
+
+/* Day-view single task rows — compact too (if you use them under the week) */
+#planner .p-daytask {
+  padding: 0.4rem 0.55rem !important;
+  gap: 0.45rem !important;
+}
+
+#planner .p-daytask__time {
+  height: 24px !important;
+  padding: 0 0.5rem !important;
+}
+
+/* =========================================================
+   End of week rows
+   ========================================================= */
 /* =========================================================
    LOOZ — MONTH VIEW (RTL)  — pastel bg + frosted card
    One solid day-bar with Hebrew letters INSIDE (א ב ג ד ה ו ש)
@@ -3529,22 +3587,24 @@ body.is-dark .p-ico--del {
   grid-column: 1/-1 !important;
   justify-self: center !important;
   margin: 0 0 6px !important;
+  position: relative;
+  z-index: 11;
 }
 
 /* ---------------------- Month card + backgrounds ---------------------- */
 #planner .p-month {
   /* knobs */
   --pad: 16px;
-  /* inner side padding of the card */
+  /* inner side padding */
   --bar-h: 32px;
-  /* height of the weekday strip */
+  /* weekday strip height */
   --lift: 14px;
-  /* how close the strip sits under the title */
+  /* distance from title */
   position: relative !important;
   border-radius: 22px !important;
   direction: rtl !important;
   overflow: visible !important;
-  /* reserve vertical space for the strip */
+  /* leave room for the strip */
   padding-top: calc(var(--pad) + var(--bar-h) - var(--lift)) !important;
   padding-inline: var(--pad) !important;
   padding-bottom: var(--pad) !important;
@@ -3605,7 +3665,7 @@ body.is-dark #planner .p-month::after {
   overflow: visible !important;
 }
 
-/* hard reset of any older chip/folder styles */
+/* reset any old chip/folder styles */
 #planner .p-month .p-cell::before {
   content: unset !important;
   display: block !important;
@@ -3621,7 +3681,7 @@ body.is-dark #planner .p-month::after {
 #planner .p-month .p-cell:nth-child(-n+7)::before {
   position: absolute !important;
   top: calc(var(--pad) - var(--lift) + (var(--bar-h) - 22px)/2) !important;
-  /* vertical center */
+  /* inside the bar */
   left: 50% !important;
   transform: translateX(-50%) !important;
   height: 22px !important;
@@ -3676,73 +3736,6 @@ body.is-dark #planner .p-month .p-cell:nth-child(-n+7)::before {
   margin-bottom: 6px !important;
 }
 
-#planner .p-monthbar__title {
-  position: relative;
-  z-index: 11 !important;
-}
-
 /* =========================================================
    End month background
    ========================================================= */
-/* ======================= Compact day containers ======================= */
-/* Applies to the week/day rows that show: [date]  [count pill]  [weekday] */
-#planner .p-week .p-day {
-  padding: 0 !important;
-  /* no extra outer padding */
-  border-radius: 14px;
-  /* keep your shape */
-}
-
-/* Make the header line auto-height, just above content */
-#planner .p-week .p-day__head {
-  min-height: 0 !important;
-  /* remove fixed minimum */
-  padding: 0.28rem 0.55rem !important;
-  /* tight but breathable */
-  gap: 0.4rem !important;
-  align-items: center !important;
-}
-
-/* Slightly smaller centered counter pill */
-#planner .p-week .p-day__count {
-  width: 22px !important;
-  height: 22px !important;
-  line-height: 22px !important;
-  font: 800 11px/22px "Rubik", system-ui, sans-serif !important;
-  /* keep absolute centering if you already use it */
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-}
-
-/* Tighten the text metrics so the row height hugs content */
-#planner .p-week .p-day__name,
-#planner .p-week .p-day__date {
-  line-height: 1.1 !important;
-  margin: 0 !important;
-}
-
-/* (Optional) If your rows still look tall, reduce vertical gaps in the grid */
-#planner .p-week {
-  row-gap: 0.4rem !important;
-}
-
-/* Day-view single task rows — compact too (if you use them under the week) */
-#planner .p-daytask {
-  padding: 0.4rem 0.55rem !important;
-  gap: 0.45rem !important;
-}
-
-#planner .p-daytask__time {
-  height: 24px !important;
-  padding: 0 0.5rem !important;
-}
-
-/* =========================================================
-   End of week rows
-   ========================================================= */
-/* =========================================================
-MONTH — single solid weekday bar + text-only letters
-(removes old overlapping chip "folders")
-========================================================= */
