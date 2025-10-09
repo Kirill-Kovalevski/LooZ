@@ -293,7 +293,6 @@ body {
   box-shadow:0 0 18px rgba(199,154,41,.12); cursor:pointer; position:relative;
   &--today{ box-shadow:0 0 0 2px rgba(199,154,41,.6), 0 10px 22px rgba(199,154,41,.18); }
 }
-.p-week .p-day__head{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; column-gap:.5rem; margin-bottom:.35rem; padding-inline:.6rem; }
 .p-week .p-day__name{ justify-self:start; text-align:right; margin:0; font-weight:700; color:#0f172a; }
 .p-week .p-day__date{ justify-self:end; text-align:left; margin:0; opacity:.9; color:#64748b; font-weight:800; }
 
@@ -1357,14 +1356,6 @@ html[data-theme="dark"] #eventComposer .line[data-step="1"] input{
 .c-planner{
   padding-bottom: calc(var(--orb-size) + 28px) !important;
 }
-/* Week row header:  RIGHT = date  |  CENTER = counter  |  LEFT = weekday name  */
-.p-week .p-day__head{
-  display:grid !important;
-  grid-template-columns: auto 1fr auto; /* [date] [center space] [name] */
-  align-items:center;
-  column-gap:.5rem;
-  padding-inline:.6rem;
-}
 
 /* date -> right edge (start in RTL is the right side) */
 .p-week .p-day__date{
@@ -1502,14 +1493,6 @@ html[data-theme="dark"] .task-ico--del{
   border-radius:14px;
 }
 
-.p-week .p-day__head{
-  display:grid;
-  grid-template-columns: auto 1fr auto; /* left | center | right */
-  align-items:center;
-  column-gap:.5rem;
-  padding-inline:.4rem;
-  min-block-size: 42px;                 /* consistent height */
-}
 
 /* Left: Hebrew day name */
 .p-week .p-day__name{
@@ -1558,15 +1541,6 @@ html[data-theme="dark"] .p-week .p-day__count{
   border-radius:14px !important;
 }
 
-/* Header uses three columns; content perfectly centered vertically */
-.p-week .p-day__head{
-  display:grid !important;
-  grid-template-columns:auto 1fr auto !important;  /* left | center | right */
-  align-items:center !important;
-  column-gap:.5rem !important;
-  padding-inline:.4rem !important;
-  min-block-size:42px !important;                 /* consistent height */
-}
 
 /* Left: Hebrew day */
 .p-week .p-day__name{
@@ -1664,16 +1638,6 @@ html[data-theme="dark"] .p-week .p-day__count{
   box-sizing:border-box !important;
 }
 
-/* הכותרת של השורה: מיושר אנכית למרכז ומרווח אופקית */
-.p-week .p-day__head{
-  display:flex !important;
-  align-items:center !important;             /* מרכז אנכי */
-  justify-content:space-between !important;  /* פיזור אופקי */
-  gap:.5rem !important;
-  min-block-size:inherit !important;         /* משתמש ב-52px מההורה */
-  padding-inline:0 !important;               /* לא להוסיף רוחב פנימי */
-  direction: rtl !important;                 /* סדר: ימני=שם עברי, אמצע=מונה, שמאל=תאריך מספרי */
-}
 
 /* שמות */
 .p-week .p-day__name{
@@ -1713,4 +1677,123 @@ html[data-theme="dark"] .p-week .p-day__count{
   background:#0f1b2f !important;
   color:#e5ecf5 !important;
   border-color:#2c4676 !important;
+}
+/* ================= LooZ — Week View: single source of truth ================ */
+/* Sizing tokens (used also by day rows) */
+:root{
+  --row-h: 52px;
+  --row-r: 14px;
+  --pad-v: 7.2px;
+  --pad-h: 8.8px;
+  --count-size: 28px;
+}
+
+/* Row card (same look as .p-daytask) */
+.p-week .p-day{
+  border-radius: var(--row-r) !important;
+  background: #fff8ea !important;
+  border: 1px solid #f1e4c6 !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,.03) !important;
+  padding: 0 !important;                 /* header defines the height */
+  box-sizing: border-box !important;
+}
+
+
+/* --- TRUE CENTER for the task counter --- */
+.p-week .p-day__count{
+  position: absolute;                    /* pull out of flex flow to center geometrically */
+  inset-inline-start: 50%;               /* logical 'left' in RTL/LTR */
+  transform: translateX(-50%);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: var(--count-size) !important;
+  height: var(--count-size) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  font: 800 12px/1 'Rubik', system-ui, sans-serif !important;
+  text-align: center !important;
+  z-index: 1;
+}
+
+/* --- Flow items left/right --- */
+/* numeric date ➜ RIGHT in RTL; keep as the first item via order */
+.p-week .p-day__date{
+  order: 0 !important;                   /* sits on the right in RTL */
+  margin: 0 !important;
+  font-weight: 800 !important;
+  color: #64748b;
+}
+
+/* Hebrew weekday ➜ LEFT; push using auto margin on RTL inline-start peer */
+.p-week .p-day__name{
+  order: 2 !important;                   /* sits on the left in RTL */
+  margin: 0 !important;
+  margin-inline-start: auto !important;  /* pushes to the far left edge */
+  font-weight: 800 !important;
+  color: #0f172a;
+}
+
+/* Dark mode parity */
+html[data-theme="dark"] .p-week .p-day{
+  background:#162540 !important;
+  border-color:#2c4676 !important;
+  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+html[data-theme="dark"] .p-week .p-day__name{ color:#EAF2FF !important; }
+html[data-theme="dark"] .p-week .p-day__date{ color:#9CB3D6 !important; }
+html[data-theme="dark"] .p-week .p-day__count{
+  background:#0f1b2f !important;
+  color:#e5ecf5 !important;
+  border-color:#2c4676 !important;
+}
+
+/* Reference: ensure .p-daytask keeps the same vertical rhythm */
+.p-daytask{
+  min-height: var(--row-h) !important;
+  padding: var(--pad-v) var(--pad-h) !important;
+  border-radius: var(--row-r) !important;
+}
+/* === Force counter dead-center in week row === */
+.p-week .p-day__head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  position: relative !important;   /* allows absolute centering */
+  min-height: var(--row-h) !important;
+  padding: var(--pad-v) var(--pad-h) !important;
+}
+
+/* Hebrew weekday → right */
+.p-week .p-day__name {
+  order: 0 !important;
+  margin: 0 !important;
+}
+
+/* Numeric date → left */
+.p-week .p-day__date {
+  order: 2 !important;
+  margin: 0 !important;
+}
+
+/* Counter → absolute dead center of the row */
+.p-week .p-day__count {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: var(--count-size) !important;
+  height: var(--count-size) !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  font: 800 12px/1 'Rubik', system-ui, sans-serif !important;
+  text-align: center !important;
 }
