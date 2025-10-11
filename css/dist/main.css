@@ -763,54 +763,6 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-.p-day__count[data-band="0"] {
-  background: rgba(148, 163, 184, 0.16);
-  color: #475569;
-  border-color: rgba(148, 163, 184, 0.35);
-}
-
-.p-day__count[data-band="1"] {
-  background: rgba(165, 243, 252, 0.22);
-  color: #0e7490;
-  border-color: rgba(34, 211, 238, 0.35);
-}
-
-.p-day__count[data-band="2"] {
-  background: rgba(187, 247, 208, 0.22);
-  color: #166534;
-  border-color: rgba(34, 197, 94, 0.35);
-}
-
-.p-day__count[data-band="3"] {
-  background: rgba(254, 240, 138, 0.25);
-  color: #92400e;
-  border-color: rgba(245, 158, 11, 0.4);
-}
-
-.p-day__count[data-band="4"] {
-  background: rgba(252, 231, 243, 0.28);
-  color: #9d174d;
-  border-color: rgba(236, 72, 153, 0.38);
-}
-
-.p-day__count[data-band="5"] {
-  background: rgba(221, 214, 254, 0.28);
-  color: #5b21b6;
-  border-color: rgba(167, 139, 250, 0.4);
-}
-
-.p-day__count[data-band="6"] {
-  background: rgba(191, 219, 254, 0.28);
-  color: #1d4ed8;
-  border-color: rgba(96, 165, 250, 0.4);
-}
-
-.p-day__count[data-band="7"] {
-  background: linear-gradient(90deg, rgba(34, 211, 238, 0.18), rgba(244, 114, 182, 0.18));
-  color: #7c3aed;
-  border-color: rgba(124, 58, 237, 0.4);
-}
-
 /* Tasks in week card */
 .p-task {
   display: grid;
@@ -1734,13 +1686,6 @@ html.is-dark .looz-logo .brand-logo--dark {
   --bar-border:#2c4676;
   --bar-text:#e5ecf5;
   --bar-shadow:0 .45rem 1rem rgba(0,0,0,.30);
-}
-
-.p-dayview__head, .p-weekbar, .p-monthbar {
-  display: grid !important;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .p-dayview__title, .p-weekbar__title, .p-monthbar__title {
@@ -3677,65 +3622,6 @@ body.is-dark #planner .p-month::after {
   height: auto !important;
 }
 
-/* place the 7 letters centered on the strip */
-#planner .p-month .p-cell:nth-child(-n+7)::before {
-  position: absolute !important;
-  top: calc(var(--pad) - var(--lift) + (var(--bar-h) - 22px)/2) !important;
-  /* inside the bar */
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  height: 22px !important;
-  display: grid !important;
-  place-items: center !important;
-  font: 800 0.95rem/1 "Rubik", system-ui, sans-serif !important;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  z-index: 3 !important;
-  color: #0a0a0a !important;
-  /* deep black (light) */
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) !important;
-}
-
-body.is-dark #planner .p-month .p-cell:nth-child(-n+7)::before {
-  color: #FFD65A !important;
-  /* deep gold (dark) */
-  text-shadow: 0 0 6px rgba(255, 214, 90, 0.55), 0 0 12px rgba(255, 208, 120, 0.25) !important;
-}
-
-/* Hebrew mapping (Sunday-first) */
-#planner .p-month .p-cell:nth-child(1)::before {
-  content: "א" !important;
-}
-
-#planner .p-month .p-cell:nth-child(2)::before {
-  content: "ב" !important;
-}
-
-#planner .p-month .p-cell:nth-child(3)::before {
-  content: "ג" !important;
-}
-
-#planner .p-month .p-cell:nth-child(4)::before {
-  content: "ד" !important;
-}
-
-#planner .p-month .p-cell:nth-child(5)::before {
-  content: "ה" !important;
-}
-
-#planner .p-month .p-cell:nth-child(6)::before {
-  content: "ו" !important;
-}
-
-#planner .p-month .p-cell:nth-child(7)::before {
-  content: "ש" !important;
-}
-
-/* spacing under the title */
-#planner .p-monthbar {
-  margin-bottom: 6px !important;
-}
-
 /* =========================================================
    End month background
    ========================================================= */
@@ -3913,5 +3799,7 @@ body.is-dark #planner .p-month .p-cell:nth-child(-n+7)::before {
 
 /* breathing space under title */
 #planner .p-monthbar {
-  margin-bottom: 6px !important;
+  margin-bottom: 7px !important;
 }
+
+/* orb positoin in month view, month colors, today button alignment, return from settings */
