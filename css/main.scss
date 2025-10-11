@@ -279,15 +279,6 @@ direction: rtl;               /* Hebrew content */
   box-shadow: var(--bar-shadow);
   > svg{ width:18px; height:18px; }
 }
-/* Today pill */
-.p-weekbar__btn[data-weeknav="today"],
-.p-monthbar__btn[data-monthnav="today"],
-[data-daynav="today"],
-.p-weekbar--day .p-weekbar__today{
-  min-width:5.6rem; height:var(--bar-h); padding:0 18px; border-radius:var(--bar-r);
-  border:1px solid var(--bar-border); background:var(--bar-bg) !important; color:var(--bar-text);
-  font:var(--bar-font); box-shadow:var(--bar-shadow); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
 /* Day header: ensure legacy pill styles don't leak */
 .p-dayview__head .c-headbtn{ all:unset; }
 
@@ -583,13 +574,7 @@ body.is-dark .c-sheet__panel{
   border:1px solid rgba(232,196,92,.28);
   box-shadow:0 -14px 32px rgba(5,10,22,.82),inset 0 1px 0 rgba(255,255,255,.04)
 }
-html[data-theme="dark"] .p-week .p-day__count{background:rgba(13,23,44,.9)}
-html[data-theme="dark"] .p-month .p-count{
-  background:rgba(13,23,44,.92)!important;
-  color:var(--ring-color,#60a5fa)!important;border-color:var(--ring-color,#60a5fa)!important;
-  box-shadow:0 1px 3px rgba(0,0,0,.28)
-}
-html[data-theme="dark"] .p-month .p-cell__num{color:#eaf2ff}
+
 
 /* Keep light bg on wide screens */
 @media (min-width:420px){ .o-page{background:#fff!important} }
@@ -708,9 +693,6 @@ html.is-dark      .looz-logo .brand-logo--dark { display:block; }
   font:var(--bar-font);box-shadow:var(--bar-shadow);white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
 
-/* Home CTA static + remove old Exit */
-.c-bottom-cta{position:static!important;bottom:auto!important;display:grid;justify-items:center;padding-bottom:max(16px, env(safe-area-inset-bottom));background:transparent!important}
-.c-exit-wrap,#btnExit{display:none!important}
 
 /* Fade-in for page */
 .o-page{ animation: fadeIn .18s ease-out both }
@@ -2486,3 +2468,102 @@ body.is-dark #planner .p-week :where(.p-row,.week-row)[data-hastasks="true"]{
   #planner{ padding-inline: 8px; }
 }
 
+/* ========== NAV — keep arrows left/right, Today dead center ========== */
+.p-dayview__head,
+.p-weekbar,
+.p-monthbar{
+  display:grid !important;
+  grid-template-columns:minmax(44px,auto) 1fr minmax(44px,auto) !important;
+  align-items:center !important;
+}
+.p-dayview__head [data-daynav="prev"],
+.p-weekbar   [data-weeknav="prev"],
+.p-monthbar  [data-monthnav="prev"]{ grid-column:1; justify-self:start; }
+.p-dayview__head [data-daynav="next"],
+.p-weekbar   [data-weeknav="next"],
+.p-monthbar  [data-monthnav="next"]{ grid-column:3; justify-self:end; }
+.p-dayview__head [data-daynav="today"],
+.p-weekbar   [data-weeknav="today"],
+.p-weekbar   .p-weekbar__today,
+.p-monthbar  [data-monthnav="today"]{
+  grid-column:2 !important; justify-self:center !important; margin:0 !important;
+}
+
+/* ========== MONTH — day-bar + letters inside ========================= */
+#planner .p-month{
+  --pad:16px; --bar-h:32px; --label-h:22px; --lift:12px;
+  position:relative; padding:calc(var(--pad)+var(--bar-h)-var(--lift)) var(--pad) var(--pad);
+}
+#planner .p-month::after{
+  content:""; position:absolute; left:var(--pad); right:var(--pad);
+  top:calc(var(--pad) - var(--lift)); height:var(--bar-h); border-radius:999px;
+  background:rgba(255,255,255,.50); backdrop-filter:blur(6px); z-index:1;
+}
+body.is-dark #planner .p-month::after{ background:rgba(15,27,47,.58); }
+#planner .p-month .p-cell{ position:relative; z-index:2; overflow:visible; }
+#planner .p-month .p-cell::before{
+  display:block !important; content:unset !important; background:transparent !important; border:0 !important;
+}
+#planner .p-month .p-cell:nth-child(-n+7)::before{
+  position:absolute;
+  top:calc(var(--pad) - var(--lift) + (var(--bar-h) - var(--label-h))/2) !important;
+  left:50%; transform:translateX(-50%);
+  height:var(--label-h); display:grid; place-items:center;
+  font:800 .95rem/1 'Rubik',system-ui,sans-serif;
+  color:#0f172a; text-shadow:0 1px 0 rgba(255,255,255,.6); z-index:2;
+}
+body.is-dark #planner .p-month .p-cell:nth-child(-n+7)::before{
+  color:#fff !important; text-shadow:0 0 6px rgba(255,255,255,.35);
+}
+/* Hebrew (Sunday-first) */
+#planner .p-month .p-cell:nth-child(1)::before{ content:"א" !important; }
+#planner .p-month .p-cell:nth-child(2)::before{ content:"ב" !important; }
+#planner .p-month .p-cell:nth-child(3)::before{ content:"ג" !important; }
+#planner .p-month .p-cell:nth-child(4)::before{ content:"ד" !important; }
+#planner .p-month .p-cell:nth-child(5)::before{ content:"ה" !important; }
+#planner .p-month .p-cell:nth-child(6)::before{ content:"ו" !important; }
+#planner .p-month .p-cell:nth-child(7)::before{ content:"ש" !important; }
+
+/* ========== SINGLE ACCENT (light=blue, dark=gold) ===================== */
+:root{ --accent-light:#0EA5FF; --accent-ink-light:#fff; }
+body.is-dark{ --accent-dark:#FFD65A; --accent-ink-dark:#1a1a1a; }
+
+/* Task count pill */
+.p-count{
+  background: var(--accent-light) !important;
+  border: 2px solid var(--accent-light) !important;
+  color: var(--accent-ink-light) !important;
+}
+body.is-dark .p-count{
+  background: var(--accent-dark) !important;
+  border-color: var(--accent-dark) !important;
+  color: var(--accent-ink-dark) !important;
+}
+
+/* Date ring (only when day has tasks) */
+@supports(selector(.x:has(.y))){
+  .p-month .p-cell:has(.p-count){ outline:2px solid var(--accent-light) !important; outline-offset:0; border-radius:14px; }
+  body.is-dark .p-month .p-cell:has(.p-count){ outline-color:var(--accent-dark) !important; }
+}
+/* Fallback: add data-hastasks="true" in markup */
+.p-month .p-cell[data-hastasks="true"]{ outline:2px solid var(--accent-light) !important; border-radius:14px; }
+body.is-dark .p-month .p-cell[data-hastasks="true"]{ outline-color:var(--accent-dark) !important; }
+
+/* Neutral ring for days with no tasks */
+.p-month .p-cell:not([data-hastasks="true"]){ outline:2px solid #D6D9E0 !important; border-radius:14px; }
+body.is-dark .p-month .p-cell:not([data-hastasks="true"]){ outline:2px solid #293347 !important; }
+
+/* Week view counter uses same accent */
+.p-week .p-day__count{
+  background: var(--accent-light) !important;
+  border: 2px solid var(--accent-light) !important;
+  color: var(--accent-ink-light) !important;
+}
+body.is-dark .p-week .p-day__count{
+  background: var(--accent-dark) !important;
+  border-color: var(--accent-dark) !important;
+  color: var(--accent-ink-dark) !important;
+}
+
+/* ========== ORB — keep bottom-center across views ===================== */
+/* You already have .fab-rail + .btn-create-orb; just ensure no static overrides exist */
