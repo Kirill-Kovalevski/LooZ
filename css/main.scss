@@ -226,23 +226,3 @@ body{
 #planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]) [data-daynum]{
   color:#FF6347 !important;
 }
-/* ONE blue in Week + Month pills and borders */
-.p-week :where(.p-day__count,.p-count,.p-badge,[data-count]){
-  background:#0EA5FF!important;border:2px solid #0EA5FF!important;color:#fff!important;
-}
-#planner .p-month :where(.p-badge,.p-count,.count,.badge,[data-count]){
-  background:#0EA5FF!important;border:2px solid #0EA5FF!important;color:#fff!important;border-radius:999px!important;
-}
-/* Month cell border when tasks (attribute fallback) */
-#planner .p-month .p-cell{ border:2px solid #D6D9E0!important;border-radius:18px!important }
-#planner .p-month .p-cell[data-hastasks="true"]{ border-color:#0EA5FF!important }
-
-/* Today in month: tomato ring + number */
-#planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]){ border-color:#FF6347!important }
-#planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]) :where(.p-daynum,[data-daynum]){ color:#FF6347!important }
-
-/* Today buttons centered */
-.p-weekbar__btn,.p-monthbar__btn,[data-daynav]{ display:grid; place-items:center; line-height:1!important }
-
-/* FAB stays put in Month view */
-#planner .p-month{ transform:none!important }
