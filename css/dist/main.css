@@ -3739,3 +3739,179 @@ body.is-dark #planner .p-month .p-cell:nth-child(-n+7)::before {
 /* =========================================================
    End month background
    ========================================================= */
+/* =============== MONTH VIEW — letters INSIDE the day-bar (final) =============== */
+/* Center headers (prev | היום | next) */
+#planner .p-dayview__head,
+#planner .p-weekbar,
+#planner .p-monthbar {
+  --nav: 46px;
+  display: grid !important;
+  grid-template-columns: var(--nav) 1fr var(--nav) !important;
+  align-items: center !important;
+  column-gap: 0.5rem !important;
+  position: relative;
+  z-index: 10;
+}
+
+#planner .p-dayview__head [data-daynav=today],
+#planner .p-weekbar [data-weeknav=today],
+#planner .p-weekbar .p-weekbar__today,
+#planner .p-monthbar [data-monthnav=today] {
+  grid-column: 2 !important;
+  justify-self: center !important;
+}
+
+#planner .p-monthbar__title {
+  grid-column: 1/-1 !important;
+  justify-self: center !important;
+  margin: 0 0 6px !important;
+  position: relative;
+  z-index: 11;
+}
+
+/* Month card */
+#planner .p-month {
+  /* knobs */
+  --pad: 16px;
+  /* card side padding */
+  --bar-h: 32px;
+  /* day-bar height */
+  --label-h: 22px;
+  /* visual height of letter line */
+  --lift: 14px;
+  /* distance of bar from the title */
+  position: relative !important;
+  border-radius: 22px !important;
+  direction: rtl !important;
+  overflow: visible !important;
+  /* leave room for the bar above the grid */
+  padding-top: calc(var(--pad) + var(--bar-h) - var(--lift)) !important;
+  padding-inline: var(--pad) !important;
+  padding-bottom: var(--pad) !important;
+  /* frosted surface */
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+}
+
+/* Dreamy light gradient behind the card */
+#planner .p-month::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -2;
+  background: radial-gradient(60% 70% at 12% 18%, #ffd6b3 0%, #ffd6b300 62%), radial-gradient(60% 60% at 88% 22%, #ffb7d4 0%, #ffb7d400 62%), radial-gradient(60% 62% at 18% 88%, #e0daff 0%, #e0daff00 62%), radial-gradient(60% 62% at 84% 86%, #fff5a8 0%, #fff5a800 62%), linear-gradient(180deg, #ffe8c4 0%, #f3ccff 50%, #ffd675 100%);
+  filter: saturate(1.08) contrast(1.03);
+}
+
+/* The one translucent day-bar */
+#planner .p-month::after {
+  content: "";
+  position: absolute;
+  left: var(--pad);
+  right: var(--pad);
+  top: calc(var(--pad) - var(--lift));
+  height: var(--bar-h);
+  border-radius: 999px;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.5) !important;
+  /* more transparent */
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* Dark mode skin */
+body.is-dark #planner .p-month {
+  background: rgba(13, 20, 38, 0.76) !important;
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+body.is-dark #planner .p-month::before {
+  background: radial-gradient(58% 66% at 16% 16%, #083344 0%, #08334400 62%), radial-gradient(58% 66% at 84% 18%, #0a3b2e 0%, #0a3b2e00 62%), radial-gradient(58% 66% at 16% 86%, #0e1f4a 0%, #0e1f4a00 62%), radial-gradient(58% 66% at 84% 86%, #122a62 0%, #122a6200 62%), linear-gradient(180deg, #0b2536 0%, #0b1d2f 50%, #0a1630 100%);
+}
+
+body.is-dark #planner .p-month::after {
+  background: rgba(14, 25, 45, 0.62) !important;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Cells can host labels; remove old chip/folder visuals */
+#planner .p-month .p-cell {
+  position: relative !important;
+  z-index: 2 !important;
+  overflow: visible !important;
+}
+
+#planner .p-month .p-cell::before {
+  content: unset !important;
+  display: block !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-width: 0 !important;
+}
+
+/* PLACE the 7 letters inside the bar (centered over their columns)
+   *** KEY LINE: vertical centering from the cell top ***
+   top = -(bar-h + label-h) / 2
+*/
+#planner .p-month .p-cell:nth-child(-n+7)::before {
+  position: absolute !important;
+  top: calc(-0.5 * (var(--bar-h) + var(--label-h))) !important;
+  /* <-- inside strip */
+  left: 50% !important;
+  transform: translate(-50%, 0) !important;
+  height: var(--label-h) !important;
+  display: grid !important;
+  place-items: center !important;
+  font: 800 0.95rem/1 "Rubik", system-ui, sans-serif !important;
+  white-space: nowrap !important;
+  z-index: 3 !important;
+  color: #0a0a0a !important;
+  /* deep black (light) */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+}
+
+body.is-dark #planner .p-month .p-cell:nth-child(-n+7)::before {
+  color: #FFD65A !important;
+  /* deep gold (dark) */
+  text-shadow: 0 0 6px rgba(255, 214, 90, 0.55), 0 0 12px rgba(255, 208, 120, 0.25) !important;
+}
+
+/* Hebrew mapping (Sunday-first) */
+#planner .p-month .p-cell:nth-child(1)::before {
+  content: "א" !important;
+}
+
+#planner .p-month .p-cell:nth-child(2)::before {
+  content: "ב" !important;
+}
+
+#planner .p-month .p-cell:nth-child(3)::before {
+  content: "ג" !important;
+}
+
+#planner .p-month .p-cell:nth-child(4)::before {
+  content: "ד" !important;
+}
+
+#planner .p-month .p-cell:nth-child(5)::before {
+  content: "ה" !important;
+}
+
+#planner .p-month .p-cell:nth-child(6)::before {
+  content: "ו" !important;
+}
+
+#planner .p-month .p-cell:nth-child(7)::before {
+  content: "ש" !important;
+}
+
+/* breathing space under title */
+#planner .p-monthbar {
+  margin-bottom: 6px !important;
+}
