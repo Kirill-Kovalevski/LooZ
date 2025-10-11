@@ -1,210 +1,168 @@
-/* === LooZ — Dark mode overrides (load AFTER main.css) === */
+/* ===================================================================
+   LOOZ — dark-overrides.scss (DARK ONLY)
+   Requires: html[data-theme="dark"] on <html>
+   =================================================================== */
 
-/* ---- tokens (for readability) ---- */
-:is(html,body).is-dark{
-  --bg0:#0b1220; --bg1:#0f1830;
-  --surface:#16223b; --elev:#1a2a48;
-  --border:#2a3a5a;
-  --text:#eaf2ff; --muted:#b7c7e6; --strong:#f6fbff;
-  --accent:#0d63ff; --accent2:#47d0ff;
-  --gold:#f2d675;
+/* Dark tokens */
+html[data-theme="dark"]{
+  --bar-bg:#141e31; --bar-border:#2c4676; --bar-text:#e5ecf5;
+  --bar-shadow:0 .45rem 1rem rgba(0,0,0,.30);
+
+  /* single accent (gold) */
+  --accent-dark:#FFD65A;
+  --accent-ink-dark:#1a1a1a;
+
+  /* background body */
+  background:#0f1830;
 }
 
-/* ---- page shell ---- */
-body.is-dark{ background:radial-gradient(120% 140% at 50% -25%, var(--bg1), var(--bg0) 65%) !important; color:var(--text) !important; }
-body.is-dark .o-phone{ background:var(--bg1) !important; box-shadow:0 10px 28px rgba(7,12,26,.6) !important; }
-body.is-dark .c-subtitle,
-body.is-dark .p-day__date,
-body.is-dark .p-dayview__date{ color:var(--muted) !important; }
+/* Phone surface */
+html[data-theme="dark"] .o-page,
+html[data-theme="dark"] .o-phone{
+  background:#0f1830 !important;
+  box-shadow:none;
+}
 
-/* ---- lemon button (original design you had) ---- */
-.c-icon-btn--lemon{
-  inline-size:2.25rem; block-size:2.25rem; border-radius:.8rem;
-  border:1px solid rgba(0,0,0,.06);
+/* Top bar / nav buttons */
+html[data-theme="dark"] .p-weekbar__btn,
+html[data-theme="dark"] .p-monthbar__btn,
+html[data-theme="dark"] [data-daynav]{
+  background:#141e31!important; color:#e5ecf5!important; border:1px solid #2c4676!important; box-shadow:0 6px 16px rgba(0,0,0,.35);
+}
+
+/* WEEK (dark) — cards + single GOLD pill */
+html[data-theme="dark"] .p-week .p-day{
+  background:#162540 !important; border-color:#2c4676 !important;
+  box-shadow:0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+html[data-theme="dark"] .p-week .p-day__name{ color:#EAF2FF !important; }
+html[data-theme="dark"] .p-week .p-day__date{ color:#9CB3D6 !important; }
+html[data-theme="dark"] .p-week :where(.p-day__count,.p-count,.p-badge,[data-count]){
+  background:var(--accent-dark)!important; border:2px solid var(--accent-dark)!important; color:var(--accent-ink-dark)!important;
+}
+
+/* MONTH (dark) skin */
+html[data-theme="dark"] #planner .p-month{
+  background:rgba(13,20,38,.80) !important;
+  box-shadow:0 24px 54px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+html[data-theme="dark"] #planner .p-month::before{
   background:
-    radial-gradient(140% 120% at 35% 30%, #fff 0%, rgba(255,255,255,.4) 45%, rgba(255,255,255,0) 70%),
-    radial-gradient(60% 60% at 70% 75%, rgba(247,200,67,.55), rgba(247,200,67,0)),
-    linear-gradient(180deg,#FFF7D1,#FFE48A);
-  box-shadow:
-    inset 0 0 .5rem rgba(255,255,255,.75),
-    0 .25rem .8rem rgba(0,0,0,.08),
-    0 0 0 6px rgba(255,231,122,.15);
+    radial-gradient(62% 74% at 20% 22%,#0d3947 0%,#0d394700 62%),
+    radial-gradient(66% 64% at 86% 18%,#0b2d38 0%,#0b2d3800 60%),
+    linear-gradient(180deg,#0b1a30 0%,#0a2135 45%,#07272b 100%);
 }
-body.is-dark .c-icon-btn--lemon{
-  border-color:rgba(255,255,255,.08);
-  box-shadow:
-    inset 0 0 .4rem rgba(255,255,255,.5),
-    0 .25rem .8rem rgba(0,0,0,.45),
-    0 0 0 6px rgba(245,215,115,.12);
-}
-/* if you had a ::before lemon from a previous step, neutralize it */
-.c-icon-btn--lemon::before,
-.c-icon-btn--lemon::after{ content:none !important; }
+html[data-theme="dark"] #planner .p-month::after{ background:rgba(15,27,47,.58) }
 
-/* ---- top view pills ---- */
-body.is-dark .c-headbtn{ background:#0f1b32 !important; border:1px solid var(--border) !important; color:var(--text) !important; }
-body.is-dark .c-headbtn.is-active{
-  background:var(--accent) !important; color:#fff !important; border-color:transparent !important;
-  box-shadow:0 12px 26px rgba(13,99,255,.32) !important;
+/* Day-bar weekday letters must be WHITE in dark */
+html[data-theme="dark"] #planner .p-month .p-cell:nth-child(-n+7)::before{
+  color:#fff !important; text-shadow:0 0 6px rgba(255,255,255,.35);
 }
 
-/* ---- list/rows (day & week) ---- */
-body.is-dark .p-day,
-body.is-dark .p-daytask,
-body.is-dark .p-task{
-  background:var(--surface) !important; color:var(--text) !important; border:1px solid var(--border) !important;
-  box-shadow:0 0 0 1px rgba(255,255,255,.02) inset, 0 10px 26px rgba(7,12,26,.55) !important;
-}
-body.is-dark .p-day__name,
-body.is-dark .p-dayview__title{ color:var(--strong) !important; }
-body.is-dark .p-daytask__time,
-body.is-dark .p-task__time{
-  background:#0f1b2f !important; border:1px solid #36548a !important; color:#e4ecff !important;
+/* Month cell default neutral border in dark (empty days) */
+html[data-theme="dark"] #planner .p-month .p-cell{
+  border-width:2px !important; border-style:solid !important; border-radius:18px !important;
+  border-color:#293347 !important;
 }
 
-/* ---- month grid ---- */
-body.is-dark .p-month .p-cell{
-  background:var(--surface) !important; border:1px solid var(--border) !important;
-  box-shadow:0 0 0 1px rgba(255,255,255,.02) inset, 0 10px 26px rgba(7,12,26,.45) !important;
+/* DARK — pill + border + cell border GOLD when tasks exist */
+html[data-theme="dark"] #planner :where(.p-badge,.p-count,.count,.badge,[data-count]){
+  background:var(--accent-dark)!important; color:var(--accent-ink-dark)!important; border:2px solid var(--accent-dark)!important;
 }
-body.is-dark .p-cell__num{ color:var(--strong) !important; }
-body.is-dark .p-cell--pad .p-cell__num{ color:#7f93b5 !important; }
-body.is-dark .p-cell--today{ outline:2px solid #6aa1ff !important; outline-offset:1px !important; }
-body.is-dark .p-cell--selected{ box-shadow:inset 0 0 0 2px #6aa1ff !important; border-color:#3b63b0 !important; }
-/* hide decorative lines if any month wrapper exists */
-body.is-dark .p-monthwrap::before,
-body.is-dark .p-monthwrap::after{ display:none !important; }
-
-/* ---- date badge ---- */
-body.is-dark .c-title--date{
-  background:linear-gradient(180deg, var(--gold), #ffe996) !important;
-  color:#09121f !important; box-shadow:0 6px 16px rgba(242,214,117,.25) !important;
+html[data-theme="dark"] #planner .p-month .p-cell[data-hastasks="true"]{ border-color:var(--accent-dark)!important; }
+@supports(selector(.x:has(.y))){
+  html[data-theme="dark"] #planner .p-month .p-cell:has(:where(.p-badge,.p-count,.count,.badge,[data-count])){
+    border-color:var(--accent-dark)!important;
+  }
 }
 
-/* ---- in-flow nav panel (lemon menu) ---- */
-body.is-dark #appNav.c-nav:not(.u-is-collapsed) .c-nav__panel{
-  background:rgba(22,34,59,.95) !important; border:1px solid var(--border) !important;
-  box-shadow:0 10px 26px rgba(7,12,26,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
+/* (Optional) keep TODAY border tomato in dark as well
+   – uncomment if you want tomato in dark; otherwise inherit neutral.
+   html[data-theme="dark"] #planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]){
+     border-color:#FF6347 !important;
+   }
+   html[data-theme="dark"] #planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]) .p-daynum,
+   html[data-theme="dark"] #planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]) [data-daynum]{
+     color:#FF6347 !important;
+   }
+*/
+/* ===================================================================
+   LOOZ — dark-overrides.scss (DARK ONLY)
+   - Single GOLD accent in Week/Month (pills + borders)
+   - Day-bar letters white
+   - Keeps "Today" button centered (inherits from main)
+   =================================================================== */
+
+html[data-theme="dark"]{
+  /* Dark UI tokens */
+  --bar-bg:#141e31; --bar-border:#2c4676; --bar-text:#e5ecf5;
+  --bar-shadow:0 .45rem 1rem rgba(0,0,0,.30);
+
+  /* GOLD accent */
+  --accent-dark:#FFD65A;
+  --accent-ink-dark:#1a1a1a;
+
+  background:#0f1830;
 }
 
-/* ---- inputs ---- */
-body.is-dark .c-search__input,
-body.is-dark .f-input{
-  background:#0e1a31 !important; color:var(--text) !important; border:1px solid var(--border) !important;
-}
-body.is-dark input::placeholder{ color:#9cb3d6 !important; opacity:1 !important; }
-
-/* ---- CTA ---- */
-body.is-dark .c-bottom-cta{ background:transparent !important; }
-body.is-dark .c-cta{
-  background:linear-gradient(90deg, var(--accent2), var(--accent)) !important;
-  color:#061222 !important; border:0 !important;
-  box-shadow:0 14px 30px rgba(71,208,255,.24), 0 6px 14px rgba(111,162,255,.22) !important;
+/* Surfaces */
+html[data-theme="dark"] .o-page,
+html[data-theme="dark"] .o-phone{
+  background:#0f1830 !important;
+  box-shadow:none;
 }
 
-/* ---- bottom sheet ---- */
-body.is-dark .c-sheet__backdrop{ background:rgba(6,12,24,.6) !important; }
-:is(html,body).is-dark .c-sheet__panel{
-  background:radial-gradient(200% 140% at 50% -20%, #121a2e 0%, #0f1a2d 55%, #0e1727 100%) !important;
-  border:1px solid rgba(232,196,92,.28) !important;
-  box-shadow:0 -14px 32px rgba(5,10,22,.82), inset 0 1px 0 rgba(255,255,255,.04) !important;
-}
-body.is-dark .c-sheet__title{ color:var(--strong) !important; }
-body.is-dark .f-label{ color:#cfe2ff !important; }
-
-/* ---- focus rings ---- */
-body.is-dark :focus-visible{ outline:2px solid var(--accent2) !important; outline-offset:2px !important; border-radius:8px; }
-/* ---------- Week header perfect alignment ---------- */
-.p-day__head--grid{
-  display:grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items:center;
-  column-gap:.5rem;
-}
-.p-day__name{ justify-self:end; }
-.p-day__date{ justify-self:start; }
-.p-day__head--grid .p-counter{ justify-self:center; }
-
-/* ---------- Counter base ---------- */
-.p-counter{
-  display:inline-flex; align-items:center; justify-content:center;
-  min-width: 22px; height: 18px; padding: 0 6px;
-  border-radius: 999px; font: 600 11px/18px 'Rubik', system-ui, sans-serif;
-  border: 1px solid transparent;
-  user-select:none;
+/* Nav buttons (incl. Today) */
+html[data-theme="dark"] .p-weekbar__btn,
+html[data-theme="dark"] .p-monthbar__btn,
+html[data-theme="dark"] [data-daynav]{
+  background:#141e31!important; color:#e5ecf5!important; border:1px solid #2c4676!important; box-shadow:0 6px 16px rgba(0,0,0,.35);
 }
 
-/* levels (light + dark friendly) */
-.p-counter.cnt--0{ opacity:.25; border-color:transparent; background:transparent; }
-.p-counter.cnt--1{ color:#047857; background:rgba(16,185,129,.18); border-color:rgba(16,185,129,.35); }
-.p-counter.cnt--2{ color:#a16207; background:rgba(245,158,11,.18); border-color:rgba(245,158,11,.35); }
-.p-counter.cnt--3{ color:#9d174d; background:rgba(236,72,153,.18); border-color:rgba(236,72,153,.35); }
-.p-counter.cnt--4{ color:#6d28d9; background:rgba(167,139,250,.20); border-color:rgba(167,139,250,.35); }
-.p-counter.cnt--5{ color:#0f766e; background:rgba(45,212,191,.20); border-color:rgba(45,212,191,.35); }
-.p-counter.cnt--6{ color:#1d4ed8; background:rgba(59,130,246,.20); border-color:rgba(59,130,246,.35); }
-.p-counter.cnt--7{ color:#7c3aed; background:linear-gradient(90deg, rgba(34,211,238,.18), rgba(244,114,182,.18)); border-color:rgba(124,58,237,.35); }
-
-/* ---------- Month cell small counter (never overlaps date) ---------- */
-.p-cell{ position:relative; }
-.p-cell__num{ position:relative; z-index:1; }
-.p-cell__count{
-  position:absolute; left:50%; bottom:4px; transform:translateX(-50%);
-  min-width: 16px; height: 14px; padding:0 4px; border-radius:999px;
-  font: 700 10px/14px 'Rubik', system-ui, sans-serif;
-  z-index:0; /* sits below the centered date number */
+/* WEEK (dark) — single GOLD pill */
+html[data-theme="dark"] .p-week :where(.p-day__count,.p-count,.p-badge,[data-count]){
+  background:var(--accent-dark)!important;
+  border:2px solid var(--accent-dark)!important;
+  color:var(--accent-ink-dark)!important;
 }
 
-/* ---------- Scratch-out delete animation ---------- */
-.p-daytask.scratch-out{ position:relative; opacity:.85; transition:opacity .42s ease, transform .42s ease; transform: translateX(6px); }
-.p-daytask.scratch-out::after{
-  content:""; position:absolute; inset-inline-start:-10%; inset-inline-end:-10%; top:50%;
-  height:2px; background: repeating-linear-gradient(90deg, transparent 0 8px, rgba(20,20,20,.45) 8px 10px);
-  transform: rotate(-4deg) scaleX(0); transform-origin: left center;
-  animation: looz-scratch .42s cubic-bezier(.4,0,.2,1) forwards;
+/* MONTH (dark) — card + borders */
+html[data-theme="dark"] #planner .p-month{
+  background:rgba(13,20,38,.80) !important;
+  box-shadow:0 24px 54px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.06) !important;
 }
-@keyframes looz-scratch{ to{ transform: rotate(-4deg) scaleX(1); } }
-
-/* ---------- Confetti ---------- */
-.confetti{ position:fixed; left:0; top:0; width:0; height:0; pointer-events:none; z-index:9999; }
-.confetti i{
-  position:absolute; left:0; top:0; transform:translate(0,0);
-  border-radius:2px; opacity:1;
-  animation: confettiPop .9s ease-out forwards;
-}
-@keyframes confettiPop{
-  0%   { transform: translate(0,0) rotate(0); opacity:1; }
-  100% { transform: translate(var(--tx),var(--ty)) rotate(540deg); opacity:0; }
-}
-/* css/dark-overrides.scss (compile to css/dist/dark-overrides.css) */
-:is(html, body).is-dark {
-  color-scheme: dark;
-  /* Site-wide base changes */
-  background: #0b1220;
-}
-.is-dark .card{ background:#0f1a2b; border-color:#1b2a43 }
-.is-dark .nav{ background:#0f1a2b; border-color:#1b2a43 }
-/* === LooZ dark tweaks =================================== */
-
-/* Logo background in dark */
-.is-dark #brandIcon,
-.is-dark .brand-badge,
-.is-dark .logo-card,
-.is-dark .logo-box,
-.is-dark [data-role="logo"]{
-  background:#0f1a2b;
-  border-color:#1b2a43;
+html[data-theme="dark"] #planner .p-month .p-cell{
+  border:2px solid #293347 !important; border-radius:18px !important;
 }
 
-/* Small pills and icon buttons */
-.is-dark .c-topbtn,
-.is-dark .c-icon-btn,
-.is-dark .c-nav-arrow,
-.is-dark .btn-pill{
-  background:#141e31;
-  color:#e5ecf5;
-  border-color:#1b2a43;
+/* Day-bar letters must be WHITE */
+html[data-theme="dark"] #planner .p-month .p-cell:nth-child(-n+7)::before{
+  color:#ffffff !important;
 }
 
-/* Ensure the segmented control always looks crisp in dark */
-.is-dark .c-headbtn{ color:#e5ecf5; border-color:#1b2a43 }
-.is-dark .c-headbtn.is-active{ color:#fff; border-color:transparent }
+/* DARK — single GOLD pill + cell border when tasks exist */
+html[data-theme="dark"] #planner :where(.p-badge,.p-count,.count,.badge,[data-count]){
+  background:var(--accent-dark)!important;
+  color:var(--accent-ink-dark)!important;
+  border:2px solid var(--accent-dark)!important;
+}
+html[data-theme="dark"] #planner .p-month .p-cell[data-hastasks="true"]{ border-color:var(--accent-dark)!important; }
+@supports(selector(.x:has(.y))){
+  html[data-theme="dark"] #planner .p-month .p-cell:has(:where(.p-badge,.p-count,.count,.badge,[data-count])){
+    border-color:var(--accent-dark)!important;
+  }
+}
+
+/* (Optional) If you also want TOMATO today ring in dark, uncomment:
+html[data-theme="dark"] #planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]){
+  border-color:#FF6347 !important;
+}
+html[data-theme="dark"] #planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]) .p-daynum,
+html[data-theme="dark"] #planner .p-month :where(.p-cell.today,.p-cell.is-today,.p-cell[data-today="true"]) [data-daynum]{
+  color:#FF6347 !important;
+}
+*/
+/* smoke test: remove once you see the border turn hotpink */
+.p-weekbar__btn[data-weeknav="today"],
+.p-monthbar__btn[data-monthnav="today"],
+[data-daynav="today"] { outline:3px solid hotpink!important; }

@@ -94,4 +94,5 @@
 
 
   window.addEventListener('looz:theme', syncToggles);
+  
 })();
