@@ -1,3 +1,25 @@
-body[data-view="settings"] {
-  .s, .s__header { background: #0c1220 !important; background-image: none !important; box-shadow: none; }
+@use '../core/tokens' as tokens;
+
+body[data-view="settings"]{
+  .s{ display:grid; gap:1rem; padding:1rem 0; }
+  .s__header{ display:flex; align-items:center; justify-content:space-between; }
+  .s__title{ margin:0; font:800 1.25rem/1 'Rubik',system-ui,sans-serif; }
+
+  .s__group{ background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:1rem; }
+  .s__group-title{ margin:.1rem 0 .6rem; font-weight:800; }
+  .s__row{ display:flex; gap:.5rem; flex-wrap:wrap; }
+  .s__text{ margin:0; color:#475569; }
+
+  /* reuse pill buttons from components */
+  .c-headbtn.is-active{
+    background:linear-gradient(180deg,#fff6ae,#ffe77a);
+    color:#0f172a; border-color:#e5c65e;
+    box-shadow:0 .45rem .95rem rgba(199,154,41,.18);
+  }
+}
+
+/* dark */
+:is(html,body).is-dark body[data-view="settings"]{
+  .s__group{ background:var(--dm-surface); border:1px solid var(--dm-border); }
+  .s__text{ color:var(--dm-muted); }
 }

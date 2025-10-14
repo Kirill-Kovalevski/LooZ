@@ -1,10 +1,47 @@
-/* Applies only when body[data-view="home"] */
-body[data-view="home"] {
-  .c-meta-block { margin-top: .1rem; }
-  .c-title--date {
-    display: inline-block; padding: .16rem .44rem; border-radius: .44rem;
-    background: linear-gradient(180deg, var(--gold-b), var(--gold-a));
-    font-weight: 800;
+@use '../core/tokens' as tokens;
+
+body[data-view="home"]{
+  .o-page{ min-height:100dvh; display:grid; place-items:stretch; background:#fff; }
+  .o-phone{ display:flex; flex-direction:column; }
+
+  .o-header{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:.5rem;
+    text-align:center;
   }
-  .c-subtitle { margin: .28rem 0 0; color: #475569; font-size: 1.02rem; }
+
+  .looz-logo{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:900;
+    letter-spacing:.02em;
+    font-size:clamp(1.8rem,7vw,2.86rem);
+    background:linear-gradient(90deg,#5e4e2e,#c79a29,#e9d8a6,#5e4e2e);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 1px 0 rgba(255,255,255,.6),0 10px 20px rgba(199,154,41,.18);
+    text-decoration:none;
+  }
+
+  .c-view-switch{ display:flex; gap:.5rem; justify-content:center; }
+
+  .c-meta-block{ grid-column:1/-1; margin-top:.1rem; text-align:center; }
+  .c-title--date{
+    display:inline-block; padding:.16rem .44rem; border-radius:.44rem;
+    background:linear-gradient(180deg,#fff6ae 0%,#ffe77a 100%); font-weight:800;
+  }
+  .c-subtitle{ margin:.28rem 0 0; color:#475569; font-size:1.02rem; }
+  .c-subtitle b{ font-weight:800; }
+
+  .c-cta-wrap{ display:grid; justify-items:center; margin:.7rem 0 0; }
+  .btn-create-orb{ /* style comes from components/_buttons.scss */ }
+}
+
+/* dark */
+:is(html,body).is-dark body[data-view="home"]{
+  .c-subtitle{ color:var(--dm-muted); }
+  .c-title--date{
+    background:linear-gradient(180deg,#f5d773,#fae58f);
+    color:#0c1019!important; box-shadow:0 6px 16px rgba(245,215,115,.28);
+  }
 }

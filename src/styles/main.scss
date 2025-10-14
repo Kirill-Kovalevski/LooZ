@@ -1,28 +1,42 @@
-/* Order matters: tokens → mixins → base → layout → components → views → utils */
+/* ────────────────────────────────────────────────────────────────
+   LooZ – main SCSS entry
+   This file only wires partials together with Sass @use.
+   Order matters: core → base → utilities → components → views.
+   ──────────────────────────────────────────────────────────────── */
 
-/* === CORE === */
-@use './core/tokens' as *;
-@use './core/mixins' as *;
+/* 1) Core design tokens & mixins (variables, colors, helpers) */
+@use './core/tokens'  as tokens;
+@use './core/mixins'  as mx;
 
-/* === BASE === */
+/* 2) Base layer (normalize/reset, element defaults)
+   If you have a _reset.scss inside styles/base, keep this line.
+   If not, just leave it — Sass will error if the file is missing. */
 @use './base/reset';
-@use './base/typography';
 
-/* === LAYOUT === */
-@use './layout/shell';
-@use './layout/header';
+/* 3) Utilities (tiny helpers used across components) */
+@use './utils/helpers';
 
-/* === COMPONENTS === */
+/* 4) Components (reusable UI parts) */
 @use './components/buttons';
-@use './components/logo';
 @use './components/pills';
+@use './components/cta';
+@use './components/logo';
 
-/* === VIEWS (scoped by [data-view]) === */
+/* Header lives in components AND there may also be a layout header later.
+   To avoid a Sass namespace collision, alias this one. */
+@use './components/header' as appHeader;
+
+@use './components/search';
+@use './components/sheet';
+
+/* 5) Views (page-level styles, each is scoped with body[data-view="…"]) */
 @use './views/home';
 @use './views/day';
 @use './views/week';
 @use './views/month';
 @use './views/settings';
 
-/* === UTILS === */
-@use './utils/helpers';
+/* Done.
+   - Do NOT import SCSS from JS files.
+   - Import THIS file once in src/main.js:  import './styles/main.scss'
+*/

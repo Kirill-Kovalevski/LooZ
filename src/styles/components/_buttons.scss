@@ -1,20 +1,20 @@
-.c-cta {
-  inline-size: 74%; max-inline-size: 16.25rem; block-size: 2.8rem;
-  border-radius: 999px; border: 0; color: #f4e2f4; font-weight: 800; letter-spacing: .02em;
+@use '../core/mixins' as mx;
+
+.c-cta{
+  inline-size:74%; max-inline-size:16.25rem; block-size:2.8rem;
+  border-radius:999px; border:0; color:#f4e2f4; font-weight:800; letter-spacing:.02em;
   background: linear-gradient(90deg,#0ea5e9,#2563eb);
-  box-shadow: 0 .8rem 1.6rem rgba(37,99,235,.30);
+  box-shadow:0 .8rem 1.6rem rgba(37,99,235,.30);
 }
 
-/* Cream orb "Create" button replica (your visual spec) */
-.c-cta.c-cta--bang.btn-create-orb {
-  position: relative;
+/* create-orb */
+.c-cta.c-cta--bang.btn-create-orb{
+  position:relative;
   inline-size: clamp(86px, 24vw, 112px);
-  block-size: clamp(86px, 24vw, 112px);
-  border-radius: 50%;
-  border: 0; padding: 0;
-  color: transparent; text-indent: -9999px; line-height: 0;
-  display: grid; place-items: center;
-  cursor: pointer;
+  block-size:  clamp(86px, 24vw, 112px);
+  border-radius:50%; border:0; padding:0;
+  color:transparent; text-indent:-9999px; line-height:0;
+  display:grid; place-items:center;
   background:
     radial-gradient(120% 110% at 38% 22%, rgba(255,255,255,.95) 0 56%, rgba(255,255,255,0) 58%),
     radial-gradient(140% 120% at 62% 115%, #f8d8a2 0, #f4c984 42%, #efc272 68%, #e8b861 100%) !important;
@@ -24,15 +24,15 @@
     0 1px 0 rgba(0,0,0,.06),
     0 0 0 1px rgba(219,185,120,.42) !important;
 
-  &::before {
+  &::before{
     content:""; position:absolute; width:42%; height:42%;
-    left:50%; top:50%; transform: translate(-50%, -46%); border-radius: 22%;
+    left:50%; top:50%; transform:translate(-50%,-46%); border-radius:22%;
     background:
       radial-gradient(140% 120% at 34% 28%, rgba(255,255,255,.85), rgba(255,255,255,0) 54%),
       linear-gradient(180deg, #f6d57a, #e6b65f);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 10px 16px rgba(0,0,0,.12), 0 0 0 1px rgba(160,121,30,.28);
   }
-  &::after {
+  &::after{
     content:""; position:absolute; width:22%; height:22%;
     left:60%; top:26%; border-radius:50%; border:2px solid #fff;
     background:
@@ -41,12 +41,7 @@
       radial-gradient(120% 140% at 30% 25%, #51c7ff, #1b7cff 70%, #1560d8 100%);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 8px 14px rgba(27,124,255,.35);
   }
-  &:active { transform: translateY(1px) scale(.985); }
 }
-:is(html,body).is-dark .c-cta.c-cta--bang.btn-create-orb {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.92),
-    0 16px 30px rgba(0,0,0,.45),
-    0 0 0 1px rgba(219,185,120,.32),
-    0 0 40px rgba(255,210,120,.12) !important;
-}
+
+.c-view-switch{ display:flex; gap:.5rem; }
+.c-headbtn{ @include mx.pill; min-width:5.6rem; }

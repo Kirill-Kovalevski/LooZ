@@ -1,3 +1,7 @@
+@use '../core/mixins' as mx;
+
+.c-headbtn { @include mx.pill; min-width: 5.6rem; }
+[data-daynav="today"] { @include mx.pill; min-width: 5.6rem; }
 /* One template for day/week/month nav pills */
 .p-weekbar, .p-monthbar, .p-dayview__head {
   display: grid !important;
@@ -16,4 +20,4 @@
 }
 .p-weekbar__btn[data-weeknav="today"],
 .p-monthbar__btn[data-weeknav="today"],
-[data-daynav="today"] { @include pill; min-width: 5.6rem; }
+[data-daynav="today"] { @include mx.pill; min-width: 5.6rem; }

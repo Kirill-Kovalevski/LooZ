@@ -1,21 +1,44 @@
-body[data-view="day"] {
-  .p-dayview { display: grid; gap: .6rem; }
-  .p-daytask {
-    display: grid; grid-template-columns: minmax(0,1fr) 96px auto; align-items: center;
-    padding: .7rem .8rem; border-radius: 16px;
+@use '../core/tokens' as tokens;
+
+body[data-view="day"]{
+  .p-dayview{ display:grid; gap:.6rem; margin-bottom: 72px } /* room for orb */
+
+  .p-daytask{
+    display:grid; grid-template-columns:minmax(0,1fr) 96px auto; align-items:center;
+    padding:.7rem .8rem; border-radius:16px;
     background: radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%);
-    border: 1px solid #e7d8a1; box-shadow: 0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06);
+    border:1px solid #e7d8a1; box-shadow:0 1px 0 rgba(121,85,0,.06), 0 8px 18px rgba(121,85,0,.06);
   }
-  .p-daytask__time {
-    text-align: center; font-weight: 700; padding: .25rem .6rem; border-radius: 999px;
-    border: 1px solid #d6c27b; background: #fff8d6; color: #4b5563;
+
+  .p-daytask__time{
+    text-align:center; font-weight:700; padding:.25rem .6rem; border-radius:999px;
+    border:1px solid #d6c27b; background:#fff8d6; color:#4b5563;
   }
+
+  .p-daytask__actions{ display:flex; justify-content:flex-end; gap:.35rem }
+  .p-daytask__btn{
+    border:1px solid #e5e7eb; background:#fff; border-radius:.65rem; padding:.26rem .52rem; font-size:.94rem;
+    transition:transform .08s ease;
+  }
+  .p-daytask__btn:active{ transform:translateY(1px) }
+
+  /* LIGHT MODE colors: red V, green X */
+  .p-daytask__btn--ok{ color:#ef4444 }     /* red check */
+  .p-daytask__btn--del{ color:#16a34a }    /* green X */
+
+  /* scratch-out animation already in your base: .is-scratching */
 }
-/* Dark overrides */
-:is(html,body).is-dark body[data-view="day"] .p-daytask {
-  background: var(--dm-surface) !important; color: var(--dm-text) !important;
-  border: 1px solid var(--dm-border) !important; box-shadow: 0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
-}
-:is(html,body).is-dark body[data-view="day"] .p-daytask__time {
-  background: linear-gradient(180deg,#0f1b2f,#0d1728); border: 1px solid #3b588b; color: #e4ecff;
+
+/* DARK MODE */
+:is(html,body).is-dark body[data-view="day"]{
+  .p-daytask{
+    background: var(--dm-surface)!important; color: var(--dm-text)!important;
+    border: 1px solid var(--dm-border)!important; box-shadow: 0 10px 26px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04) !important;
+  }
+  .p-daytask__time{
+    background: linear-gradient(180deg,#0f1b2f,#0d1728); border: 1px solid #3b588b; color: #e4ecff;
+  }
+  /* DARK MODE colors: golden V, deep golden-red X */
+  .p-daytask__btn--ok{ color:#E7C267 }      /* golden */
+  .p-daytask__btn--del{ color:#d97373 }     /* warm red/gold mix */
 }
