@@ -1,0 +1,19 @@
+/* One template for day/week/month nav pills */
+.p-weekbar, .p-monthbar, .p-dayview__head {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .5rem;
+}
+
+[data-daynav], .p-weekbar__btn[data-weeknav], .p-monthbar__btn[data-weeknav] {
+  inline-size: 44px; height: 44px; border-radius: 999px; padding: 0;
+  border: 1px solid var(--navBorder, #e5e7eb);
+  background: var(--navBg, #f6f5f2) !important;
+  color: var(--navText, #0f172a);
+  display: grid; place-items: center;
+  box-shadow: 0 .35rem .9rem rgba(15,23,42,.10);
+}
+.p-weekbar__btn[data-weeknav="today"],
+.p-monthbar__btn[data-weeknav="today"],
+[data-daynav="today"] { @include pill; min-width: 5.6rem; }

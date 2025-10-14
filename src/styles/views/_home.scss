@@ -1,0 +1,10 @@
+/* Applies only when body[data-view="home"] */
+body[data-view="home"] {
+  .c-meta-block { margin-top: .1rem; }
+  .c-title--date {
+    display: inline-block; padding: .16rem .44rem; border-radius: .44rem;
+    background: linear-gradient(180deg, var(--gold-b), var(--gold-a));
+    font-weight: 800;
+  }
+  .c-subtitle { margin: .28rem 0 0; color: #475569; font-size: 1.02rem; }
+}

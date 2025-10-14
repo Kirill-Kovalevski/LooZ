@@ -1,0 +1,20 @@
+body[data-view="month"] {
+  .p-month { display:grid; grid-template-columns: repeat(7,1fr); gap:.5rem; }
+  .p-cell {
+    position:relative; aspect-ratio:1/1; border-radius:16px; cursor:pointer; background:#fff;
+    border:2px solid var(--ring-color,#cbd5e1)!important; box-shadow:none; display:grid; place-items:center; padding:.35rem; overflow:visible;
+  }
+  .p-cell__num { font-weight:900; color:#0f172a; position:relative; z-index:1; }
+  .p-count {
+    position:absolute; top:-7px; left:50%; transform:translateX(-50%);
+    min-width:18px; height:18px; padding:0 6px; border-radius:999px;
+    display:grid; place-items:center; font:800 10px/18px 'Rubik', system-ui, sans-serif;
+    color:var(--ring-color,#94a3b8)!important; background:#fff!important; border:1.5px solid var(--ring-color,#94a3b8)!important; box-shadow:0 1px 3px rgba(0,0,0,.08);
+  }
+}
+/* Dark */
+:is(html,body).is-dark body[data-view="month"] .p-cell { background:#0f1b32; border-color: var(--ring-color,#2a4674)!important; }
+:is(html,body).is-dark body[data-view="month"] .p-cell__num { color: #eaf2ff; }
+:is(html,body).is-dark body[data-view="month"] .p-count {
+  background: rgba(13,23,44,.92)!important; color: var(--ring-color,#60a5fa)!important; border-color: var(--ring-color,#60a5fa)!important;
+}

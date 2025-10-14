@@ -1,0 +1,14 @@
+.looz-logo {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important;
+
+  .brand-logo { display: none; height: 56px; width: auto; }
+  html:not(.is-dark) & .brand-logo--light { display: block; }
+  html.is-dark & .brand-logo--dark { display: block; }
+}
+
+/* Dark seam fix behind the logo area */
+:is(html,body).is-dark .o-header .looz-logo { position: relative; }
+:is(html,body).is-dark .o-header .looz-logo::before {
+  content:""; position:absolute; inset:-1px; background:#0c1220; border-radius:4px; z-index:-1;
+}

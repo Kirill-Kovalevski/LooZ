@@ -1,0 +1,9 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: $font-sans;
+  background: linear-gradient(180deg, #eef2f6, #e9eff7);
+  color: var(--ink, #0f172a);
+}
