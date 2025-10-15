@@ -1,255 +1,130 @@
-/* src/styles/views/_month.scss
-   Month view — square cells with top badge; Sunday-first; light/dark gradients.
-   NOTE: keep @use at the VERY TOP of the file. */
+/* Month view — square cells with top counter badge.
+   Numbers are perfectly centered; the badge floats above. */
+
 @use '../core/tokens' as *;
 
-/* Scope all rules to the Month view */
-body[data-view="month"] {
-  /* ---------------- Card / container ---------------- */
-  .p-monthwrap {
-    margin: 0 auto;
+body[data-view='month'] {
+  /* wrapper card */
+  .p-monthview {
     max-inline-size: var(--phone-w, 390px);
-    padding: .75rem .9rem 1rem;
+    margin-inline: auto;
+    padding: .75rem .75rem 1rem;
     border-radius: 18px;
-
-    /* Semi-transparent pastel gradient (light mode) */
     background:
-      linear-gradient(180deg, rgba(255,255,255,.88), rgba(252,253,255,.82)),
-      radial-gradient(120% 130% at 10% -10%, rgba(255,186,160,.35) 0%, rgba(255,255,255,0) 60%),
-      radial-gradient(140% 140% at 90% 0%, rgba(206,220,255,.30) 0%, rgba(255,255,255,0) 65%);
+      linear-gradient(180deg, rgba(255,255,255,.86), rgba(247,249,255,.80)),
+      radial-gradient(120% 120% at 50% 0%, rgba(205,225,255,.22) 0%, rgba(255,255,255,0) 70%);
     box-shadow:
-      0 8px 26px rgba(15,23,42,.10),
-      inset 0 1px 0 rgba(255,255,255,.55);
+      0 6px 26px rgba(15,23,42,.10),
+      inset 0 1px 0 rgba(255,255,255,.65);
   }
 
-  /* ---------------- Week strip (Sunday first) ---------------- */
-  .p-monthbar {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: .55rem;
-    margin-block-end: .55rem;
-    direction: rtl; /* rightmost is Sunday (א׳) */
-    text-align: center;
-
-    .p-wday {
-      font: 700 11px/1.1 system-ui, sans-serif;
-      color: #64748b;
-      background: rgba(255,255,255,.6);
-      border: 1px solid #e7efff;
-      border-radius: 10px;
-      padding-block: .35rem;
+  /* Caption row: prev | Month YYYY | next */
+  .p-monthhead{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:.5rem; margin-block: .25rem .5rem;
+    padding-inline:.25rem;
+    .p-monthtitle{
+      font: 800 16px/1.2 'Rubik', system-ui, sans-serif;
+      color:#0f172a;
+      letter-spacing:.3px;
+    }
+    .p-navbtn{
+      inline-size:36px; block-size:36px; border-radius:999px;
+      display:grid; place-items:center;
+      border:1px solid #dbe6ff; background:#fff;
+      box-shadow:0 3px 10px rgba(15,23,42,.06);
+      font:800 18px/1 system-ui;
+      color:#0f172a;
     }
   }
 
-  /* ---------------- Grid of days ---------------- */
-  .p-monthgrid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: .6rem;
-    direction: rtl;
-  }
-
-  /* Buttons look like tiles */
-  .p-cell {
-    position: relative;
-    display: grid;
-    place-items: center;
-    aspect-ratio: 1 / 1;                 /* square */
-    border-radius: 14px;
-    border: 1px solid #caddff;           /* pleasant blue */
-    background: rgba(255,255,255,.78);
-    box-shadow: 0 3px 10px rgba(15,23,42,.06);
-    padding-block-start: 1.25rem;        /* room for badge above number */
-    transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease;
-
-    &:hover { transform: translateY(-1px); }
-    &:active { transform: translateY(0); }
-  }
-
-  /* The day number (never overlapped by the badge) */
-  .p-num,
-  .p-cell__num { /* keep compat with your older markup */
-    font: 800 15px/1 'Rubik', system-ui, sans-serif;
-    color: #0f172a;
-    pointer-events: none;
-  }
-
-  /* The counter pill — half outside the top edge, centered */
-  .p-count {
-    position: absolute;
-    top: -12px;                          /* half out */
-    left: 50%;
-    transform: translateX(-50%);
-    inline-size: 26px;
-    block-size: 26px;
-    display: grid;
-    place-items: center;
-    border-radius: 999px;
-    border: 1px solid #b9ccf7;           /* blue ring */
-    background: #eef4ff;                 /* light pleasant blue */
-    color: #0f172a;
-    font: 800 12px/1 'Rubik', system-ui, sans-serif;
-    box-shadow: 0 4px 10px rgba(15,23,42,.10);
-    pointer-events: none;                 /* clicks go to the tile */
-  }
-
-  /* Today ring */
-  .p-cell--today {
-    outline: 2px solid tomato;
-    outline-offset: -2px;
-  }
-
-  /* Empty padding cells (if you render them) */
-  .p-cell--empty {
-    visibility: hidden;
-  }
-
-  /* Small/large screens */
-  @media (min-width: 480px) {
-    .p-monthwrap { max-inline-size: 440px; }
-  }
-}
-
-/* ==================== Dark mode ==================== */
-:is(html, body).is-dark body[data-view="month"] {
-  .p-monthwrap {
-    /* Basil/blue-green darker gradient */
-    background:
-      linear-gradient(180deg, rgba(16,22,36,.88), rgba(14,18,30,.86)),
-      radial-gradient(140% 150% at 0% -15%, rgba(26,108,95,.40) 0%, rgba(0,0,0,0) 60%),
-      radial-gradient(140% 150% at 100% -5%, rgba(43,64,117,.45) 0%, rgba(0,0,0,0) 65%);
-    box-shadow:
-      0 12px 30px rgba(6,10,22,.55),
-      inset 0 1px 0 rgba(255,255,255,.04);
-  }
-
-  .p-monthbar .p-wday {
-    color: #b9c8ff;
-    background: linear-gradient(180deg, rgba(20,28,48,.9), rgba(16,22,36,.9));
-    border-color: #374f88;
-  }
-
-  .p-cell {
-    border-color: #3e4c78;
-    background: linear-gradient(180deg, rgba(20,28,48,.85), rgba(16,22,36,.85));
-    box-shadow:
-      0 3px 14px rgba(6,10,22,.55),
-      inset 0 1px 0 rgba(255,255,255,.03);
-  }
-
-  .p-num,
-  .p-cell__num { color: #e6edff; }
-
-  /* Golden badge */
-  .p-count {
-    border-color: #7a6b29;
-    background: linear-gradient(180deg, #171b2a, #121727);
-    color: #f0d777;
-    box-shadow: 0 4px 12px rgba(2,6,20,.55);
-  }
-
-  .p-cell--today { outline: 2px solid #d4af37; }
-}
-/* Month view visuals — scoped so it never affects the shell layout */
-body[data-view="month"] {
-
-  /* the month grid wrapper (your gradient card can stay as you had it) */
-  .p-monthwrap {
-    inline-size: min(100%, var(--phone-w, 390px));
-    border-radius: 18px;
-    padding: .65rem .7rem 1rem;
-    /* keep your gradient background from earlier here */
-  }
-
-  /* the weekday strip */
-  .p-monthbar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: .45rem;
-    direction: rtl;
-    text-align: center;
-    margin-bottom: .5rem;
-
-    .p-wday {
-      font: 700 11px/1.1 system-ui;
-      color: #64748b;
+  /* One-piece weekday bar */
+  .p-weekbar{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    text-align:center; margin-bottom:.6rem;
+    background:rgba(255,255,255,.8);
+    border:1px solid #e6eeff; border-radius:14px;
+    padding:.50rem .35rem;
+    direction: rtl; /* Sunday at right for Hebrew */
+    .p-wday{
+      font:700 11px/1.1 system-ui, sans-serif;
+      color:#64748b;
     }
   }
 
-  /* the calendar grid itself */
-  .p-monthgrid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: .55rem;
-    direction: rtl;
-    justify-items: center; /* centers each cell in its column */
+  /* Grid of dates */
+  .p-monthgrid{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:.55rem; direction: rtl;  /* Sunday first */
   }
 
-  /* SQUARE cells that don’t push the date down; number is centered */
-  .p-cell {
-    position: relative;
-    inline-size: 100%;
-    aspect-ratio: 1 / 1;
-    display: grid;
-    place-items: center;     /* centers the date number */
-    border-radius: 14px;
-    border: 1px solid #dbe6ff;
-    background: rgba(255,255,255,.78);
-    box-shadow: 0 3px 10px rgba(15,23,42,.06);
-    overflow: visible;       /* so the top pill can stick out */
-    transition: border-color .12s ease, box-shadow .12s ease, transform .08s ease;
+  /* Date cell */
+  .p-cell{
+    position:relative;
+    display:grid; place-items:center; /* number is dead center */
+    aspect-ratio:1 / 1;
+    border-radius:16px;
+    border:1px solid #dbe6ff;
+    background:rgba(255,255,255,.88);
+    box-shadow:0 3px 10px rgba(15,23,42,.06);
+    transition: box-shadow .12s ease, transform .08s ease, border-color .12s ease;
   }
 
-  /* EMPTY pads (leading/trailing days) */
-  .p-cell--empty {
-    visibility: hidden;
-    pointer-events: none;
+  .p-cell__num{
+    font:800 18px/1 'Rubik', system-ui, sans-serif;
+    color:#0f172a;
+    translate:0 2px; /* subtle optical centering */
   }
 
-  /* the centered number */
-  .p-num {
-    font: 800 15px/1 'Rubik', system-ui, sans-serif;
-    color: #0f172a;
-    pointer-events: none;
+  /* Small counter badge – half outside at the top center */
+  .p-count{
+    position:absolute; top:-12px; left:50%; translate:-50% 0;
+    inline-size:24px; block-size:24px; border-radius:999px;
+    display:grid; place-items:center;
+    font:800 12px/1 'Rubik', system-ui, sans-serif;
+    border:1px solid #b9ccf7; background:#eef4ff; color:#0f172a;
+    box-shadow:0 3px 8px rgba(15,23,42,.08);
+    pointer-events:none;
   }
 
-  /* SMALLER counter pill — half outside the top edge, dead center */
-  .p-count {
-    position: absolute;
-    top: -10px;              /* half out */
-    left: 50%;
-    transform: translateX(-50%);
-    inline-size: 20px;
-    block-size: 20px;
-    border-radius: 999px;
-    display: grid;
-    place-items: center;
-    font: 800 11px/1 'Rubik', system-ui, sans-serif;
-    color: #0f172a;
-    border: 1px solid #b9ccf7;  /* pleasant blue (light mode) */
-    background: #eef4ff;
-    z-index: 1;
-    pointer-events: none;
-  }
+  .p-cell--today{ outline:2px solid tomato; outline-offset:-2px; }
 
-  /* today ring (light mode) */
-  .p-cell--today { outline: 2px solid tomato; outline-offset: -2px; }
+  /* Dim out filler days from prev/next months if you keep them */
+  .p-cell--dim { opacity:.45; }
+
+  /* Responsive: allow a little more room on web */
+  @media (min-width: 480px){
+    .p-monthview{ max-inline-size: 460px; }
+  }
 }
 
-/* dark mode tweaks — keep the same geometry, just recolor */
-:is(html, body).is-dark body[data-view="month"] {
-  .p-cell {
-    border-color: #354a7a;
-    background: rgba(16,24,40,.78);
-    box-shadow:
-      0 3px 14px rgba(6,10,22,.55),
-      inset 0 1px 0 rgba(255,255,255,.03);
+/* Dark mode */
+:is(html,body).is-dark body[data-view='month']{
+  .p-monthview{
+    background:
+      linear-gradient(180deg, rgba(16,20,34,.88), rgba(14,18,30,.84)),
+      radial-gradient(120% 120% at 50% 0%, rgba(40,58,75,.45) 0%, rgba(0,0,0,0) 70%);
+    box-shadow:0 10px 26px rgba(11,18,34,.5);
   }
-  .p-num   { color: #e6edff; }
-  .p-count {
-    border-color: #7a6b29;                 /* gold border */
-    color: #eeda88;
-    background: linear-gradient(180deg, #182236, #101727); /* basil/blue-green vibe */
+  .p-monthhead .p-monthtitle{ color:#e6edff; }
+  .p-monthhead .p-navbtn{
+    border-color:#314a72; background:#121a2a; color:#e6edff;
+    box-shadow:0 3px 14px rgba(6,10,22,.55);
   }
-  .p-cell--today { outline: 2px solid #d4af37; }           /* gold ring */
+  .p-weekbar{
+    background:linear-gradient(180deg,#0f172a,#0b1220);
+    border-color:#304469;
+    .p-wday{ color:#9bb7df; }
+  }
+  .p-cell{
+    border-color:#354a7a; background:rgba(16,24,40,.88);
+    box-shadow:0 3px 14px rgba(6,10,22,.55);
+  }
+  .p-cell__num{ color:#e6edff; }
+  .p-count{
+    border-color:#7a6b29;
+    background:linear-gradient(180deg,#162235,#101827);
+    color:#eed36e;
+  }
+  .p-cell--today{ outline:2px solid #d4af37; }
 }
