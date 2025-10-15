@@ -8,7 +8,7 @@ import { openCreateSheet } from '../components/sheet.js';
 import { confetti, pulse } from '../utils/effects.js';
 
 // date helpers
-import { fmtDM, TODAY_KEY, keyOf } from '../components/date.js';
+import { fmtDM, TODAY_KEY, keyOf } from '../utils/date.js';
 
 /**
  * Optional: a tiny in-memory model for the demo day list.

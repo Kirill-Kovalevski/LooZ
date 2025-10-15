@@ -1,65 +1,62 @@
-import { dayNames, buildWeek, fmtDM, keyOf, TODAY_KEY } from '../components/date.js';
+// src/pages/month.js
 
-// ===== helpers (same as week.js) =====
-function getWeekStart(){ return localStorage.getItem('weekStart') || 'sun'; }
-function startIndex(){ return getWeekStart()==='mon' ? 1 : 0; }
-function keyOf(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; }
-const TODAY_KEY = keyOf(new Date());
+import { renderHeader, initHeaderInteractions } from '../components/header.js';
+import { openCreateSheet } from '../components/sheet.js';
 
-// build cells for a calendar month respecting weekStart
-function buildMonth(year, month /* 0=Jan */){
-  const first = new Date(year, month, 1);
-  const last  = new Date(year, month + 1, 0);
-  const sIdx  = startIndex();          // 0 for Sun, 1 for Mon
+// ✅ shared date helpers (single source of truth)
+import { keyOf, TODAY_KEY } from '../utils/date.js';
 
-  // JS getDay(): 0..6 with 0=Sun
-  const jsFirst = first.getDay();
-  const leadPads = ((jsFirst - sIdx) + 7) % 7;
-
-  const daysIn = last.getDate();
-  const cells = [];
-
-  // leading pad cells
-  for (let i=0; i<leadPads; i++) cells.push({ type:'pad' });
-
-  // actual days
-  for (let d=1; d<=daysIn; d++){
-    const date = new Date(year, month, d);
-    cells.push({
-      type:'day',
-      day: d,
-      key: keyOf(date),
-      count: (d % 5 === 0 ? 3 : 0),  // demo count
-    });
+/**
+ * Build a simple month model: all dates for the current month.
+ * (No padding cells yet — we can add leading/trailing days later if you want a
+ * full calendar matrix. For now it mirrors the lightweight LooZ month grid.)
+ */
+function buildMonth(anchor = new Date()) {
+  const y = anchor.getFullYear();
+  const m = anchor.getMonth();
+  const last = new Date(y, m + 1, 0);        // last day of month
+  const days = [];
+  for (let d = 1; d <= last.getDate(); d++) {
+    days.push(new Date(y, m, d));
   }
-
-  // trailing pads to complete row
-  while (cells.length % 7 !== 0) cells.push({ type:'pad' });
-
-  return cells;
+  return { year: y, month: m, days };
 }
 
-export function mount(root){
-  const now = new Date();
-  const cells = buildMonth(now.getFullYear(), now.getMonth());
-
-  const html = cells.map(c => {
-    if (c.type === 'pad'){
-      return `<div class="p-cell p-cell--pad" aria-hidden="true"><span class="p-cell__num"></span></div>`;
-    }
-    const isToday = (c.key === TODAY_KEY);
-    const clsToday = isToday ? ' p-cell--today' : '';
-    return `
-      <button class="p-cell${clsToday}" type="button" aria-label="יום ${c.day}">
-        <span class="p-cell__num">${c.day}</span>
-        ${c.count ? `<span class="p-count">${c.count}</span>` : ''}
-      </button>
-    `;
-  }).join('');
+export function mount(root) {
+  const { days } = buildMonth(new Date());
 
   root.innerHTML = `
-    <section class="p-month">
-      ${html}
-    </section>
+    ${renderHeader({ active: 'month' })}
+
+    <main class="o-page">
+      <section class="o-phone o-inner">
+        <div class="c-planner">
+          <div class="p-month">
+            ${days.map(d => {
+              const todayClass = keyOf(d) === TODAY_KEY ? ' p-cell--today' : '';
+              // data-date helps when you later attach real counts / click handlers
+              return `
+                <button class="p-cell${todayClass}" data-date="${keyOf(d)}" style="--ring-color:#cbd5e1">
+                  <span class="p-cell__num">${d.getDate()}</span>
+                  <span class="p-count">0</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="c-bottom-cta">
+          <button class="c-cta c-cta--bang btn-create-orb" aria-label="צור אירוע"></button>
+        </div>
+      </section>
+    </main>
   `;
+
+  // header interactions (profile/menu etc.)
+  initHeaderInteractions();
+
+  // open the create-event sheet from the orb
+  root.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-create-orb')) openCreateSheet();
+  });
 }
