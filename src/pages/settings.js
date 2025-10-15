@@ -1,5 +1,5 @@
 import { getWeekStart, setWeekStart } from '../utils/date.js';
-import { dayNames, buildWeek, fmtDM, keyOf, TODAY_KEY } from '../components/date.js';
+import { dayNames, buildWeek, fmtDM, keyOf, TODAY_KEY } from '../utils/date.js';
 
 export function mount(root){
   const weekStart = getWeekStart(); // 'sun' | 'mon'
