@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 
+const base = process.env.GH_PAGES ? '/LooZ/' : '/';
+
 export default defineConfig({
-  base: '/LooZ/',            // <-- hardcode to be safe
+  base,
   server: { port: 5173, open: true }
 });
