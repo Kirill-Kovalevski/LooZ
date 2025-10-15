@@ -1,199 +1,106 @@
-@use '../core/tokens' as tokens;
-
-body[data-view="home"]{
-  .o-page{ min-height:100dvh; display:grid; place-items:stretch; background:#fff; }
-  .o-phone{ display:flex; flex-direction:column; }
-
-  .o-header{
-    display:grid;
-    grid-template-columns:1fr auto 1fr;
-    align-items:center;
-    gap:.5rem;
-    text-align:center;
-  }
-
-  .looz-logo{
-    font-family:'Cormorant Garamond',serif;
-    font-weight:900;
-    letter-spacing:.02em;
-    font-size:clamp(1.8rem,7vw,2.86rem);
-    background:linear-gradient(90deg,#5e4e2e,#c79a29,#e9d8a6,#5e4e2e);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    text-shadow:0 1px 0 rgba(255,255,255,.6),0 10px 20px rgba(199,154,41,.18);
-    text-decoration:none;
-  }
-
-  .c-view-switch{ display:flex; gap:.5rem; justify-content:center; }
-
-  .c-meta-block{ grid-column:1/-1; margin-top:.1rem; text-align:center; }
-  .c-title--date{
-    display:inline-block; padding:.16rem .44rem; border-radius:.44rem;
-    background:linear-gradient(180deg,#fff6ae 0%,#ffe77a 100%); font-weight:800;
-  }
-  .c-subtitle{ margin:.28rem 0 0; color:#475569; font-size:1.02rem; }
-  .c-subtitle b{ font-weight:800; }
-
-  .c-cta-wrap{ display:grid; justify-items:center; margin:.7rem 0 0; }
-}
-
-/* dark */
-:is(html,body).is-dark body[data-view="home"]{
-  .c-subtitle{ color:var(--dm-muted); }
-  .c-title--date{
-    background:linear-gradient(180deg,#f5d773,#fae58f);
-    color:#0c1019!important; box-shadow:0 6px 16px rgba(245,215,115,.28);
-  }
-}
+/* src/styles/views/_home.scss */
+@use '../core/tokens' as t;
 
 body[data-view="home"] {
 
-  /* Header with edge buttons and centered lemon */
+  /* top header: edge buttons + centered lemon with line */
   .o-header--edge{
     display:grid;
     grid-template-columns: 1fr auto 1fr;
     align-items:center;
-    padding-inline: .5rem;
-    padding-block: .25rem .75rem;
-    position: sticky;
-    inset-block-start: 0;
-    background: transparent;
-    z-index: 5;
+    padding-inline:.5rem;
+    padding-block:.25rem .75rem;
 
     .c-topbtn{
-      justify-self: start;
-      inline-size: 36px; block-size: 36px;
-      border-radius: 999px;
+      justify-self:start;
+      inline-size:36px; height:36px; border-radius:999px;
       display:grid; place-items:center;
       border:1px solid rgba(15,23,42,.08);
       background:#fff;
-      box-shadow: 0 .25rem .6rem rgba(15,23,42,.08);
+      box-shadow:0 .25rem .6rem rgba(15,23,42,.08);
       &:last-child{ justify-self:end; }
     }
 
     .c-lemon-brand{
       display:grid; place-items:center; position:relative;
       inline-size: 120px; block-size: 54px;
-
       &__line{
         position:absolute; inset-inline: 0; inset-block-start: 50%;
         transform: translateY(-50%);
-        display:block; height: 2px; background: #e5e7eb;
+        display:block; height:2px; background:#e5e7eb;
       }
       &__logo{
         position:relative; z-index:1;
-        inline-size: 54px; block-size: 54px; object-fit:contain;
-        border-radius: 999px;
-        box-shadow: 0 .35rem 1rem rgba(15,23,42,.12);
-        background: #fff;
+        inline-size:54px; height:54px; border-radius:999px; object-fit:contain;
+        background:#fff; box-shadow:0 .35rem 1rem rgba(15,23,42,.12);
       }
     }
   }
 
-  /* Greeting block */
+  /* greeting */
   .c-greet{
-    text-align:center; margin-block: .25rem .75rem;
-    .c-greet__today{
-      font-weight:800; display:flex; gap:.4rem; justify-content:center; align-items:baseline;
-    }
+    text-align:center; margin-block:.25rem .75rem;
+    .c-greet__today{ font-weight:800; display:flex; gap:.4rem; justify-content:center; align-items:baseline; }
     .c-greet__date{ color:#64748b; font-weight:700 }
     .c-greet__line{ margin:.15rem 0 .35rem }
-    .c-greet__special[aria-live],
-    .c-greet__special{ min-height: 1em; font-weight:700; color:#7c3aed }
+    .c-greet__special{ min-height:1em; font-weight:700; color:#7c3aed }
   }
 
-  /* Switch pills */
+  /* mode switch (יום/שבוע/חודש) */
   .c-switch{
     display:flex; justify-content:center; gap:.5rem; flex-wrap:wrap;
-    margin-block:.25rem .75rem;
+    margin-block:.25rem .5rem;
     .c-pill{
-      inline-size:auto; min-width:5.8rem; height:38px; border-radius:999px;
+      min-width:5.8rem; height:38px; border-radius:999px;
       border:1px solid #e5e7eb; background:#f6f5f2; color:#0f172a;
       display:grid; place-items:center; padding-inline:.9rem;
       box-shadow:0 .35rem .9rem rgba(15,23,42,.10);
-      &[aria-selected="true"]{
-        background: #fff; border-color:#d1d5db; font-weight:800;
-      }
+      &[aria-selected="true"]{ background:#fff; border-color:#d1d5db; font-weight:800; }
     }
   }
 
-  /* Lower view area (only this part re-renders) */
-  .l-viewarea{
-    display:block; min-block-size: 42vh; /* keep top area stable */
-  }
-
-  /* Pager (fixed small) */
-  .c-pager{
-    position: fixed;
-    inset-inline: 50%;
-    transform: translateX(-50%);
-    inset-block-end: calc(env(safe-area-inset-bottom) + 5.2rem); /* sits above orb */
-    display:flex; gap:.75rem; z-index:10;
+  /* three-part nav (‹  היום  ›) with mode pill under center */
+  .c-triple{
+    margin-block: .25rem 1rem;
+    display:grid; grid-template-columns: 1fr auto 1fr; align-items:center;
 
     &__btn{
+      justify-self:start;
       inline-size:42px; height:42px; border-radius:999px;
       border:1px solid #e5e7eb; background:#fff;
       box-shadow:0 .35rem .9rem rgba(15,23,42,.10);
       font-weight:800;
+      &:last-child{ justify-self:end; }
+    }
+
+    .c-triple__center{
+      display:grid; justify-items:center; align-items:center; row-gap:.25rem;
+    }
+    .c-today{
+      height:40px; border-radius:999px; padding:0 1.1rem;
+      border:1px solid #e5e7eb; background:#fff; font-weight:800;
+      box-shadow:0 .35rem .9rem rgba(15,23,42,.10);
+    }
+    .c-mode-pill{
+      display:inline-grid; place-items:center;
+      min-width:64px; height:24px; padding:0 .6rem;
+      border-radius:999px; font-weight:800; font-size:.8rem;
+      border:1px solid #e5e7eb; background:#f6f5f2; color:#0f172a;
     }
   }
 
-  /* Month grid */
-  .p-month__grid{
-    display:grid; grid-template-columns: repeat(7, 1fr); gap:.5rem;
-  }
-  .p-cell{
-    display:grid; row-gap:.35rem; place-items:center;
-    padding:.55rem .25rem; border-radius:14px;
-    background:#fff; border:1px solid #e7e7e7;
-    .p-cell__num{ font-weight:800 }
-    .p-count{ font-weight:700; font-size:.8rem; color:#64748b }
-    &--today{
-      border-color: tomato;
-      .p-cell__num{ color:tomato }
-    }
+  /* bottom orb fixed */
+  .c-bottom-cta{
+    position:fixed;
+    inset-inline: 50%;
+    transform: translateX(-50%);
+    inset-block-end: calc(env(safe-area-inset-bottom) + 1.2rem);
+    z-index:10;
   }
 
-  /* Week rows */
-  .p-week{ display:grid; gap:.5rem; }
-  .p-week__row{
-    display:grid; grid-template-columns: 1fr auto 1fr;
-    align-items:center; text-align:center;
-    padding:.6rem .7rem; border-radius:14px;
-    background:#fff; border:1px solid #e7e7e7;
-    &.is-today{
-      border-color: tomato;
-      .p-week__name{ color:tomato; font-weight:800 }
-    }
-  }
-  .p-week__count{
-    inline-size:26px; height:26px; border-radius:999px;
-    display:grid; place-items:center;
-    border:1px solid #e5e7eb; background:#fff; font: 800 12px/1 'Rubik', system-ui, sans-serif;
-  }
-
-  /* Day placeholder */
-  .p-dayview{ display:grid; gap:.6rem }
-  .p-dayview__head .p-title{ text-align:center; }
-  .p-task{
-    display:grid; grid-template-columns: minmax(0,1fr) 96px auto; align-items:center;
-    padding:.7rem .8rem; border-radius:16px; background:#fff; border:1px solid #e7e7e7;
-    &--today{ border-color:tomato }
-  }
-  .p-task__time{
-    text-align:center; font-weight:700; padding:.25rem .6rem; border-radius:999px;
-    border:1px solid #d6c27b; background:#fff8d6; color:#4b5563;
-  }
-
-  /* Dark tweaks */
+  /* dark mode tweaks */
   :is(html,body).is-dark & {
-    .c-topbtn,
-    .c-pager__btn,
-    .p-task,
-    .p-week__row,
-    .p-cell { background: var(--dm-surface); color: var(--dm-text); border:1px solid var(--dm-border); }
-    .p-task__time{ background: linear-gradient(180deg,#0f1b2f,#0d1728); border:1px solid #3b588b; color:#e4ecff; }
-    .p-cell--today,
-    .p-week__row.is-today { border-color: gold; }
-    .p-week__row.is-today .p-week__name{ color: gold }
+    .c-topbtn, .c-today, .c-triple__btn { background: var(--dm-surface); color: var(--dm-text); border:1px solid var(--dm-border); }
+    .c-mode-pill{ background:#0d1728; color:#e4ecff; border:1px solid #3b588b; }
   }
 }

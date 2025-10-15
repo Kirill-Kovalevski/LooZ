@@ -1,34 +1,48 @@
 // src/pages/home.js
 import { openCreateSheet } from '../components/sheet.js';
-import {
-  dayNames, buildWeek, fmtDM, keyOf, TODAY_KEY,
-} from '../utils/date.js';
 
-// simple state local to this view
-let mode = 'day';              // 'day' | 'week' | 'month'
-let anchor = new Date();       // what the view is centered on
+/* ----------------- small helpers ----------------- */
+function hebrewDayName(d){
+  return ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'][d.getDay()];
+}
+function fmtDM(d){
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  return `${dd}.${mm}`;
+}
+function addDays(d,n){ const x=new Date(d); x.setDate(d.getDate()+n); return x; }
+function addMonths(d,n){ const x=new Date(d); x.setMonth(d.getMonth()+n); return x; }
+function getFirstName(){ try{ return localStorage.getItem('firstName') || ''; }catch{ return ''; } }
+
+/* mode label shown under the "היום" button */
+const MODE_LABELS = { day:'יום', week:'שבוע', month:'חודש' };
+
+// local state (for later when you plug in the real views)
+let mode   = 'day';          // 'day' | 'week' | 'month'
+let anchor = new Date();     // current date the user is “on”
 
 export function mount(root){
   const today = new Date();
 
-  // --- header + greeting stays fixed; only #viewArea changes ---
+  // page chrome (top + bottom only)
   root.innerHTML = `
     <main class="o-page" data-view="home">
       <section class="o-phone o-inner">
 
-        <!-- Top icons on each edge -->
+        <!-- top bar: settings (left), lemon brand centered, profile (right) -->
         <header class="o-header o-header--edge">
-          <button class="c-topbtn" id="btnMenu" aria-label="תפריט">☰</button>
+          <a href="#/settings" class="c-topbtn" aria-label="הגדרות">⚙️</a>
 
           <div class="c-lemon-brand" aria-label="LooZ">
             <span class="c-lemon-brand__line"></span>
-            <img class="c-lemon-brand__logo" alt="LooZ" src="/src/assets/logo-light.png">
+            <!-- Put your lemon icon file in /icons (see notes below) -->
+            <img class="c-lemon-brand__logo" alt="Lemon" src="/icons/lemon.png">
           </div>
 
           <button class="c-topbtn" id="btnProfile" aria-label="פרופיל">👤</button>
         </header>
 
-        <!-- Greeting + date -->
+        <!-- greeting + today's date (always today's date; pager won’t change it) -->
         <div class="c-greet">
           <div class="c-greet__today">
             <b>${hebrewDayName(today)}</b>
@@ -40,24 +54,26 @@ export function mount(root){
           <p class="c-greet__special" data-special="off"></p>
         </div>
 
-        <!-- Switch controls (these only change the lower view area) -->
+        <!-- mode switch: only changes the current “mode”, not the whole page -->
         <nav class="c-switch" role="tablist" aria-label="תצוגה">
           <button class="c-pill" data-switch="day"   role="tab" aria-selected="true">יום</button>
           <button class="c-pill" data-switch="week"  role="tab">שבוע</button>
           <button class="c-pill" data-switch="month" role="tab">חודש</button>
-          <a class="c-pill" href="#/settings" role="tab">הגדרות</a>
         </nav>
 
-        <!-- This is the part that changes -->
-        <section id="viewArea" class="l-viewarea" aria-live="polite"></section>
+        <!-- three-part nav bar (prev / TODAY / next) -->
+        <nav class="c-triple" aria-label="ניווט זמן">
+          <button class="c-triple__btn" data-page="prev" aria-label="הקודם">‹</button>
 
-        <!-- Prev/Next pager (fixed, small) -->
-        <nav class="c-pager" aria-label="דפדוף">
-          <button class="c-pager__btn" data-page="prev" aria-label="הקודם">‹</button>
-          <button class="c-pager__btn" data-page="next" aria-label="הבא">›</button>
+          <div class="c-triple__center">
+            <button class="c-today" id="btnToday" aria-label="חזור להיום">היום</button>
+            <span class="c-mode-pill" id="modePill">${MODE_LABELS[mode]}</span>
+          </div>
+
+          <button class="c-triple__btn" data-page="next" aria-label="הבא">›</button>
         </nav>
 
-        <!-- Create-event orb (fixed at bottom) -->
+        <!-- bottom create-event orb -->
         <div class="c-bottom-cta">
           <button class="c-cta c-cta--bang btn-create-orb" aria-label="צור אירוע"></button>
         </div>
@@ -66,120 +82,36 @@ export function mount(root){
     </main>
   `;
 
-  // initial render of lower area
-  renderLower();
-
-  // switches
+  /* interactions */
+  // mode switch (updates the small pill text)
   root.querySelectorAll('[data-switch]').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       mode = e.currentTarget.dataset.switch;
-      // aria-selected update
       root.querySelectorAll('[data-switch]').forEach(b=>b.setAttribute('aria-selected', String(b===e.currentTarget)));
-      renderLower();
+      const pill = root.querySelector('#modePill');
+      if (pill) pill.textContent = MODE_LABELS[mode];
     });
   });
 
-  // pager prev/next (moves by day|week|month depending on mode)
-  root.querySelector('.c-pager').addEventListener('click', (e)=>{
+  // the three-part pager (prev/next jump the anchor by mode)
+  root.querySelector('.c-triple').addEventListener('click', (e)=>{
     const dir = e.target.closest('[data-page]')?.dataset.page;
     if (!dir) return;
     const step = dir === 'prev' ? -1 : +1;
     if (mode === 'day')   anchor = addDays(anchor, step);
     if (mode === 'week')  anchor = addDays(anchor, step*7);
     if (mode === 'month') anchor = addMonths(anchor, step);
-    renderLower();
+    // You’ll use "anchor" later to render the correct range.
   });
 
-  // open sheet from the orb
+  // “Today” brings anchor back to the real today
+  root.querySelector('#btnToday').addEventListener('click', ()=>{
+    anchor = new Date();
+    // anchor set back to today, mode stays as the user picked (day/week/month)
+  });
+
+  // open the create sheet
   root.addEventListener('click', (e)=>{
     if (e.target.closest('.btn-create-orb')) openCreateSheet();
   });
 }
-
-/* ----------------- RENDERERS FOR LOWER AREA ------------------ */
-function renderLower(){
-  const host = document.getElementById('viewArea');
-  if (!host) return;
-
-  if (mode === 'day')  host.innerHTML = renderDay(anchor);
-  if (mode === 'week') host.innerHTML = renderWeek(anchor);
-  if (mode === 'month')host.innerHTML = renderMonth(anchor);
-}
-
-/* Day view: very light placeholder */
-function renderDay(d){
-  const isToday = keyOf(d) === TODAY_KEY;
-  return `
-    <article class="p-dayview">
-      <header class="p-dayview__head">
-        <h2 class="p-title">${hebrewDayName(d)} <small>${fmtDM(d)}</small></h2>
-      </header>
-      <div class="p-dayview__list">
-        <div class="p-task${isToday?' p-task--today':''}">
-          <div class="p-task__text">דוגמה למשימה</div>
-          <div class="p-task__time">14:00</div>
-          <div class="p-task__actions">
-            <button class="p-task__btn">✔</button>
-            <button class="p-task__btn">✖</button>
-          </div>
-        </div>
-      </div>
-    </article>
-  `;
-}
-
-/* Week view: 7 rows with counter in the middle */
-function renderWeek(anchorDate){
-  const w = buildWeek(anchorDate, weekStartsOn());
-  const heb = dayNames();
-  return `
-    <section class="p-week">
-      ${w.days.map((d,i)=>{
-        const today = keyOf(d) === TODAY_KEY ? ' is-today' : '';
-        return `
-          <div class="p-week__row${today}">
-            <div class="p-week__name">${heb[i]}</div>
-            <div class="p-week__count">0</div>
-            <div class="p-week__dm">${fmtDM(d)}</div>
-          </div>
-        `;
-      }).join('')}
-    </section>
-  `;
-}
-
-/* Month view: simple calendar grid for the month of anchor */
-function renderMonth(anchorDate){
-  const y = anchorDate.getFullYear();
-  const m = anchorDate.getMonth();
-  const first = new Date(y,m,1);
-  const last  = new Date(y,m+1,0);
-
-  // (keep it simple; no leading/trailing days)
-  const cells = [];
-  for (let d=1; d<=last.getDate(); d++){
-    const dt = new Date(y,m,d);
-    const today = keyOf(dt) === TODAY_KEY ? ' p-cell--today' : '';
-    cells.push(`
-      <button class="p-cell${today}" data-date="${keyOf(dt)}">
-        <span class="p-cell__num">${d}</span>
-        <span class="p-count">0</span>
-      </button>
-    `);
-  }
-
-  return `
-    <section class="p-month">
-      <div class="p-month__grid">${cells.join('')}</div>
-    </section>
-  `;
-}
-
-/* ----------------- SMALL HELPERS ------------------ */
-function hebrewDayName(d){
-  return ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'][d.getDay()];
-}
-function addDays(d,n){ const x=new Date(d); x.setDate(d.getDate()+n); return x; }
-function addMonths(d,n){ const x=new Date(d); x.setMonth(d.getMonth()+n); return x; }
-function weekStartsOn(){ return (localStorage.getItem('weekStart')==='mon') ? 1 : 0; }
-function getFirstName(){ try{ return localStorage.getItem('firstName') || ''; }catch{ return ''; } }
