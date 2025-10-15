@@ -1,352 +1,142 @@
-/* src/styles/views/_home.scss
-   Responsive shell for iPhone 12 Pro+ and desktop, light/dark aware.
-*/
-@use '../core/tokens' as t;
+/* HOME SHELL ONLY (no day/week/month layouts here)  */
+/* Direction: RTL (Hebrew), iPhone 12 Pro target width */
+html, body { height: 100%; }
+body { min-height: 100vh; }
 
-:root{
-  /* phone width; tune if your layout differs */
-  --phone-w: 390px;
+/* phone width + page centering */
+.o-page {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  background:
+    radial-gradient(120% 120% at 15% -10%, rgba(255,210,180,.22), rgba(255,255,255,0) 55%),
+    radial-gradient(120% 120% at 90% 5%,  rgba(198,219,255,.18), rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, #f7f7fb, #edf1f7);
 }
 
-body[data-view="home"] {
-
-  /* Keep phone canvas centered on desktop */
-  .o-inner{
-    max-inline-size: var(--phone-w);
-    margin-inline: auto;
-  }
-
-  /* ---------- Header ---------- */
-  .o-header--edge{
-    display:grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items:center;
-    padding-inline:.5rem;
-    padding-block:.25rem .75rem;
-  }
-
-  .c-topbtn{
-    justify-self:start;
-    inline-size:36px; height:36px; border-radius:999px;
-    display:grid; place-items:center;
-    border:1px solid rgba(15,23,42,.08);
-    background:#fff;
-    box-shadow:0 .25rem .6rem rgba(15,23,42,.08);
-    font-size:1rem;
-    &--settings{ justify-self:end; }         /* right edge */
-  }
-
-  /* Center logo switches with theme; background blends with page */
-  .c-looz-brand{
-    display:grid; place-items:center;
-    inline-size: 132px; block-size: 56px; position:relative;
-  }
-  .c-looz-logo{ inline-size:auto; height:56px; display:none; }
-  .c-looz-logo--light{ display:block; }
-  :is(html,body).is-dark .c-looz-logo--light{ display:none; }
-  :is(html,body).is-dark .c-looz-logo--dark { display:block; }
-
-  /* ---------- Greeting ---------- */
-  .c-greet{
-    text-align:center; margin-block:.25rem .75rem;
-    .c-greet__today{ font-weight:800; display:flex; gap:.4rem; justify-content:center; align-items:baseline; }
-    .c-greet__date{ color:#64748b; font-weight:700 }
-    .c-greet__line{ margin:.15rem 0 .35rem }
-    .c-greet__special{ min-height:1em; font-weight:700; color:#7c3aed }
-  }
-
-  /* ---------- Mode switch ---------- */
-  .c-switch{
-    display:flex; justify-content:center; gap:.5rem; flex-wrap:wrap;
-    margin-block:.25rem .5rem;
-    .c-pill{
-      min-width:5.8rem; height:38px; border-radius:999px;
-      border:1px solid #e5e7eb; background:#f6f5f2; color:#0f172a;
-      display:grid; place-items:center; padding-inline:.9rem;
-      box-shadow:0 .35rem .9rem rgba(15,23,42,.10);
-      &[aria-selected="true"]{ background:#fff; border-color:#d1d5db; font-weight:800; }
-    }
-  }
-
-  /* ---------- Pager ---------- */
-  .c-triple{
-    margin-block: .25rem .5rem;
-    display:grid; grid-template-columns: 1fr auto 1fr; align-items:center;
-    &__btn{
-      justify-self:start;
-      inline-size:42px; height:42px; border-radius:999px;
-      border:1px solid #e5e7eb; background:#fff;
-      box-shadow:0 .35rem .9rem rgba(15,23,42,.10);
-      font-weight:800;
-      &:last-child{ justify-self:end; }
-    }
-    .c-triple__center{ display:grid; justify-items:center; row-gap:.25rem; }
-    .c-today{
-      height:40px; border-radius:999px; padding:0 1.1rem;
-      border:1px solid #e5e7eb; background:#fff; font-weight:800;
-      box-shadow:0 .35rem .9rem rgba(15,23,42,.10);
-    }
-    .c-mode-pill{
-      display:inline-grid; place-items:center;
-      min-width:64px; height:24px; padding:0 .6rem;
-      border-radius:999px; font-weight:800; font-size:.8rem;
-      border:1px solid #e5e7eb; background:#f6f5f2; color:#0f172a;
-    }
-  }
-
-  /* ---------- Lower content area ---------- */
-  .o-viewarea{ padding: .25rem .5rem 5.5rem; } /* bottom padding for orb space */
-
-  /* DAY view styling */
-  .p-dayview{ display:grid; gap:.6rem; }
-  .p-dayview__head{
-    display:grid; grid-template-columns: 1fr auto 1fr; align-items:center;
-  }
-  .p-dayview__title{
-    display:grid; justify-items:center; row-gap:.15rem; margin:0;
-    small{ color:#64748b; font-weight:800; }
-  }
-  .p-chip{
-    display:inline-grid; place-items:center; height:22px; padding:0 .6rem;
-    border-radius:999px; font:700 .75rem/1 system-ui,sans-serif;
-    border:1px solid #e5e7eb; background:#fff8d6; color:#4b5563;
-    &--today{ border-color:#d6c27b; }
-  }
-  .p-task{
-    display:grid; grid-template-columns: minmax(0,1fr) 96px auto; align-items:center;
-    padding:.7rem .8rem; border-radius:16px;
-    background: radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%);
-    border:1px solid #e7d8a1; box-shadow:0 8px 18px rgba(121,85,0,.06);
-  }
-  .p-task__time{
-    text-align:center; font-weight:700; padding:.25rem .6rem; border-radius:999px;
-    border:1px solid #d6c27b; background:#fff8d6; color:#4b5563;
-  }
-  .p-task__actions{ display:flex; gap:.35rem; justify-content:flex-end; }
-  .p-task__btn{
-    inline-size:36px; height:36px; border-radius:10px; display:grid; place-items:center;
-    border:1px solid #e5e7eb; background:#fff;
-    &--ok{ color:#16a34a; }
-    &--del{ color:#b91c1c; }
-  }
-
-  /* WEEK view */
-  .p-week{ display:grid; gap:.55rem; }
-  .p-week__row{
-    display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; gap:.5rem;
-    padding:.6rem .7rem; border-radius:14px;
-    border:1px solid rgba(197,154,33,.25); background:#fff; position:relative;
-    box-shadow:0 0 18px rgba(199,154,41,.12);
-    &.is-today{ outline:2px solid tomato; }
-  }
-  .p-week__col--name{ justify-self:start; font-weight:800; }
-  .p-week__col--date{ justify-self:end; color:#64748b; font-weight:800; }
-  .p-count{
-    inline-size:26px; height:26px; border-radius:999px; display:grid; place-items:center;
-    font:800 12px/1 'Rubik', system-ui, sans-serif;
-    background:#fff; border:1px solid #e5e7eb; box-shadow:0 2px 6px rgba(0,0,0,.06);
-  }
-
-  /* MONTH view grid */
-  .p-month{
-    display:grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap:.45rem;
-  }
-  .p-cell{
-    aspect-ratio: 1 / 1; border-radius:14px; display:grid; place-items:center; gap:.25rem;
-    border:1px solid #e5e7eb; background:#fff; position:relative;
-    .p-cell__num{ font-weight:800; }
-    .p-count{ position:absolute; inset-inline-start:50%; inset-block-start:50%;
-      transform:translate(-50%,-50%); inline-size:24px; height:24px; border-radius:999px;
-      border:1px solid #e5e7eb; display:grid; place-items:center; font:800 11px/1 system-ui;
-      background:#f1f5f9;
-    }
-    &--today{ outline:2px solid tomato; }
-  }
-/* ---------- Orb centered & safe area ---------- */
-.c-bottom-cta{
-  position:fixed;
-  left:50%; transform:translateX(-50%);
-  bottom: calc(env(safe-area-inset-bottom) + 1.2rem);
-  z-index: 60;
-  pointer-events: none; /* let page click-through except the orb itself */
-}
-.c-bottom-cta .c-cta{ pointer-events:auto; }
-
-/* Main orb button */
-.c-cta{
-  inline-size:68px; block-size:68px;
-  border-radius: 999px;
-  display:grid; place-items:center;
-  background: radial-gradient(120% 100% at 0% 0%, #fffef4 0%, #fffaf0 40%, #fff8ea 100%);
-  border: 1px solid #e7d8a1;
-  box-shadow: 0 4px 10px rgba(121,85,0,.08), 0 14px 28px rgba(121,85,0,.12);
-  position:relative;
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-.c-cta--bang::after{
-  content: "+"; font: 800 20px/1 system-ui, sans-serif;
-  inline-size:28px; block-size:28px; border-radius:999px;
-  display:grid; place-items:center;
-  position:absolute; inset-inline-end:-4px; inset-block-start:-4px;
-  background:#3b82f6; color:#fff; border:2px solid #fff;
-  box-shadow: 0 6px 16px rgba(59,130,246,.35);
-}
-.c-cta:active{ transform: translateY(1px) scale(.98); }
-
-/* ---------- Middle controls: Today + arrows + small pill feedback ---------- */
-.p-midnav{
+.o-phone {
   inline-size: var(--phone-w, 390px);
-  margin-inline: auto;
-  display:grid;
+  min-height: 100vh;                  /* fill the screen */
+  display: grid;
+  grid-template-rows:
+    auto       /* header */
+    auto       /* lemon */
+    auto       /* date + greeting */
+    auto       /* view switch */
+    auto       /* mini period nav */
+    1fr        /* #viewRoot content */
+    auto;      /* orb spacer (the orb is fixed, this prevents overlap) */
+  gap: .75rem;
+  padding: .75rem .75rem 6.5rem;       /* bottom padding ~ orb space */
+  direction: rtl;
+}
+
+/* ------------ Header (profile / logo / settings) ------------- */
+.o-header{
+  display: grid;
   grid-template-columns: 1fr auto 1fr;
-  align-items:center;
-  margin-block: .8rem 0;
-  padding-inline: .75rem;
+  align-items: center;
 }
 
-.p-midnav__btn{
-  inline-size: 34px; block-size: 34px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #f6f7fb;
+.looz-logo{
   display:grid; place-items:center;
-  box-shadow: 0 4px 12px rgba(15,23,42,.08);
-  cursor:pointer;
-  transition: transform .15s ease;
+  inline-size: 120px; margin-inline:auto;
 }
-.p-midnav__btn:active{ transform: translateY(1px); }
-
-.p-midnav__today{
-  justify-self:center;
-  min-inline-size: 82px;
-  padding: .4rem .9rem;
-  border-radius: 999px;
-  border:1px solid #e5e7eb;
-  background:#ffffff;
-  box-shadow: 0 6px 16px rgba(15,23,42,.08);
-  font: 700 12px/1 system-ui, sans-serif;
-  cursor:pointer;
-}
-
-/* pill that flashes under the Today when you flip periods */
-.p-midnav__echo{
-  justify-self:center;
-  margin-block-start: .35rem;
-  min-inline-size: 64px;
-  padding: .25rem .7rem;
-  border-radius:999px;
-  border:1px dashed #cbd5e1;
-  color:#64748b;
-  background:#f8fafc;
-  font: 600 11px/1 system-ui, sans-serif;
-  opacity:0; transform: translateY(-4px);
-  transition: opacity .2s ease, transform .2s ease;
-}
-.p-midnav__echo.is-on{ opacity:1; transform: translateY(0); }
-
-/* ---------- Tabs (יום / שבוע / חודש) ---------- */
-.p-tabs{
-  inline-size: var(--phone-w, 390px);
-  margin-inline:auto;
-  display:grid; place-items:center;
-  gap:.45rem;
-  margin-block: .6rem 1.1rem;
-}
-.p-tabs__row{
-  display:flex; gap:.65rem; flex-wrap:wrap;
-  justify-content:center;
-}
-.p-tab{
-  min-inline-size: 80px;
-  padding:.55rem 1.0rem;
-  border-radius: 999px;
-  border:1px solid #e5e7eb;
-  background:#ffffff;
-  color:#0f172a;
-  font:700 12px/1 system-ui, sans-serif;
-  box-shadow: 0 6px 16px rgba(15,23,42,.08);
-  cursor:pointer;
-}
-.p-tab[aria-current="true"]{
-  background: #0ea5e9; /* pleasant blue */
-  color:#fff; border-color:#0ea5e9;
-}
-
-/* ---------- Greeting block ---------- */
-.c-greet{
-  inline-size: var(--phone-w, 390px);
-  margin-inline: auto;
-  text-align: center;
-}
-.c-greet__date{
-  font: 800 18px/1.1 'Rubik', system-ui, sans-serif;
-  color:#0f172a;
-}
-.c-greet__line{
-  margin-block-start:.25rem;
-  color:#334155;
-  font: 600 13px/1.2 system-ui, sans-serif;
-}
-
-/* ---------- Logo palette matching ---------- */
-.brand-logo{ display:block; inline-size:110px; block-size:auto; }
-.brand-logo--dark{ display:none; }
+.brand-logo{ inline-size:100%; height:auto; display:none; }
+.brand-logo--light{ display:block; }
 :is(html,body).is-dark .brand-logo--light{ display:none; }
 :is(html,body).is-dark .brand-logo--dark{ display:block; }
 
-/* ---------- Dark mode tweaks ---------- */
-:is(html,body).is-dark body[data-view="home"]{
-  .c-topbtn{
-    background:#0f172a; color:#e5e7eb; border-color:#1f2a44;
-    box-shadow: 0 8px 18px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04);
-  }
-  .c-logo-box{
-    background:#0f172a; border-color:#1f2a44;
-    box-shadow: 0 12px 28px rgba(11,18,34,.55), inset 0 1px 0 rgba(255,255,255,.04);
-  }
-  .c-greet__date{ color:#e2e8f0; }
-  .c-greet__line{ color:#93a4bd; }
+/* Circular top buttons (biblical-style silhouettes) */
+.c-topbtn{
+  inline-size: 36px; block-size: 36px; border-radius: 50%;
+  display:grid; place-items:center;
+  border:1px solid #e5e7eb;
+  background: #fff;
+  color:#0f172a;
+  box-shadow: 0 6px 16px rgba(15,23,42,.08);
+  transition: transform .08s ease, box-shadow .12s ease;
+}
+.c-topbtn:hover{ transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15,23,42,.10); }
+.c-topbtn:active{ transform: translateY(0); }
 
-  .p-tab{
-    background:#0f172a; color:#e5e7eb; border-color:#1f2a44;
-    box-shadow: 0 12px 24px rgba(11,18,34,.5), inset 0 1px 0 rgba(255,255,255,.04);
-  }
-  .p-tab[aria-current="true"]{
-    background:#3b82f6; border-color:#3b82f6; color:#fff;
-  }
+/* position left/right; logo is center cell */
+.c-topbtn--profile{ justify-self:start; }
+.c-topbtn--settings{ justify-self:end; }
 
-  .p-midnav__btn{
-    background:#0f172a; border-color:#1f2a44; color:#e5e7eb;
-  }
-  .p-midnav__today{
-    background:#0f172a; border-color:#1f2a44; color:#e5e7eb;
-  }
-  .p-midnav__echo{
-    background:#0f172a; border-color:#1f2a44; color:#cbd5e1;
-  }
-
-  .c-cta{
-    background: linear-gradient(180deg,#0f1b2f,#0d1728);
-    border:1px solid #3b588b;
-    box-shadow: 0 14px 28px rgba(11,18,34,.55);
-    color:#e4ecff;
-  }
-  .c-cta--bang::after{ border-color:#0f172a; }
+/* --------------- Lemon button (dead-center under logo) --------------- */
+.c-lemon-wrap{ display:grid; place-items:center; }
+.c-icon-btn--lemon{
+  inline-size: 36px; block-size:36px; border-radius:50%;
+  display:grid; place-items:center; border:0; background:#fff;
+  box-shadow: 0 4px 14px rgba(15,23,42,.12);
 }
 
-/* ---------- Responsive (iPhone 12 Pro and up + small desktop) ---------- */
-@media (min-width: 420px){
-  .p-tab{ min-inline-size: 96px; }
+/* --------------- Meta (date + greeting) ------------------- */
+.c-meta-block{ text-align:center; }
+.c-date{
+  font: 800 15px/1.2 'Rubik', system-ui, sans-serif;
+  color:#0f172a;
+}
+.c-greet{
+  margin-top:.25rem;
+  font: 700 16px/1.4 'Rubik', system-ui, sans-serif;   /* bolder greeting */
+  color:#334155;
+}
+.c-greet b{ color:#0f172a; }
+
+/* ---------------- View switch (חודש/שבוע/יום) --------------- */
+.c-view-switch{
+  display:grid; grid-auto-flow:column; gap:.5rem; justify-content:center;
+}
+.c-headbtn{
+  inline-size: 94px; block-size: 40px;
+  border-radius: 999px; border:1px solid #e5e7eb;
+  background: #ffffff; color:#0f172a;
+  display:grid; place-items:center; font: 800 13px/1 system-ui;
+  box-shadow: 0 6px 16px rgba(15,23,42,.08);
+}
+.c-headbtn:focus-visible{ outline:2px solid #94a3b8; outline-offset:2px; }
+
+/* ---------------- Mini period nav  ( ‹  היום  › ) -------------- */
+.c-period-mini{
+  display:grid; grid-template-columns: 52px 1fr 52px; align-items:center; gap:.5rem;
+  max-inline-size: 280px; margin-inline:auto;
+}
+.c-pillnav{
+  inline-size: 52px; block-size: 36px; border-radius: 999px;
+  display:grid; place-items:center;
+  border:1px solid #e5e7eb; background:#fff; color:#0f172a;
+  font: 800 14px/1 'Rubik', system-ui;
+  box-shadow: 0 6px 16px rgba(15,23,42,.08);
+}
+.c-pillnav--today{
+  inline-size:auto; padding-inline:1rem;
 }
 
-@media (min-width: 768px){
-  body[data-view="home"] .o-header,
-  body[data-view="home"] .p-tabs,
-  body[data-view="home"] .p-midnav,
-  body[data-view="home"] .c-greet{
-    --phone-w: 420px;
-  }
+/* --------------- View slot area ---------------------------- */
+.o-viewroot{
+  min-block-size: 420px;            /* gives the calendar comfy room */
+  display:block;
 }
+
+/* --------------- Bottom orb (dead-center + safe area) ------ */
+.c-bottom-cta{
+  position: fixed;
+  left:50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + 1.2rem);
+  z-index: 50;
 }
+
+/* dark mode tweaks */
+:is(html,body).is-dark .c-topbtn,
+:is(html,body).is-dark .c-icon-btn--lemon,
+:is(html,body).is-dark .c-headbtn,
+:is(html,body).is-dark .c-pillnav{
+  background:#0f172a; color:#e6edff; border-color:#334155;
+  box-shadow: 0 10px 22px rgba(0,0,0,.45);
+}
+:is(html,body).is-dark .c-date{ color:#e6edff; }
+:is(html,body).is-dark .c-greet{ color:#b4c5ff; }
+:is(html,body).is-dark .c-greet b{ color:#fff; }

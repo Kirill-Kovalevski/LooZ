@@ -1,23 +1,19 @@
-const routes = {
-  '': 'home',
-  '#/home': 'home',
-  '#/day': 'day',
-  '#/week': 'week',
-  '#/month': 'month',
-  '#/settings': 'settings',
-};
-
-export function initRouter() {
-  const app = document.getElementById('app');
-
-  async function render() {
-    const key = routes[location.hash] ?? 'home';
-    document.body.setAttribute('data-view', key);
-    const mod = await import(`./pages/${key}.js`);
-    app.innerHTML = '';
-    mod.mount?.(app);
+// src/router.js
+export function startRouter(app) {
+  async function show(view) {
+    const mod = await import(`./pages/${view}.js`);
+    mod.mount(app);                     // <- each view mounts into #viewRoot
   }
 
-  window.addEventListener('hashchange', render);
-  render();
+  async function apply() {
+    const h = location.hash.replace(/^#\/?/, '');
+    if (h === 'day')  return show('day');
+    if (h === 'week') return show('week');
+    if (h === 'month')return show('month');
+    // default: land on month (or day) but KEEP the shell
+    return show('month');
+  }
+
+  window.addEventListener('hashchange', apply);
+  apply();
 }

@@ -1,200 +1,137 @@
-// src/pages/home.js
-import { openCreateSheet } from '../components/sheet.js';
-import { dayNames, buildWeek, fmtDM, keyOf, TODAY_KEY } from '../utils/date.js';
+// Shell only: header + lemon + date + greeting + view buttons + mini period nav + #viewRoot + orb.
+// Views (day/week/month) render INSIDE #viewRoot (no page navigation).
 
-/* -------------------------------------------------
-   Tiny helpers
---------------------------------------------------*/
-const MODE = { day: 'day', week: 'week', month: 'month' };
-const MODE_LABELS = { day: 'יום', week: 'שבוע', month: 'חודש' };
+// ---------- tiny helpers ----------
+const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+const pad2 = n => String(n).padStart(2, '0');
+const todayDM = d => `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}`;
+const hebDay = d => HEB_DAYS[d.getDay()];
 
-const HEB_DAYS_FULL = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-
-const addDays = (d, n) => { const x = new Date(d); x.setDate(d.getDate()+n); return x; };
-const addMonths = (d, n) => { const x = new Date(d); x.setMonth(d.getMonth()+n); return x; };
-
-const getFirstName = () => {
-  try { return localStorage.getItem('firstName') || 'אורח'; } catch { return 'אורח'; }
-};
-
-/* -------------------------------------------------
-   Page state (week/month content uses "anchor")
---------------------------------------------------*/
-let mode   = MODE.day;         // default “יום”
-let anchor = new Date();       // what the arrows move
-
-/* -------------------------------------------------
-   Renderers for the lower content area
---------------------------------------------------*/
-function renderDay(container, date) {
-  // Demo content: one “fake” task card for the selected day
-  const isToday = keyOf(date) === TODAY_KEY;
-  container.innerHTML = `
-    <section class="p-dayview">
-      <div class="p-dayview__head">
-        <div class="p-dayview__left"></div>
-        <h2 class="p-dayview__title">
-          ${HEB_DAYS_FULL[date.getDay()]}
-          <small>${fmtDM(date)}</small>
-          ${isToday ? '<em class="p-chip p-chip--today">היום</em>' : ''}
-        </h2>
-        <div class="p-dayview__right"></div>
-      </div>
-
-      <article class="p-task">
-        <div class="p-task__text">דוגמה למשימה</div>
-        <div class="p-task__time">14:00</div>
-        <div class="p-task__actions">
-          <button class="p-task__btn p-task__btn--ok" title="סימון">✔</button>
-          <button class="p-task__btn p-task__btn--del" title="מחיקה">✖</button>
-        </div>
-      </article>
-    </section>
-  `;
+// You can store after sign-up: localStorage.setItem('firstName','אורה'); localStorage.setItem('lastName','כהן');
+function getUserName() {
+  const first = localStorage.getItem('firstName') || 'אורח';
+  const last  = localStorage.getItem('lastName')  || '';
+  return last ? `${first} ${last[0]}.` : first;
 }
 
-function renderWeek(container, date) {
-  const { days } = buildWeek(date);
-  const heb = dayNames('he'); // your util already respects week-start pref
-  container.innerHTML = `
-    <section class="p-week">
-      ${days.map((d, i) => {
-        const today = keyOf(d) === TODAY_KEY ? ' is-today' : '';
-        return `
-          <div class="p-week__row${today}">
-            <div class="p-week__col p-week__col--name">${heb[i]}</div>
-            <div class="p-week__col p-week__col--count"><span class="p-count">0</span></div>
-            <div class="p-week__col p-week__col--date">${fmtDM(d)}</div>
-          </div>
-        `;
-      }).join('')}
-    </section>
-  `;
+// Mount any view module into #viewRoot
+async function show(view /* 'day' | 'week' | 'month' */) {
+  const mod = await import(`./${view}.js`);
+  const app = document.getElementById('app');
+  mod.mount(app);   // every view creates/uses #viewRoot internally
 }
 
-function renderMonth(container, date) {
-  // Simple month grid 1..N
-  const y = date.getFullYear(), m = date.getMonth();
-  const last = new Date(y, m+1, 0).getDate();
-  const days = Array.from({ length: last }, (_,i)=> new Date(y,m,i+1));
-  container.innerHTML = `
-    <section class="p-month">
-      ${days.map(d=>{
-        const isToday = keyOf(d)===TODAY_KEY ? ' p-cell--today' : '';
-        return `
-          <button class="p-cell${isToday}" data-date="${keyOf(d)}">
-            <span class="p-cell__num">${d.getDate()}</span>
-            <span class="p-count">0</span>
-          </button>
-        `;
-      }).join('')}
-    </section>
-  `;
-}
+// dispatch the (prev|today|next) period event the views listen for
+const navPeriod = dir =>
+  document.dispatchEvent(new CustomEvent('period-nav', { detail: dir }));
 
-/* -------------------------------------------------
-   Main Home mount
---------------------------------------------------*/
-export function mount(root){
-  const today = new Date();
+// ---------- shell html ----------
+function shellHTML() {
+  const d = new Date();
+  const dateStr = `${hebd(d)} ${todayDM(d)}`;
+  function hebd(dt){ return hebDay(dt); }
 
-  root.innerHTML = `
-    <main class="o-page" data-view="home">
+  return `
+    <main class="o-page">
       <section class="o-phone o-inner">
+        <!-- header: profile / centered logo / settings -->
+        <header class="o-header">
+          <button class="c-topbtn c-topbtn--profile" aria-label="פרופיל" title="פרופיל">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z" fill="currentColor"/>
+            </svg>
+          </button>
 
-        <!-- HEADER: profile (left) | centered logo | settings (right) -->
-        <header class="o-header o-header--edge">
-          <!-- Biblical/mythical inspired placeholders; swap to SVGs when ready -->
-          <button class="c-topbtn c-topbtn--profile" aria-label="פרופיל" title="פרופיל">🕊️</button>
-
-          <a class="c-looz-brand" href="#/home" aria-label="LooZ">
-            <img class="c-looz-logo c-looz-logo--light" alt="LooZ" src="/src/icons/main-logo.png">
-            <img class="c-looz-logo c-looz-logo--dark"  alt="LooZ" src="/src/icons/dark-logo.png">
+          <a class="looz-logo" aria-label="LooZ">
+            <img class="brand-logo brand-logo--light" src="/src/icons/main-logo.png" alt="LooZ">
+            <img class="brand-logo brand-logo--dark"  src="/src/icons/dark-logo.png"  alt="LooZ">
           </a>
 
-          <a href="#/settings" class="c-topbtn c-topbtn--settings" aria-label="הגדרות" title="הגדרות">🔱</a>
+          <button class="c-topbtn c-topbtn--settings" aria-label="הגדרות" title="הגדרות">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <!-- biblical-ish 3 dots -->
+              <path d="M5 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="currentColor"/>
+            </svg>
+          </button>
         </header>
 
-        <!-- Greeting block -->
-        <div class="c-greet">
-          <div class="c-greet__today">
-            <b>${HEB_DAYS_FULL[today.getDay()]}</b>
-            <span class="c-greet__date">${fmtDM(today)}</span>
-          </div>
-          <p class="c-greet__line"><b>שלום,</b> <span id="greetName">${getFirstName()}</span> 👋</p>
-          <p class="c-greet__special" data-special="off"></p>
+        <!-- lemon -->
+        <div class="c-lemon-wrap">
+          <button id="lemonToggle" class="c-icon-btn c-icon-btn--lemon" type="button"
+                  aria-label="פתח/סגור תפריט" aria-expanded="false">
+            <svg class="lemon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <defs>
+                <radialGradient id="lemBody" cx="50%" cy="42%" r="75%">
+                  <stop offset="0%"  stop-color="#FFF6B8"/>
+                  <stop offset="48%" stop-color="#FFE067"/>
+                  <stop offset="100%" stop-color="#F7C843"/>
+                </radialGradient>
+              </defs>
+              <g transform="translate(0,0) scale(1.05)">
+                <path d="M19 7c-3-3-8-3-11 0-2 2.3-2 6 0 8 2.2 2.1 5.8 2.4 8 0 2.2-2.1 2.6-5.4 1-7.6"
+                      fill="url(#lemBody)" stroke="#B8860B" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M18 6c.9-.9 1.7-1.8 2.3-2.8" stroke="#2E7D32" stroke-linecap="round" stroke-width="2"/>
+              </g>
+            </svg>
+          </button>
         </div>
 
-        <!-- Mode switch -->
-        <nav class="c-switch" role="tablist" aria-label="תצוגה">
-          <button class="c-pill" data-switch="day"   role="tab" aria-selected="true">יום</button>
-          <button class="c-pill" data-switch="week"  role="tab">שבוע</button>
-          <button class="c-pill" data-switch="month" role="tab">חודש</button>
+        <!-- date + greeting -->
+        <div class="c-meta-block">
+          <div class="c-date">${dateStr}</div>
+          <p class="c-greet">ברוכים השבים <b>${getUserName()}</b> 👋</p>
+        </div>
+
+        <!-- view switch -->
+        <nav class="c-view-switch" aria-label="תצוגה">
+          <button class="c-headbtn" data-viewbtn="month">חודש</button>
+          <button class="c-headbtn" data-viewbtn="week">שבוע</button>
+          <button class="c-headbtn" data-viewbtn="day">יום</button>
         </nav>
 
-        <!-- Pager (prev | היום+mode | next) -->
-        <nav class="c-triple" aria-label="ניווט זמן">
-          <button class="c-triple__btn" data-page="prev" aria-label="הקודם">‹</button>
-          <div class="c-triple__center">
-            <button class="c-today" id="btnToday" aria-label="חזור להיום">היום</button>
-            <span class="c-mode-pill" id="modePill">${MODE_LABELS[mode]}</span>
-          </div>
-          <button class="c-triple__btn" data-page="next" aria-label="הבא">›</button>
-        </nav>
+        <!-- mini period -->
+        <div class="c-period-mini">
+          <button class="c-pillnav" data-prev aria-label="קודם">‹</button>
+          <button class="c-pillnav c-pillnav--today" data-today aria-label="היום">היום</button>
+          <button class="c-pillnav" data-next aria-label="הבא">›</button>
+        </div>
 
-        <!-- LOWER CONTENT AREA (actually rendered now) -->
-        <div id="viewArea" class="o-viewarea" aria-live="polite"></div>
+        <!-- content slot -->
+        <section id="viewRoot" class="o-viewroot" aria-live="polite"></section>
 
-        <!-- Create-event orb, fixed and truly centered -->
+        <!-- orb (fixed, bottom-center) -->
         <div class="c-bottom-cta">
           <button class="c-cta c-cta--bang btn-create-orb" aria-label="צור אירוע"></button>
         </div>
-
       </section>
     </main>
   `;
+}
 
-  const viewArea = root.querySelector('#viewArea');
-  const repaint  = () => {
-    if (mode === MODE.day)   renderDay(viewArea, anchor);
-    if (mode === MODE.week)  renderWeek(viewArea, anchor);
-    if (mode === MODE.month) renderMonth(viewArea, anchor);
-  };
+// ---------- wire shell ----------
+function wireShell(root) {
+  // view switch
+  root.querySelector('[data-viewbtn="day"]')   ?.addEventListener('click', () => show('day'));
+  root.querySelector('[data-viewbtn="week"]')  ?.addEventListener('click', () => show('week'));
+  root.querySelector('[data-viewbtn="month"]') ?.addEventListener('click', () => show('month'));
 
-  // Initial paint
-  repaint();
+  // period nav
+  root.querySelector('[data-prev]') ?.addEventListener('click', () => navPeriod('prev'));
+  root.querySelector('[data-next]') ?.addEventListener('click', () => navPeriod('next'));
+  root.querySelector('[data-today]')?.addEventListener('click', () => navPeriod('today'));
 
-  // Mode switching
-  root.querySelectorAll('[data-switch]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      mode = e.currentTarget.dataset.switch;
-      // ARIA
-      root.querySelectorAll('[data-switch]').forEach(b=>b.setAttribute('aria-selected', String(b===e.currentTarget)));
-      // Update label under "היום"
-      root.querySelector('#modePill').textContent = MODE_LABELS[mode];
-      repaint();
-    });
+  // optional lemon toggle
+  root.querySelector('#lemonToggle')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    btn.setAttribute('aria-expanded', btn.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
   });
+}
 
-  // Prev/Next (step by mode)
-  root.querySelector('.c-triple').addEventListener('click', (e)=>{
-    const dir = e.target.closest('[data-page]')?.dataset.page;
-    if (!dir) return;
-    const step = dir === 'prev' ? -1 : +1;
-    if (mode === MODE.day)   anchor = addDays(anchor, step);
-    if (mode === MODE.week)  anchor = addDays(anchor, step*7);
-    if (mode === MODE.month) anchor = addMonths(anchor, step);
-    repaint();
-  });
-
-  // Back to real today (keeps mode)
-  root.querySelector('#btnToday').addEventListener('click', ()=>{
-    anchor = new Date();
-    repaint();
-  });
-
-  // Open create sheet
-  root.addEventListener('click', (e)=>{
-    if (e.target.closest('.btn-create-orb')) openCreateSheet();
-  });
+// ---------- public mount ----------
+export function mount(root) {
+  document.body.setAttribute('data-view', 'home');
+  root.innerHTML = shellHTML();
+  wireShell(root);
+  // initial content: month (or change to 'day')
+  show('month');
 }

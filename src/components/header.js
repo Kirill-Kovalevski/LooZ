@@ -1,88 +1,56 @@
-// Builds the header markup and attaches event handlers once mounted
-export function renderHeader(){
-  return `
-    <header class="o-header" id="appHeader">
-      <button class="c-topbtn" id="btnProfile" aria-label="פרופיל">👤</button>
+// Header chrome (shell): profile LEFT, settings RIGHT, brand centered.
+// Inline SVG icons adapt to light/dark via currentColor.
 
-      <a href="#/home" class="looz-logo" aria-label="LooZ">
-        <svg class="looz-mark" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
-          <circle cx="32" cy="32" r="28" fill="url(#g)"/>
-          <defs><radialGradient id="g" cx=".38" cy=".26" r="1.1">
-            <stop offset=".0" stop-color="#fff9ed"/><stop offset=".58" stop-color="#ffe9b7"/>
-            <stop offset="1" stop-color="#e8b861"/>
-          </radialGradient></defs>
-        </svg>
-      </a>
-
-      <button class="c-topbtn" id="btnMenu" aria-label="הגדרות">⚙️</button>
-
-      <!-- Lemon trigger row -->
-      <button id="lemonToggle" class="c-icon-btn--lemon" aria-expanded="false" aria-controls="appNav">
-        <svg class="lemon-svg" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 3c4.5 0 9 4.5 9 9s-4.5 9-9 9-9-4.5-9-9 4.5-9 9-9z"/>
-        </svg>
+export function renderHeader() {
+  return /* html */`
+    <header class="o-header">
+      <!-- Profile (LEFT) -->
+      <button class="c-topbtn c-topbtn--profile" type="button" aria-label="פרופיל" id="btnProfile">
+        ${iconProfileBiblical()}
       </button>
 
-      <!-- Collapsible Search/Nav panel -->
-      <nav id="appNav" class="c-nav u-is-collapsed">
-        <div class="c-nav__panel">
-          <div class="c-nav__row">
-            <button class="c-icon-btn c-nav-arrow" data-nav="prev" aria-label="חזרה">◀</button>
+      <!-- Center brand logo pair (light/dark) -->
+      <a href="#/home" class="looz-logo" aria-label="LooZ">
+        <img class="brand-logo brand-logo--light" alt="LooZ" src="/src/icons/main-logo.png">
+        <img class="brand-logo brand-logo--dark"  alt="LooZ" src="/src/icons/dark-logo.png">
+      </a>
 
-            <div class="c-search">
-              <input class="c-search__input" type="search" placeholder="חפש משימה, קטגוריה…" />
-              <button class="c-search__clear" aria-label="נקה">×</button>
-              <button class="c-search__go" aria-label="חפש">↵</button>
-            </div>
-
-            <button class="c-icon-btn c-nav-arrow" data-nav="next" aria-label="קדימה">▶</button>
-          </div>
-
-          <div class="sug-wrap">
-            <div class="sug-head">קטגוריות</div>
-            <div class="sug-list">
-              <div class="sug-item">
-                <p class="sug-title">עבודה</p>
-                <div class="sug-row">
-                  <span class="sug-tag">פגישות</span>
-                  <span class="sug-tag">משימות</span>
-                </div>
-                <div class="sug-actions">
-                  <button class="sug-btn sug-btn--primary">בחר</button>
-                  <button class="sug-btn">שמור</button>
-                </div>
-              </div>
-              <!-- add more items as you like -->
-            </div>
-          </div>
-
-          <div class="c-nav__icons">
-            <button class="c-icon c-icon--left" aria-label="טוויטר">🜃</button>
-            <button class="c-icon c-icon--right" aria-label="אינסטגרם">🜁</button>
-          </div>
-        </div>
-      </nav>
+      <!-- Settings (RIGHT) -->
+      <button class="c-topbtn c-topbtn--settings" type="button" aria-label="הגדרות" id="btnSettings">
+        ${iconSettingsBiblical()}
+      </button>
     </header>
   `;
 }
 
-// attach handlers AFTER you inject the header HTML
-export function initHeaderInteractions(){
-  const lemon = document.getElementById('lemonToggle');
-  const nav   = document.getElementById('appNav');
-  if (!lemon || !nav) return;
+export function initHeaderInteractions() {
+  const s = document.getElementById('btnSettings');
+  const p = document.getElementById('btnProfile');
+  s?.addEventListener('click', () => document.dispatchEvent(new CustomEvent('open-settings')));
+  p?.addEventListener('click', () => document.dispatchEvent(new CustomEvent('open-profile')));
+}
 
-  lemon.addEventListener('click', ()=>{
-    const open = nav.classList.toggle('u-is-collapsed');
-    lemon.setAttribute('aria-expanded', String(!open));
-    // open/close animated panel
-    nav.classList.toggle('is-open', !open);
-    if (!open) nav.querySelector('.c-search__input')?.focus();
-  });
+/* ---------- Icons ---------- */
 
-  // clear search
-  nav.querySelector('.c-search__clear')?.addEventListener('click', ()=>{
-    const inp = nav.querySelector('.c-search__input');
-    if (inp){ inp.value=''; inp.focus(); }
-  });
+function iconSettingsBiblical() {
+  // “Three dots” on a rounded tablet
+  return `
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4" ry="4"
+          fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="8"  cy="12" r="1.6" fill="currentColor"/>
+    <circle cx="12" cy="12" r="1.6" fill="currentColor"/>
+    <circle cx="16" cy="12" r="1.6" fill="currentColor"/>
+  </svg>`;
+}
+
+function iconProfileBiblical() {
+  // Bust + small halo
+  return `
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    <circle cx="12" cy="7.8" r="3.1" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <path d="M5.5 18.5c1.6-3.2 4.2-4.6 6.5-4.6s4.9 1.4 6.5 4.6"
+          fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    <ellipse cx="12" cy="4.2" rx="3.6" ry="0.9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+  </svg>`;
 }
