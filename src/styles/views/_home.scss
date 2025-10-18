@@ -26,15 +26,115 @@ body { min-height: 100vh; }
   --btn-shadow-active: 0 4px 12px rgba(0,0,0,.55);
 }
 
-/* page bg */
+/* ===== App background: classy pastel splashes ===== */
 .o-page{
-  display:grid; place-items:center; min-height:100vh;
-  padding:0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  /* base wash – very subtle so content is readable */
   background:
-    radial-gradient(120% 120% at 15% -10%, rgba(255,210,180,.22), rgba(255,255,255,0) 55%),
-    radial-gradient(120% 120% at 90% 5%,  rgba(198,219,255,.18), rgba(255,255,255,0) 60%),
-    linear-gradient(180deg, #f7f7fb, #edf1f7);
+    linear-gradient(180deg, #f8fafc 0%, #eef2f9 100%);
+  overflow: hidden;            /* hide splash edges on small screens */
+  isolation: isolate;          /* keep blends inside the page */
 }
+
+/* Static broad blobs (very light) */
+.o-page::before{
+  content: "";
+  position: fixed;             /* covers viewport; doesn’t scroll */
+  inset: -15vmax;              /* bleed beyond edges to avoid crop on zoom */
+  z-index: -1;
+  pointer-events: none;
+
+  /* pastel “splashes” using layered radial gradients */
+  background:
+    /* warm peach at top-left */
+    radial-gradient(28vmax 22vmax at 8% 6%,
+      rgba(255, 209, 170, .45) 0%,
+      rgba(255, 209, 170, .18) 48%,
+      rgba(255, 209, 170, 0) 62%),
+
+    /* mango/banana sweep upper-center */
+    radial-gradient(26vmax 20vmax at 48% -8%,
+      rgba(255, 235, 170, .40) 0%,
+      rgba(255, 235, 170, .16) 50%,
+      rgba(255, 235, 170, 0) 65%),
+
+    /* sky blue at top-right */
+    radial-gradient(28vmax 22vmax at 95% 4%,
+      rgba(184, 214, 255, .42) 0%,
+      rgba(184, 214, 255, .18) 48%,
+      rgba(184, 214, 255, 0) 62%),
+
+    /* mint bottom-left */
+    radial-gradient(26vmax 22vmax at -6% 86%,
+      rgba(188, 244, 220, .40) 0%,
+      rgba(188, 244, 220, .16) 50%,
+      rgba(188, 244, 220, 0) 66%),
+
+    /* lavender bottom-right */
+    radial-gradient(30vmax 24vmax at 102% 92%,
+      rgba(210, 190, 255, .42) 0%,
+      rgba(210, 190, 255, .18) 50%,
+      rgba(210, 190, 255, 0) 66%),
+
+    /* soft coral accent near lower middle */
+    radial-gradient(18vmax 14vmax at 58% 78%,
+      rgba(255, 185, 178, .40) 0%,
+      rgba(255, 185, 178, .12) 55%,
+      rgba(255, 185, 178, 0) 70%);
+  filter: blur(10px) saturate(105%);   /* creamy, not neon */
+  opacity: .85;
+  will-change: transform;              /* mobile perf hint */
+}
+
+/* Gentle drifting highlight blobs (barely moving) */
+.o-page::after{
+  content: "";
+  position: fixed;
+  inset: -20vmax;
+  z-index: -1;
+  pointer-events: none;
+
+  background:
+    radial-gradient(16vmax 14vmax at 22% 28%, rgba(255, 230, 190, .55) 0%, rgba(255, 230, 190, 0) 70%),
+    radial-gradient(14vmax 12vmax at 80% 26%, rgba(200, 218, 255, .50) 0%, rgba(200, 218, 255, 0) 70%),
+    radial-gradient(18vmax 16vmax at 76% 82%, rgba(226, 208, 255, .48) 0%, rgba(226, 208, 255, 0) 70%),
+    radial-gradient(14vmax 12vmax at 28% 84%, rgba(255, 210, 190, .48) 0%, rgba(255, 210, 190, 0) 70%);
+  filter: blur(24px);
+  opacity: .65;
+  animation: splash-drift 28s ease-in-out infinite alternate;
+}
+
+@keyframes splash-drift{
+  0%   { transform: translate3d(0,0,0) scale(1.00); }
+  50%  { transform: translate3d(1.2%, -1.2%, 0) scale(1.02); }
+  100% { transform: translate3d(-1.2%, 1.2%, 0) scale(1.01); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .o-page::after{ animation: none; }
+}
+
+/* Dark mode – keep it pastel, just deeper */
+:is(html,body).is-dark .o-page{
+  background: linear-gradient(180deg, #0f1422 0%, #0b111d 100%);
+}
+:is(html,body).is-dark .o-page::before{
+  background:
+    radial-gradient(28vmax 22vmax at 8% 6%,   rgba(255, 209, 170, .28) 0%, rgba(255, 209, 170, 0) 62%),
+    radial-gradient(26vmax 20vmax at 48% -8%, rgba(255, 235, 170, .24) 0%, rgba(255, 235, 170, 0) 65%),
+    radial-gradient(28vmax 22vmax at 95% 4%,  rgba(184, 214, 255, .26) 0%, rgba(184, 214, 255, 0) 62%),
+    radial-gradient(26vmax 22vmax at -6% 86%,  rgba(188, 244, 220, .22) 0%, rgba(188, 244, 220, 0) 66%),
+    radial-gradient(30vmax 24vmax at 102% 92%, rgba(210, 190, 255, .24) 0%, rgba(210, 190, 255, 0) 66%),
+    radial-gradient(18vmax 14vmax at 58% 78%,  rgba(255, 185, 178, .22) 0%, rgba(255, 185, 178, 0) 70%);
+  opacity: .75;
+}
+:is(html,body).is-dark .o-page::after{
+  opacity: .55;
+}
+
 
 /* phone shell */
 .o-phone{
