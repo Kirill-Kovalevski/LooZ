@@ -140,3 +140,72 @@ body { min-height: 100vh; }
 :is(html,body).is-dark .c-date{ color:#e6edff; }
 :is(html,body).is-dark .c-greet{ color:#b4c5ff; }
 :is(html,body).is-dark .c-greet b{ color:#fff; }
+/* src/styles/views/_home.scss */
+
+/* view buttons row */
+.c-view-switch {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+  margin: .5rem auto 0;
+}
+
+.c-headbtn {
+  min-width: 84px;
+  padding: .55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #e5edff;
+  background: #fff;
+  color: #0f172a;
+  font: 700 14px/1 'Rubik', system-ui, sans-serif;
+  box-shadow: 0 2px 8px rgba(15,23,42,.06);
+  transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease;
+
+  &:active { transform: translateY(1px); }
+
+  &.is-active {
+    /* warm yellow like your profile/settings icon color */
+    background: #FFE067;
+    border-color: #f8d24c;
+    box-shadow:
+      0 6px 18px rgba(248, 210, 76, .35),
+      inset 0 1px 0 rgba(255,255,255,.55);
+  }
+}
+
+/* keep prev/next at the sides */
+.c-period-mini {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* push to the edges */
+  gap: .75rem;
+  margin: .35rem auto .25rem;
+  max-inline-size: var(--phone-w, 390px);
+}
+/* same chromed capsule for all top icons */
+.c-topbtn,
+.c-icon-btn--lemon{
+  inline-size: 36px;
+  block-size: 36px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--chrome-bg, #fff);       /* the same bg used for profile/settings */
+  box-shadow: 0 1px 0 rgba(255,255,255,.6), 0 8px 24px rgba(15,23,42,.08);
+  color: var(--chrome-fg, #0f172a);
+  border: 1px solid rgba(100,116,139,.16);
+}
+
+/* keep Lemon svg centered and transparent */
+.c-icon-btn--lemon .lemon-svg{ display:block; inline-size:20px; block-size:20px }
+
+/* make the logo background = app background (no halo mismatch) */
+.looz-logo{
+  display:inline-grid; place-items:center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--page-bg, #f1f5f9);   /* follows your app bg (light) */
+}
+.is-dark .looz-logo{ background: var(--page-bg, #0b1222); }
+
+/* active state for selected view buttons (already in your css) */
+/* .c-headbtn.is-active { … }  — keep whatever you already had */

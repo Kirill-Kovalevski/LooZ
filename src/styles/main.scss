@@ -3,7 +3,8 @@
    This file only wires partials together with Sass @use.
    Order matters: core → base → utilities → components → views.
    ──────────────────────────────────────────────────────────────── */
-
+@use './views/home';
+@use './views/month';
 /* 1) Core design tokens & mixins (variables, colors, helpers) */
 @use './core/tokens'  as tokens;
 @use './core/mixins'  as mx;
@@ -30,10 +31,8 @@
 @use './components/sheet';
 
 /* 5) Views (page-level styles, each is scoped with body[data-view="…"]) */
-@use './views/home';
 @use './views/day';
 @use './views/week';
-@use './views/month';
 @use './views/settings';
 
 /* Done.

@@ -1,99 +1,137 @@
 // src/pages/day.js
+// Render Day view INTO #viewRoot (no navigation)
 
-// UI pieces
-import { renderHeader, initHeaderInteractions } from '../components/header.js';
-import { openCreateSheet } from '../components/sheet.js';
+const STORE = 'events'; // example: [{date:"2025-10-15", time:"16:30", title:"שיחה עם עדי", done:false}]
+const EVENTS_CHANGED = 'events-changed';
 
-// tiny effects/helpers
-import { confetti, pulse } from '../utils/effects.js';
+const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 
-// date helpers
-import { fmtDM, TODAY_KEY, keyOf } from '../utils/date.js';
-
-/**
- * Optional: a tiny in-memory model for the demo day list.
- * Replace with your real data later.
- */
-function getDemoTasks() {
-  return [
-    { id: 't1', text: 'דוגמה למשימה', time: '14:00' },
-    { id: 't2', text: 'שיחה עם יעל', time: '16:30' },
-  ];
+function pad2(n){ return String(n).padStart(2,'0'); }
+export function keyOf(d){
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+function readStore(){
+  try { return JSON.parse(localStorage.getItem(STORE) || '[]'); }
+  catch { return []; }
+}
+function saveStore(list){
+  localStorage.setItem(STORE, JSON.stringify(list));
+  document.dispatchEvent(new Event(EVENTS_CHANGED));
+}
+function ensureHost(root){
+  let host = root.querySelector('#viewRoot') || document.getElementById('viewRoot');
+  if(!host){
+    host = document.createElement('section');
+    host.id = 'viewRoot';
+    root.appendChild(host);
+  }
+  return host;
+}
+function hebDateString(d){
+  const dayName = HEB_DAYS[d.getDay()];
+  return `${pad2(d.getDate())}.${pad2(d.getMonth()+1)} · ${dayName}`;
+}
+function eventsFor(dateKey){
+  const all = readStore();
+  return all.filter(e => e.date === dateKey)
+            .sort((a,b) => (a.time||'00:00').localeCompare(b.time||'00:00'));
 }
 
-function taskItemHTML(t) {
+let state = {
+  date: new Date(), // today by default
+  cleanup: null
+};
+
+function render(host){
+  const dateKey = keyOf(state.date);
+  const list = eventsFor(dateKey);
+
+  host.innerHTML = `
+    <section class="p-dayview" aria-label="רשימת משימות ליום">
+      <header class="p-day-head">
+        <div class="p-day-when">${hebDateString(state.date)}</div>
+      </header>
+
+      <div class="p-tasklist">
+        ${list.length ? list.map(taskCard).join('') : emptyCard()}
+      </div>
+    </section>
+  `;
+
+  // actions: ✓ / ✕
+  host.querySelectorAll('.p-act--ok').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const idx = +btn.closest('.p-datask').dataset.idx;
+      const all = readStore();
+      const dayList = all.filter(x => x.date === dateKey)
+                         .sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+      const task = dayList[idx];
+      if(!task) return;
+      task.done = !task.done;
+      // write back into the original array: find by (date,time,title)
+      const pos = all.findIndex(x => x.date===task.date && x.time===task.time && x.title===task.title);
+      if(pos>-1){ all[pos]=task; saveStore(all); render(host); }
+    });
+  });
+
+  host.querySelectorAll('.p-act--no').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = +btn.closest('.p-datask').dataset.idx;
+      let all = readStore();
+      const item = eventsFor(dateKey)[idx];
+      if(!item) return;
+      all = all.filter(x => !(x.date===item.date && x.time===item.time && x.title===item.title));
+      saveStore(all);
+      render(host);
+    });
+  });
+}
+
+function taskCard(task, i){
+  const time = task.time || '—';
+  const done = task.done ? ' is-done' : '';
   return `
-    <article class="p-daytask" data-id="${t.id}">
-      <div class="p-daytask__text">${t.text}</div>
-      <div class="p-daytask__time">${t.time}</div>
-      <div class="p-daytask__actions">
-        <button class="p-daytask__btn" data-act="done"  aria-label="בוצע">✔</button>
-        <button class="p-daytask__btn" data-act="del"   aria-label="מחק">✖</button>
+    <article class="p-datask${done}" data-idx="${i}">
+      <div class="p-time" dir="ltr">${time}</div>
+      <div class="p-body">
+        <div class="p-title">${escapeHTML(task.title||'ללא כותרת')}</div>
+      </div>
+      <div class="p-actions">
+        <button class="p-act p-act--ok" aria-label="בוצע">✓</button>
+        <button class="p-act p-act--no" aria-label="מחק">✕</button>
       </div>
     </article>
   `;
 }
-
-export function mount(root) {
-  // header + meta
-  const today = new Date();
-  const todayDM = fmtDM(today); // e.g. 12.02
-
-  root.innerHTML = `
-    <main class="o-page">
-      <section class="o-phone o-inner">
-        ${renderHeader({ active: 'day' })}
-
-        <div class="c-meta-block">
-          <span class="c-title--date">היום • ${todayDM}</span>
-          <p class="c-subtitle"><b>ברוך הבא</b> ללוז ✨</p>
-        </div>
-
-        <section class="p-dayview" id="dayList">
-          ${getDemoTasks().map(taskItemHTML).join('')}
-        </section>
-
-        <div class="c-primary-cta">
-          <button class="c-cta c-cta--bang btn-create-orb" aria-label="צור אירוע"></button>
-        </div>
-      </section>
-    </main>
+function emptyCard(){
+  return `
+    <article class="p-empty">
+      אין משימות להיום. לחץ על הכפתור למטה כדי ליצור משימה חדשה.
+    </article>
   `;
+}
+function escapeHTML(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
-  // highlight "today" if your CSS uses today flags (optional)
-  document.body.dataset.view = 'day';
-  document.body.dataset.today = TODAY_KEY;
+// Public mount
+export function mount(root){
+  document.body.setAttribute('data-view','day');
+  const host = ensureHost(root);
+  render(host);
 
-  // header interactions (menu/profile etc.)
-  initHeaderInteractions();
+  const onPeriod = (e)=>{
+    const dir = e.detail; // 'prev' | 'next' | 'today'
+    if(dir==='prev')  state.date = new Date(state.date.getFullYear(), state.date.getMonth(), state.date.getDate()-1);
+    if(dir==='next')  state.date = new Date(state.date.getFullYear(), state.date.getMonth(), state.date.getDate()+1);
+    if(dir==='today') state.date = new Date();
+    render(host);
+  };
+  const onEvents = ()=> render(host);
 
-  // open sheet when the orb is clicked (already delegated globally in main.js,
-  // but this is a local safety net if you prefer local wiring)
-  const orb = root.querySelector('.btn-create-orb');
-  orb?.addEventListener('click', openCreateSheet);
-
-  // delegate task actions
-  const list = root.querySelector('#dayList');
-  list?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.p-daytask__btn');
-    if (!btn) return;
-
-    const card = btn.closest('.p-daytask');
-    const rect = btn.getBoundingClientRect();
-
-    if (btn.dataset.act === 'done') {
-      // tiny press feedback + confetti
-      pulse(btn);
-      confetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-
-      // optional: strike-through, etc.
-      card.classList.add('is-done');
-    }
-
-    if (btn.dataset.act === 'del') {
-      // remove with a "scratch" animation (CSS class you already have)
-      card.classList.add('is-scratching');
-      setTimeout(() => card.remove(), 520);
-    }
-  });
+  state.cleanup?.();
+  document.addEventListener('period-nav', onPeriod);
+  document.addEventListener(EVENTS_CHANGED, onEvents);
+  state.cleanup = ()=>{
+    document.removeEventListener('period-nav', onPeriod);
+    document.removeEventListener(EVENTS_CHANGED, onEvents);
+  };
 }

@@ -1,39 +1,57 @@
-// Shell only: header + lemon + date + greeting + view buttons + mini period nav + #viewRoot + orb.
-// Views (day/week/month) render INSIDE #viewRoot (no page navigation).
+// src/pages/home.js
+// Shell: header + lemon + date + greeting + view buttons (day|week|month)
+// + mini period nav + #viewRoot + bottom orb. Views render INSIDE #viewRoot.
 
 // ---------- tiny helpers ----------
 const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 const pad2 = n => String(n).padStart(2, '0');
-const todayDM = d => `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}`;
-const hebDay = d => HEB_DAYS[d.getDay()];
+const todayDM = d => `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}`;
+const hebDay  = d => HEB_DAYS[d.getDay()];
 
-// You can store after sign-up: localStorage.setItem('firstName','אורה'); localStorage.setItem('lastName','כהן');
 function getUserName() {
   const first = localStorage.getItem('firstName') || 'אורח';
   const last  = localStorage.getItem('lastName')  || '';
   return last ? `${first} ${last[0]}.` : first;
 }
 
-// Mount any view module into #viewRoot
-async function show(view /* 'day' | 'week' | 'month' */) {
+// ---------- view mounting (single function; no duplicates) ----------
+const app = document.getElementById('app'); // the whole app root
+
+async function renderView(view /* 'day' | 'week' | 'month' */) {
   const mod = await import(`./${view}.js`);
-  const app = document.getElementById('app');
-  mod.mount(app);   // every view creates/uses #viewRoot internally
+  mod.mount(app);             // each view renders into #viewRoot inside the shell
+  setActive(view);            // update active state on the 3 buttons
 }
 
-// dispatch the (prev|today|next) period event the views listen for
-const navPeriod = dir =>
+// mark the active head button (yellow)
+function setActive(view) {
+  const map = {
+    day:   document.querySelector('[data-viewbtn="day"]'),
+    week:  document.querySelector('[data-viewbtn="week"]'),
+    month: document.querySelector('[data-viewbtn="month"]'),
+  };
+  Object.entries(map).forEach(([k, btn]) => {
+    if (!btn) return;
+    const on = k === view;
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-pressed', String(on));
+  });
+}
+
+// broadcast period navigation to current view
+function navPeriod(dir /* 'prev' | 'next' | 'today' */) {
   document.dispatchEvent(new CustomEvent('period-nav', { detail: dir }));
+}
 
 // ---------- shell html ----------
 function shellHTML() {
   const d = new Date();
-  const dateStr = `${hebd(d)} ${todayDM(d)}`;
-  function hebd(dt){ return hebDay(dt); }
+  const dateStr = `${hebDay(d)} ${todayDM(d)}`;
 
   return `
     <main class="o-page">
       <section class="o-phone o-inner">
+
         <!-- header: profile / centered logo / settings -->
         <header class="o-header">
           <button class="c-topbtn c-topbtn--profile" aria-label="פרופיל" title="פרופיל">
@@ -49,7 +67,6 @@ function shellHTML() {
 
           <button class="c-topbtn c-topbtn--settings" aria-label="הגדרות" title="הגדרות">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <!-- biblical-ish 3 dots -->
               <path d="M5 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="currentColor"/>
             </svg>
           </button>
@@ -82,24 +99,24 @@ function shellHTML() {
           <p class="c-greet">ברוכים השבים <b>${getUserName()}</b> 👋</p>
         </div>
 
-        <!-- view switch -->
+        <!-- view switch (order: day, week, month) -->
         <nav class="c-view-switch" aria-label="תצוגה">
-          <button class="c-headbtn" data-viewbtn="month">חודש</button>
-          <button class="c-headbtn" data-viewbtn="week">שבוע</button>
-          <button class="c-headbtn" data-viewbtn="day">יום</button>
+          <button class="c-headbtn" data-viewbtn="day"   aria-pressed="false">יום</button>
+          <button class="c-headbtn" data-viewbtn="week"  aria-pressed="false">שבוע</button>
+          <button class="c-headbtn" data-viewbtn="month" aria-pressed="false">חודש</button>
         </nav>
 
-        <!-- mini period -->
+        <!-- mini period nav (spreads to the edges via CSS) -->
         <div class="c-period-mini">
-          <button class="c-pillnav" data-prev aria-label="קודם">‹</button>
+          <button class="c-pillnav" data-prev  aria-label="קודם">‹</button>
           <button class="c-pillnav c-pillnav--today" data-today aria-label="היום">היום</button>
-          <button class="c-pillnav" data-next aria-label="הבא">›</button>
+          <button class="c-pillnav" data-next  aria-label="הבא">›</button>
         </div>
 
-        <!-- content slot -->
+        <!-- content slot (views render here) -->
         <section id="viewRoot" class="o-viewroot" aria-live="polite"></section>
 
-        <!-- orb (fixed, bottom-center) -->
+        <!-- bottom orb -->
         <div class="c-bottom-cta">
           <button class="c-cta c-cta--bang btn-create-orb" aria-label="צור אירוע"></button>
         </div>
@@ -111,9 +128,9 @@ function shellHTML() {
 // ---------- wire shell ----------
 function wireShell(root) {
   // view switch
-  root.querySelector('[data-viewbtn="day"]')   ?.addEventListener('click', () => show('day'));
-  root.querySelector('[data-viewbtn="week"]')  ?.addEventListener('click', () => show('week'));
-  root.querySelector('[data-viewbtn="month"]') ?.addEventListener('click', () => show('month'));
+  root.querySelector('[data-viewbtn="day"]')  ?.addEventListener('click', () => renderView('day'));
+  root.querySelector('[data-viewbtn="week"]') ?.addEventListener('click', () => renderView('week'));
+  root.querySelector('[data-viewbtn="month"]')?.addEventListener('click', () => renderView('month'));
 
   // period nav
   root.querySelector('[data-prev]') ?.addEventListener('click', () => navPeriod('prev'));
@@ -132,6 +149,16 @@ export function mount(root) {
   document.body.setAttribute('data-view', 'home');
   root.innerHTML = shellHTML();
   wireShell(root);
-  // initial content: month (or change to 'day')
-  show('month');
+  // initial content:
+  renderView('month'); // or 'day'
 }
+document.addEventListener('go-day', (e) => {
+  const dk = e.detail; // "YYYY-MM-DD"
+  if (dk) localStorage.setItem('selectedDate', dk);
+  // your show(view) function from the shell:
+  (async () => {
+    const mod = await import('./day.js');
+    const app = document.getElementById('app');
+    mod.mount(app);
+  })();
+});
