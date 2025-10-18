@@ -116,7 +116,6 @@ function renderDetailInto(row) {
   detail.style.maxHeight = slot.scrollHeight + 12 + 'px';
 }
 
-/* ---------- interactions ---------- */
 function hookRowInteractions(host) {
   const rows = host.querySelectorAll('.w-dayrow');
 
@@ -139,12 +138,22 @@ function hookRowInteractions(host) {
       slot.innerHTML = '';
       detail.style.maxHeight = '0px';
     };
-    const toggleRow = () => (row.classList.contains('is-open') ? closeRow() : openRow());
 
-    // open/close
-    head.addEventListener('click', toggleRow);
+    // FIRST tap opens, SECOND tap navigates to Day for that date
+    head.addEventListener('click', () => {
+      if (row.classList.contains('is-open')) {
+        document.dispatchEvent(new CustomEvent('go-day', { detail: k }));
+      } else {
+        openRow();
+      }
+    });
     head.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleRow(); }
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (row.classList.contains('is-open')) {
+          document.dispatchEvent(new CustomEvent('go-day', { detail: k }));
+        } else openRow();
+      }
     });
 
     // delegation inside the row
@@ -157,20 +166,15 @@ function hookRowInteractions(host) {
       if ((okBtn || noBtn) && card) {
         const id = card.dataset.id;
         if (!id) return;
-
         if (noBtn) removeEvent(id);
         if (okBtn) toggleDone(id);
-
         renderDetailInto(row);
         row.querySelector('.w-count').textContent = String(getEventsByDate(k).length);
         document.dispatchEvent(new Event(EVENTS_CHANGED));
         return;
       }
 
-      if (card) {
-        // Navigate to Day view for this date (home.js listens to this)
-        document.dispatchEvent(new CustomEvent('go-day', { detail: k }));
-      }
+      if (card) document.dispatchEvent(new CustomEvent('go-day', { detail: k }));
     });
   });
 }

@@ -1,29 +1,41 @@
-// src/pages/home.js
-// Shell: header + lemon + date + greeting + view buttons (day|week|month)
-// + mini period nav + #viewRoot + bottom orb. Views render INSIDE #viewRoot.
+// /src/pages/home.js
+// Shell: header + lemon dock + date/greeting + view buttons + period nav + #viewRoot + orb.
+// Views render into #viewRoot. Header date only moves in Day view.
 
-// ---------- tiny helpers ----------
 const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 const pad2 = n => String(n).padStart(2, '0');
 const todayDM = d => `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}`;
-const hebDay  = d => HEB_DAYS[d.getDay()];
+const hebDay = d => HEB_DAYS[d.getDay()];
+
+let headerCursor = new Date();
+let currentView = 'week';
 
 function getUserName() {
   const first = localStorage.getItem('firstName') || 'אורח';
   const last  = localStorage.getItem('lastName')  || '';
   return last ? `${first} ${last[0]}.` : first;
 }
-
-// ---------- view mounting (single function; no duplicates) ----------
-const app = document.getElementById('app'); // the whole app root
-
-async function renderView(view /* 'day' | 'week' | 'month' */) {
-  const mod = await import(`./${view}.js`);
-  mod.mount(app);             // each view renders into #viewRoot inside the shell
-  setActive(view);            // update active state on the 3 buttons
+function setHeaderDate(d) {
+  headerCursor = new Date(d);
+  const el = document.querySelector('.c-date');
+  if (el) el.textContent = `${hebDay(headerCursor)} ${todayDM(headerCursor)}`;
 }
 
-// mark the active head button (yellow)
+// -------- view mounting ----------
+const app = document.getElementById('app');
+
+async function renderView(view) {
+  currentView = view;
+  const mod = await import(`./${view}.js`);
+  mod.mount(app);
+  setActive(view);
+
+  if (view === 'day') {
+    const sel = localStorage.getItem('selectedDate');
+    setHeaderDate(sel ? new Date(sel) : new Date());
+  }
+}
+
 function setActive(view) {
   const map = {
     day:   document.querySelector('[data-viewbtn="day"]'),
@@ -38,21 +50,25 @@ function setActive(view) {
   });
 }
 
-// broadcast period navigation to current view
-function navPeriod(dir /* 'prev' | 'next' | 'today' */) {
+function navPeriod(dir) {
   document.dispatchEvent(new CustomEvent('period-nav', { detail: dir }));
+  if (currentView !== 'day') return;
+  if (dir === 'today') { setHeaderDate(new Date()); return; }
+  const d = new Date(headerCursor);
+  d.setDate(d.getDate() + (dir === 'next' ? 1 : -1));
+  setHeaderDate(d);
 }
 
-// ---------- shell html ----------
+// -------- shell ----------
 function shellHTML() {
-  const d = new Date();
+  const d = headerCursor;
   const dateStr = `${hebDay(d)} ${todayDM(d)}`;
 
   return `
     <main class="o-page">
       <section class="o-phone o-inner">
 
-        <!-- header: profile / centered logo / settings -->
+        <!-- header -->
         <header class="o-header">
           <button class="c-topbtn c-topbtn--profile" aria-label="פרופיל" title="פרופיל">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -72,25 +88,70 @@ function shellHTML() {
           </button>
         </header>
 
-        <!-- lemon -->
-        <div class="c-lemon-wrap">
-          <button id="lemonToggle" class="c-icon-btn c-icon-btn--lemon" type="button"
-                  aria-label="פתח/סגור תפריט" aria-expanded="false">
-            <svg class="lemon-svg" viewBox="0 0 24 24" aria-hidden="true">
+        <!-- Lemon center + quick dock (hidden) -->
+        <div class="c-lemon-area">
+          <button id="lemonToggle"
+                  class="c-lemonbtn"
+                  type="button"
+                  aria-label="פתח/סגור סרגל מהיר"
+                  aria-expanded="false">
+            <!-- NEW LEMON SVG -->
+            <svg class="c-lemonbtn__svg" viewBox="0 0 48 48" aria-hidden="true">
               <defs>
-                <radialGradient id="lemBody" cx="50%" cy="42%" r="75%">
+                <radialGradient id="lemGrad" cx="38%" cy="35%" r="70%">
                   <stop offset="0%"  stop-color="#FFF6B8"/>
-                  <stop offset="48%" stop-color="#FFE067"/>
+                  <stop offset="55%" stop-color="#FFE067"/>
                   <stop offset="100%" stop-color="#F7C843"/>
                 </radialGradient>
+                <linearGradient id="lemShine" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".98"/>
+                  <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".82"/>
+                </linearGradient>
+                <path id="lemSilhouette"
+                      d="M36.8,13.2
+                         C30.4,7.0,19.6,7.0,13.2,13.2
+                         c-5.0,5.0-5.0,13.6,0,18.6
+                         c5.0,5.0,13.6,5.2,18.6,0.2
+                         C37.6,27.6,38.4,19.6,36.8,13.2 Z" />
               </defs>
-              <g transform="translate(0,0) scale(1.05)">
-                <path d="M19 7c-3-3-8-3-11 0-2 2.3-2 6 0 8 2.2 2.1 5.8 2.4 8 0 2.2-2.1 2.6-5.4 1-7.6"
-                      fill="url(#lemBody)" stroke="#B8860B" stroke-width="1.8" stroke-linejoin="round"/>
-                <path d="M18 6c.9-.9 1.7-1.8 2.3-2.8" stroke="#2E7D32" stroke-linecap="round" stroke-width="2"/>
+              <g transform="translate(2 2) rotate(-8 22 22)">
+                <use href="#lemSilhouette" fill="url(#lemGrad)"/>
+                <path fill="url(#lemShine)"
+                      d="M33.2,12.2
+                         c-6.8,2.0-12.0,8.0-13.2,15.8
+                         c-0.2,1.4-0.2,2.8-0.1,4.0
+                         c2.6-6.6,8.6-12.4,15.6-15.2
+                         c0.4-0.2,0.8-0.3,1.2-0.4
+                         C36.0,14.8,34.8,13.2,33.2,12.2 Z"/>
+                <circle cx="10.6" cy="31.8" r="2.2" fill="#F1B731"/>
+                <use href="#lemSilhouette" fill="none" stroke="#D9A21C" stroke-opacity=".35" stroke-width=".9"/>
               </g>
             </svg>
           </button>
+
+          <!-- Hidden dock; absolutely positioned so no layout shift -->
+          <div id="quickDock" class="c-dock" hidden aria-hidden="true">
+            <button class="c-dock__side c-dock__left" aria-label="קטגוריות" title="קטגוריות">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <rect x="3" y="5"  width="18" height="3" rx="1.5"/>
+                <rect x="3" y="10.5" width="18" height="3" rx="1.5"/>
+                <rect x="3" y="16" width="18" height="3" rx="1.5"/>
+              </svg>
+            </button>
+
+            <label class="c-dock__search" for="lemonSearch">
+              <input id="lemonSearch" type="search" inputmode="search"
+                     placeholder="חפש פעילויות…" autocomplete="off" />
+            </label>
+
+            <button class="c-dock__side c-dock__right" aria-label="חבר׳ה" title="חבר׳ה">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <circle cx="8"  cy="9" r="3"/>
+                <circle cx="16" cy="9" r="3"/>
+                <path d="M4 18c0-2.2 2.6-4 6-4s6 1.8 6 4"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- date + greeting -->
@@ -99,22 +160,25 @@ function shellHTML() {
           <p class="c-greet">ברוכים השבים <b>${getUserName()}</b> 👋</p>
         </div>
 
-        <!-- view switch (order: day, week, month) -->
+        <!-- view switch -->
         <nav class="c-view-switch" aria-label="תצוגה">
           <button class="c-headbtn" data-viewbtn="day"   aria-pressed="false">יום</button>
           <button class="c-headbtn" data-viewbtn="week"  aria-pressed="false">שבוע</button>
           <button class="c-headbtn" data-viewbtn="month" aria-pressed="false">חודש</button>
         </nav>
 
-        <!-- mini period nav (spreads to the edges via CSS) -->
+        <!-- mini period nav -->
         <div class="c-period-mini">
           <button class="c-pillnav" data-prev  aria-label="קודם">‹</button>
           <button class="c-pillnav c-pillnav--today" data-today aria-label="היום">היום</button>
           <button class="c-pillnav" data-next  aria-label="הבא">›</button>
         </div>
 
-        <!-- content slot (views render here) -->
+        <!-- content slot -->
         <section id="viewRoot" class="o-viewroot" aria-live="polite"></section>
+
+        <!-- orb sentinel (so the orb appears near bottom only) -->
+        <div id="orb-sentinel" class="c-orb-spacer" aria-hidden="true"></div>
 
         <!-- bottom orb -->
         <div class="c-bottom-cta">
@@ -125,7 +189,7 @@ function shellHTML() {
   `;
 }
 
-// ---------- wire shell ----------
+// -------- wire ----------
 function wireShell(root) {
   // view switch
   root.querySelector('[data-viewbtn="day"]')  ?.addEventListener('click', () => renderView('day'));
@@ -137,28 +201,83 @@ function wireShell(root) {
   root.querySelector('[data-next]') ?.addEventListener('click', () => navPeriod('next'));
   root.querySelector('[data-today]')?.addEventListener('click', () => navPeriod('today'));
 
-  // optional lemon toggle
-  root.querySelector('#lemonToggle')?.addEventListener('click', (e) => {
-    const btn = e.currentTarget;
-    btn.setAttribute('aria-expanded', btn.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
-  });
+  // -- Lemon toggles the quick dock (no layout shift)
+  const lemonBtn = root.querySelector('#lemonToggle');
+  const dock     = root.querySelector('#quickDock');
+  const search   = root.querySelector('#lemonSearch');
+
+  if (lemonBtn && dock) {
+    const openDock  = () => {
+      lemonBtn.setAttribute('aria-expanded', 'true');
+      lemonBtn.classList.add('is-on');
+      dock.hidden = false;
+      requestAnimationFrame(() => {
+        dock.classList.add('is-open');
+        dock.setAttribute('aria-hidden', 'false');
+      });
+      search?.focus({ preventScroll: true });
+    };
+
+    const closeDock = () => {
+      lemonBtn.setAttribute('aria-expanded', 'false');
+      lemonBtn.classList.remove('is-on');
+      dock.classList.remove('is-open');
+      dock.setAttribute('aria-hidden', 'true');
+      setTimeout(() => { dock.hidden = true; }, 180);
+    };
+
+    lemonBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = lemonBtn.getAttribute('aria-expanded') === 'true';
+      open ? closeDock() : openDock();
+    });
+
+    // Close on ESC or click outside
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lemonBtn.getAttribute('aria-expanded') === 'true') closeDock();
+    });
+    document.addEventListener('click', (e) => {
+      if (!dock || dock.hidden) return;
+      if (!dock.contains(e.target) && !lemonBtn.contains(e.target)) closeDock();
+    });
+  }
 }
 
-// ---------- public mount ----------
+// -------- public mount ----------
 export function mount(root) {
   document.body.setAttribute('data-view', 'home');
   root.innerHTML = shellHTML();
   wireShell(root);
-  // initial content:
-  renderView('month'); // or 'day'
+
+  setHeaderDate(new Date());
+  renderView('week');
+
+  // Show orb only near the bottom
+  const orb = document.querySelector('.c-bottom-cta');
+  const sentinel = document.getElementById('orb-sentinel');
+  if (orb && sentinel && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) orb.classList.add('is-visible');
+      else orb.classList.remove('is-visible');
+    }, { threshold: 0.01 });
+    io.observe(sentinel);
+  } else {
+    orb?.classList.add('is-visible');
+  }
 }
+
+// cross-view: go to a specific day
 document.addEventListener('go-day', (e) => {
   const dk = e.detail; // "YYYY-MM-DD"
-  if (dk) localStorage.setItem('selectedDate', dk);
-  // your show(view) function from the shell:
+  if (dk) {
+    localStorage.setItem('selectedDate', dk);
+    setHeaderDate(new Date(dk));
+  }
   (async () => {
     const mod = await import('./day.js');
     const app = document.getElementById('app');
     mod.mount(app);
+    currentView = 'day';
+    setActive('day');
   })();
 });
