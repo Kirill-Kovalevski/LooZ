@@ -1,3 +1,7 @@
+// at the top of home.js
+import logoLight from '../icons/main-logo.png';
+import logoDark  from '../icons/dark-logo.png';
+
 // /src/pages/home.js
 // Shell: header + lemon dock + date/greeting + view buttons + period nav + #viewRoot + orb.
 // Views render into #viewRoot. Header date only moves in Day view.
@@ -76,10 +80,11 @@ function shellHTML() {
             </svg>
           </button>
 
-          <a class="looz-logo" aria-label="LooZ">
-            <img class="brand-logo brand-logo--light" src="/src/icons/main-logo.png" alt="LooZ">
-            <img class="brand-logo brand-logo--dark"  src="/src/icons/dark-logo.png"  alt="LooZ">
-          </a>
+        <a class="looz-logo" aria-label="LooZ">
+  <img class="brand-logo brand-logo--light" src="${logoLight}" alt="LooZ">
+  <img class="brand-logo brand-logo--dark"  src="${logoDark}"  alt="LooZ">
+</a>
+
 
           <button class="c-topbtn c-topbtn--settings" aria-label="הגדרות" title="הגדרות">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
