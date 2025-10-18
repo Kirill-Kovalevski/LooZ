@@ -104,3 +104,47 @@ body[data-view="week"] {
   body[data-view="week"] .w-rowhead  { min-height: 64px; padding: 14px 16px; }
   body[data-view="week"] .w-count    { inline-size: 36px; block-size: 36px; }
 }
+/* Pastel, semi-transparent inner gradients for week rows */
+body[data-view="week"] {
+  .w-rowhead {
+    position: relative;
+    overflow: hidden;           /* keep gradient clipped to rounded corners */
+    isolation: isolate;         /* ensure pseudo z-index works consistently */
+  }
+  .w-rowhead > * {              /* keep text/icons above the gradient */
+    position: relative;
+    z-index: 1;
+  }
+  .w-rowhead::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--w-grad, linear-gradient(135deg,
+      rgba(255, 183, 197, .28), rgba(197, 225, 250, .28)
+    ));
+    z-index: 0;                 /* under content, above base background */
+    pointer-events: none;
+  }
+
+  /* 7 soft hue sets (Sun..Sat) — tweak alphas if you want stronger/weaker */
+  .w-dayrow:nth-child(7n+1) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(255,183,197,.28), rgba(197,225,250,.28)); } /* rose → sky */
+  .w-dayrow:nth-child(7n+2) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(186,230,253,.26), rgba(186,247,212,.26)); } /* light sky → mint */
+  .w-dayrow:nth-child(7n+3) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(221,214,254,.28), rgba(199,210,254,.22)); } /* violet → indigo */
+  .w-dayrow:nth-child(7n+4) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(255,228,181,.26), rgba(255,209,220,.26)); } /* peach → blush */
+  .w-dayrow:nth-child(7n+5) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(187,247,208,.26), rgba(167,243,208,.22)); } /* mint → aqua */
+  .w-dayrow:nth-child(7n+6) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(255,245,199,.26), rgba(191,219,254,.22)); } /* butter → light blue */
+  .w-dayrow:nth-child(7n+7) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(248,212,255,.26), rgba(186,230,253,.22)); } /* lilac → sky */
+}
+
+/* Dark mode: slightly increase opacity so it still pops */
+:root[data-theme="dark"] body[data-view="week"] {
+  .w-rowhead::before { opacity: .45; }
+}
