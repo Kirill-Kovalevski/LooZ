@@ -1,18 +1,19 @@
-// at the top of home.js
+// /src/pages/home.js
+// NOTE: make sure vite.config.js has:  export default defineConfig({ base: '/LooZ/' })
 import logoLight from '../icons/main-logo.png';
 import logoDark  from '../icons/dark-logo.png';
 
-// /src/pages/home.js
-// Shell: header + lemon dock + date/greeting + view buttons + period nav + #viewRoot + orb.
-// Views render into #viewRoot. Header date only moves in Day view.
-
+// ---- tiny helpers ----
 const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
-const pad2 = n => String(n).padStart(2, '0');
-const todayDM = d => `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}`;
-const hebDay = d => HEB_DAYS[d.getDay()];
+const pad2     = n => String(n).padStart(2, '0');
+const todayDM  = d => `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}`;
+const hebDay   = d => HEB_DAYS[d.getDay()];
 
 let headerCursor = new Date();
-let currentView = 'week';
+let currentView  = 'week';
+
+// IMPORTANT: static view map so Vite bundles them for GitHub Pages
+const viewModules = import.meta.glob('./{day,week,month}.js');
 
 function getUserName() {
   const first = localStorage.getItem('firstName') || 'אורח';
@@ -25,15 +26,22 @@ function setHeaderDate(d) {
   if (el) el.textContent = `${hebDay(headerCursor)} ${todayDM(headerCursor)}`;
 }
 
-// -------- view mounting ----------
+// ---- view mounting ----
 const app = document.getElementById('app');
 
-async function renderView(view) {
+async function renderView(view /* 'day' | 'week' | 'month' */) {
   currentView = view;
-  const mod = await import(`./${view}.js`);
+
+  const loader = viewModules[`./${view}.js`];
+  if (!loader) {
+    console.error(`Unknown view "${view}"`);
+    return;
+  }
+  const mod = await loader();
   mod.mount(app);
   setActive(view);
 
+  // header date only moves in Day view
   if (view === 'day') {
     const sel = localStorage.getItem('selectedDate');
     setHeaderDate(sel ? new Date(sel) : new Date());
@@ -54,8 +62,11 @@ function setActive(view) {
   });
 }
 
-function navPeriod(dir) {
+function navPeriod(dir /* 'prev' | 'next' | 'today' */) {
+  // tell current view to change its period
   document.dispatchEvent(new CustomEvent('period-nav', { detail: dir }));
+
+  // header date updates only in Day view
   if (currentView !== 'day') return;
   if (dir === 'today') { setHeaderDate(new Date()); return; }
   const d = new Date(headerCursor);
@@ -63,7 +74,7 @@ function navPeriod(dir) {
   setHeaderDate(d);
 }
 
-// -------- shell ----------
+// ---- shell ----
 function shellHTML() {
   const d = headerCursor;
   const dateStr = `${hebDay(d)} ${todayDM(d)}`;
@@ -80,11 +91,10 @@ function shellHTML() {
             </svg>
           </button>
 
-        <a class="looz-logo" aria-label="LooZ">
-  <img class="brand-logo brand-logo--light" src="${logoLight}" alt="LooZ">
-  <img class="brand-logo brand-logo--dark"  src="${logoDark}"  alt="LooZ">
-</a>
-
+          <a class="looz-logo" aria-label="LooZ">
+            <img class="brand-logo brand-logo--light" src="${logoLight}" alt="LooZ">
+            <img class="brand-logo brand-logo--dark"  src="${logoDark}"  alt="LooZ">
+          </a>
 
           <button class="c-topbtn c-topbtn--settings" aria-label="הגדרות" title="הגדרות">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -100,7 +110,7 @@ function shellHTML() {
                   type="button"
                   aria-label="פתח/סגור סרגל מהיר"
                   aria-expanded="false">
-            <!-- NEW LEMON SVG -->
+            <!-- Lemon SVG -->
             <svg class="c-lemonbtn__svg" viewBox="0 0 48 48" aria-hidden="true">
               <defs>
                 <radialGradient id="lemGrad" cx="38%" cy="35%" r="70%">
@@ -194,7 +204,7 @@ function shellHTML() {
   `;
 }
 
-// -------- wire ----------
+// ---- wire ----
 function wireShell(root) {
   // view switch
   root.querySelector('[data-viewbtn="day"]')  ?.addEventListener('click', () => renderView('day'));
@@ -206,11 +216,10 @@ function wireShell(root) {
   root.querySelector('[data-next]') ?.addEventListener('click', () => navPeriod('next'));
   root.querySelector('[data-today]')?.addEventListener('click', () => navPeriod('today'));
 
-  // -- Lemon toggles the quick dock (no layout shift)
+  // Lemon dock toggle (no layout shift)
   const lemonBtn = root.querySelector('#lemonToggle');
   const dock     = root.querySelector('#quickDock');
   const search   = root.querySelector('#lemonSearch');
-
   if (lemonBtn && dock) {
     const openDock  = () => {
       lemonBtn.setAttribute('aria-expanded', 'true');
@@ -222,7 +231,6 @@ function wireShell(root) {
       });
       search?.focus({ preventScroll: true });
     };
-
     const closeDock = () => {
       lemonBtn.setAttribute('aria-expanded', 'false');
       lemonBtn.classList.remove('is-on');
@@ -236,8 +244,6 @@ function wireShell(root) {
       const open = lemonBtn.getAttribute('aria-expanded') === 'true';
       open ? closeDock() : openDock();
     });
-
-    // Close on ESC or click outside
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && lemonBtn.getAttribute('aria-expanded') === 'true') closeDock();
     });
@@ -248,7 +254,7 @@ function wireShell(root) {
   }
 }
 
-// -------- public mount ----------
+// ---- public mount ----
 export function mount(root) {
   document.body.setAttribute('data-view', 'home');
   root.innerHTML = shellHTML();
@@ -272,17 +278,16 @@ export function mount(root) {
 }
 
 // cross-view: go to a specific day
-document.addEventListener('go-day', (e) => {
+document.addEventListener('go-day', async (e) => {
   const dk = e.detail; // "YYYY-MM-DD"
   if (dk) {
     localStorage.setItem('selectedDate', dk);
     setHeaderDate(new Date(dk));
   }
-  (async () => {
-    const mod = await import('./day.js');
-    const app = document.getElementById('app');
-    mod.mount(app);
-    currentView = 'day';
-    setActive('day');
-  })();
+  const loadDay = viewModules['./day.js'];
+  const mod = await loadDay();
+  const app = document.getElementById('app');
+  mod.mount(app);
+  currentView = 'day';
+  setActive('day');
 });
