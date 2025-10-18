@@ -255,3 +255,96 @@ body[data-view='month'] {
   .p-cell--today{ outline:2px solid tomato; }
   .p-count{ box-shadow:0 4px 12px rgba(0,0,0,.45); }
 }
+/* ---- Pastel “blob” background for the month card ---- */
+/* The card itself */
+.p-monthview{
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  isolation: isolate;             /* keeps blends inside */
+
+  /* glass base so dates stay readable on top of blobs */
+  background: rgba(255,255,255,.86);
+  border: 1px solid rgba(100,116,139,.14);
+  box-shadow: 0 10px 26px rgba(15,23,42,.08);
+}
+
+/* 1) Base wash + a couple of big soft blobs (static) */
+.p-monthview::before{
+  content:"";
+  position:absolute; inset:-12%;  /* bleed out so edges never show */
+  z-index:-1;
+  filter: blur(0.5px);
+  background:
+    /* faint vertical wash to calm everything down */
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(245,248,255,.08)),
+
+    /* warm blob top-left */
+    radial-gradient(38% 38% at 10% 8%,
+      rgba(255,208,160,.55) 0%,
+      rgba(255,208,160,.20) 40%,
+      rgba(255,208,160,0) 62%),
+
+    /* cool blob top-right */
+    radial-gradient(42% 42% at 92% 6%,
+      rgba(176,206,255,.45) 0%,
+      rgba(176,206,255,.18) 45%,
+      rgba(176,206,255,0) 62%),
+
+    /* lavender sweep right side */
+    radial-gradient(55% 55% at 100% 55%,
+      rgba(205,180,255,.35) 0%,
+      rgba(205,180,255,.12) 44%,
+      rgba(205,180,255,0) 64%),
+
+    /* peachy sweep bottom-left */
+    radial-gradient(60% 60% at 0% 100%,
+      rgba(255,206,170,.36) 0%,
+      rgba(255,206,170,.14) 45%,
+      rgba(255,206,170,0) 70%);
+}
+
+/* 2) Floating blobs (very subtle motion) */
+.p-monthview::after{
+  content:"";
+  position:absolute; inset:-20%;
+  z-index:-1;
+  filter: blur(28px);              /* heavy blur = creamy edges */
+  opacity:.85;                     /* keep gentle */
+  background:
+    radial-gradient(22% 22% at 18% 25%,  #ffe7b8 0%,  rgba(255,231,184,.00) 70%),
+    radial-gradient(18% 18% at 78% 22%,  #d6e2ff 0%,  rgba(214,226,255,.00) 70%),
+    radial-gradient(24% 24% at 78% 78%,  #e2ccff 0%,  rgba(226,204,255,.00) 70%),
+    radial-gradient(20% 20% at 22% 82%,  #ffd9c0 0%,  rgba(255,217,192,.00) 70%);
+  animation: pastel-drift 26s ease-in-out infinite alternate;
+  /* prevents color banding on some mobile GPUs */
+  will-change: transform, opacity;
+}
+
+/* Slow parallax drift. Disabled if user prefers reduced motion */
+@keyframes pastel-drift{
+  0%   { transform: translate3d(0,0,0) scale(1.00); }
+  50%  { transform: translate3d(2%, -1%, 0) scale(1.03); }
+  100% { transform: translate3d(-2%, 1.5%, 0) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce){
+  .p-monthview::after{ animation: none; }
+}
+
+/* Dark mode: slightly deeper, still pastel */
+:is(html,body).is-dark .p-monthview{
+  background: rgba(14,18,30,.92);
+  border-color: rgba(148,163,184,.18);
+  box-shadow: 0 14px 36px rgba(0,0,0,.45);
+}
+:is(html,body).is-dark .p-monthview::before{
+  background:
+    linear-gradient(180deg, rgba(16,20,34,.18), rgba(14,18,30,.14)),
+    radial-gradient(38% 38% at 10% 8%,  rgba(255,208,160,.30) 0%, rgba(255,208,160,0) 62%),
+    radial-gradient(42% 42% at 92% 6%,   rgba(176,206,255,.28) 0%, rgba(176,206,255,0) 62%),
+    radial-gradient(55% 55% at 100% 55%, rgba(205,180,255,.22) 0%, rgba(205,180,255,0) 64%),
+    radial-gradient(60% 60% at 0% 100%,  rgba(255,206,170,.24) 0%, rgba(255,206,170,0) 70%);
+}
+:is(html,body).is-dark .p-monthview::after{
+  opacity:.7;
+}
