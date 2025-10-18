@@ -38,3 +38,5 @@ export function mount(root){
     </section>
   `;
 }
+// in Settings page
+localStorage.setItem('pillHue', '195'); // teal-ish
