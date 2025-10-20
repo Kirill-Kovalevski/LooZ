@@ -15,20 +15,20 @@ let currentView  = 'week';
 
 // IMPORTANT: static view map so Vite bundles them for GitHub Pages
 const viewModules = import.meta.glob('./{day,week,month}.js');
+
+// tick the header date shortly after local midnight
 function startTodayTicker() {
-  // schedule an update a couple seconds after next midnight local time
-  const now = new Date();
+  const now  = new Date();
   const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
-  const ms = next.getTime() - now.getTime();
+  const ms   = next.getTime() - now.getTime();
   setTimeout(() => {
-    // Only auto-advance if we're NOT in Day view or Day view has no explicit selection
     if (currentView !== 'day') {
       setHeaderDate(new Date());
     } else {
       const sel = localStorage.getItem('selectedDate');
       setHeaderDate(sel ? new Date(sel) : new Date());
     }
-    startTodayTicker(); // schedule again for the following midnight
+    startTodayTicker();
   }, ms);
 }
 
@@ -41,53 +41,98 @@ function getUserName() {
   return last ? `${first} ${last[0]}.` : first;
 }
 
-// --- Universal date renderer — Hebrew lettered date (e.g. יום ב׳ 20 באוקטובר · כ״ח בתשרי תשפ״ו)
+/* =========================
+   Universal date renderer — one line:
+   "יום ב׳ 20 באוקטובר · כ״ח בתשרי התשפ״ו"
+   ========================= */
 function setHeaderDate(d) {
   headerCursor = new Date(d);
 
-  // 1) Gregorian (weekday, day, month)
+  // 1) Gregorian (Hebrew UI) — weekday + day + month
   const hebLine = new Intl.DateTimeFormat('he-IL', {
     weekday: 'short', day: 'numeric', month: 'long'
   }).format(headerCursor);
 
-  // 2) Hebrew calendar (convert numeric day → letters)
-  const hebrewFormatter = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', {
+  // 2) Hebrew calendar parts (convert day+year to letters)
+  const heCal = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', {
     day: 'numeric', month: 'long', year: 'numeric'
-  });
-  const parts = hebrewFormatter.formatToParts(headerCursor);
-  const dayPart = parts.find(p => p.type === 'day');
-  const monthPart = parts.find(p => p.type === 'month');
-  const yearPart = parts.find(p => p.type === 'year');
+  }).formatToParts(headerCursor);
 
-  // convert day number to Hebrew letters (e.g. 28 → כ״ח)
-  const dayNum = parseInt(dayPart.value, 10);
-  const hebDayLetters = toHebrewNumerals(dayNum);
+  const dayPart   = heCal.find(p => p.type === 'day');
+  const monthPart = heCal.find(p => p.type === 'month');
+  const yearPart  = heCal.find(p => p.type === 'year');
 
-  const hebJewish = `${hebDayLetters} ב${monthPart.value} ${yearPart.value}`;
+  const dayNum         = parseInt(dayPart?.value ?? '1', 10);
+  const hebDayLetters  = toHebrewNumerals(dayNum);
+
+  const yearNum        = parseInt(yearPart?.value ?? '5780', 10);
+  const hebYearLetters = toHebrewYear(yearNum);
 
   const el = document.querySelector('.c-date');
   if (!el) return;
   el.innerHTML = `
     <div class="c-date--singleline" dir="rtl" aria-live="polite">
-      ${hebLine} · ${hebJewish}
+      ${hebLine} ; ${hebDayLetters} ב${monthPart?.value || ''} ${hebYearLetters}
     </div>
   `;
 }
 
-// --- helper: convert 1–31 into Hebrew numeral letters (א, ב, ג, …)
+/* ------------------ Hebrew numeral helpers (robust, no duplicate ׳/״) ------------------ */
+
+// 1..31 → א׳ … ל״א
 function toHebrewNumerals(num) {
-  const letters = [
+  const table = [
     '', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
     'י', 'יא', 'יב', 'יג', 'יד', 'טו', 'טז', 'יז', 'יח', 'יט',
     'כ', 'כא', 'כב', 'כג', 'כד', 'כה', 'כו', 'כז', 'כח', 'כט', 'ל', 'לא'
   ];
-  let str = letters[num] || num;
-  // Add gershayim (״) or geresh (׳)
-  if (str.length > 1) return str.slice(0, -1) + '״' + str.slice(-1);
-  return str + '׳';
+  const raw = table[num] || String(num);
+  return insertGershayim(raw);
 }
 
+// 5786 → התשפ״ו
+function toHebrewYear(yearNumber) {
+  let result = '';
+  let y = Number(yearNumber) || 0;
 
+  // Thousands (modern 5xxx → ה)
+  if (y >= 5000) {
+    result += 'ה';
+    y = y % 1000;
+  }
+
+  // Hundreds
+  const hundreds = { 400: 'ת', 300: 'ש', 200: 'ר', 100: 'ק' };
+  for (const h of [400, 300, 200, 100]) {
+    while (y >= h) { result += hundreds[h]; y -= h; }
+  }
+
+  // Tens/ones with 15/16 specials
+  if (y === 15) return insertGershayim(result + 'טו');
+  if (y === 16) return insertGershayim(result + 'טז');
+
+  const tens = { 90:'צ',80:'פ',70:'ע',60:'ס',50:'נ',40:'מ',30:'ל',20:'כ',10:'י' };
+  const ones = { 9:'ט',8:'ח',7:'ז',6:'ו',5:'ה',4:'ד',3:'ג',2:'ב',1:'א' };
+
+  for (const t of [90,80,70,60,50,40,30,20,10]) {
+    while (y >= t) { result += tens[t]; y -= t; }
+  }
+  for (const o of [9,8,7,6,5,4,3,2,1]) {
+    if (y === o) { result += ones[o]; y = 0; break; }
+  }
+
+  return insertGershayim(result);
+}
+
+// Insert exactly one geresh/gershayim (strip any that slipped in)
+function insertGershayim(letters) {
+  const clean = String(letters).replace(/[\u05F3\u05F4]/g, '');
+  const arr = [...clean];
+  if (arr.length === 0) return clean;
+  if (arr.length === 1) return arr[0] + '\u05F3';     // א׳
+  arr.splice(arr.length - 1, 0, '\u05F4');            // …״…
+  return arr.join('');
+}
 
 // ---- view mounting ----
 const app = document.getElementById('app');
@@ -104,13 +149,12 @@ async function renderView(view /* 'day' | 'week' | 'month' */) {
   mod.mount(app);
   setActive(view);
 
-if (view === 'day') {
-  const sel = localStorage.getItem('selectedDate');
-  setHeaderDate(sel ? new Date(sel) : new Date());   // Day view respects picked date
-} else {
-  setHeaderDate(new Date());                          // Other views show today
-}
-
+  if (view === 'day') {
+    const sel = localStorage.getItem('selectedDate');
+    setHeaderDate(sel ? new Date(sel) : new Date());   // Day view respects picked date
+  } else {
+    setHeaderDate(new Date());                          // Other views show today
+  }
 }
 
 function setActive(view) {
@@ -344,9 +388,10 @@ export function mount(root) {
   const boot = localStorage.getItem('defaultView') || 'week';
   renderView(boot);
 
-  // Prime the date chip immediately (use selected date if any)
+  // Prime the date chip immediately (use selected date if any) + start midnight ticker
   const sel = localStorage.getItem('selectedDate');
   setHeaderDate(sel ? new Date(sel) : new Date());
+  startTodayTicker();
 
   // Show orb only near the bottom
   const orb = document.querySelector('.c-bottom-cta');

@@ -2,8 +2,9 @@
 // Settings: modern RTL, Hebrew palettes, centered demo. Hooks: theme, auto-dark,
 // reminders, language, pill colors, default view, logout.
 
-import logoLight from '../icons/main-logo.png';
-import { setTheme, getTheme } from '../utils/theme.js'; // canonical theme helpers
+import { getSmallLogo } from '../utils/logo.js';
+import { setTheme, getTheme } from '../utils/theme.js';
+
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -161,7 +162,8 @@ function template(){
       <button class="navbtn" data-act="back" aria-label="חזרה">‹</button>
       <h1 class="title">הגדרות</h1>
       <button class="looz-mini-btn" data-act="home" aria-label="עמוד ראשי">
-        <img class="looz-mini" src="${logoLight}" alt="LooZ" />
+        <img class="looz-mini" src="${getSmallLogo()}" alt="LooZ" />
+
       </button>
     </header>
 
