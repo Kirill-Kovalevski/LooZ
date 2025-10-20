@@ -303,3 +303,33 @@ body { min-height: 100vh; }
   color:#b9c9ef;          /* cozy blue-white in dark mode */
   opacity:.95;
 }
+/* One-line header date (under the lemon) */
+/* Light: Venta-Black, Dark: app golden-white */
+.c-date--singleline{
+  /* force one line */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* type */
+  font-family: 'Venta-Black', 'Rubik', system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+  font-weight: 900;
+
+  /* size that avoids wrapping on phones but looks strong on larger screens */
+  font-size: clamp(18px, 4.6vw, 22px);
+  line-height: 1.15;
+  letter-spacing: .2px;
+
+  /* layout */
+  text-align: center;
+  margin-inline: auto;
+
+  /* light color (same ink you use elsewhere) */
+  color: #0f172a; /* or var(--chrome-fg) if you prefer the token */
+}
+
+/* dark mode — your golden-white hue + a soft lift */
+:is(html,body).is-dark .c-date--singleline{
+  color: var(--ink, #f4ecd7);
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+}

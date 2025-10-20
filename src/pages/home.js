@@ -41,33 +41,30 @@ function getUserName() {
   return last ? `${first} ${last[0]}.` : first;
 }
 
-/* =========================
-   Universal date renderer
-   - Line 1: full Hebrew (weekday, day, month, year) using Gregorian date
-   - Line 2: real Hebrew calendar date (e.g., ט״ז בתשרי תשפ״ו)
-   ========================= */
+// --- universal date renderer (one line, auto-updates with current/selected day)
 function setHeaderDate(d) {
   headerCursor = new Date(d);
 
-  // 1) Hebrew (locale) — Gregorian date in Hebrew language
-  const hebFull = new Intl.DateTimeFormat('he-IL', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  // 1) Hebrew (weekday · day month) in Hebrew locale
+  const hebLine = new Intl.DateTimeFormat('he-IL', {
+    weekday: 'short', day: 'numeric', month: 'long'
   }).format(headerCursor);
 
-  // 2) Real Hebrew (Jewish) calendar date
+  // 2) Real Hebrew (Jewish calendar) date
   const hebJewish = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', {
     day: 'numeric', month: 'long', year: 'numeric'
   }).format(headerCursor);
 
   const el = document.querySelector('.c-date');
   if (!el) return;
+  // single line, styled by .c-date--singleline in SCSS
   el.innerHTML = `
-    <div class="c-datebox" dir="rtl" aria-live="polite">
-      <div class="c-datebox__heb">${hebFull}</div>
-      <div class="c-datebox__hebcal">${hebJewish}</div>
+    <div class="c-date--singleline" dir="rtl" aria-live="polite">
+      ${hebLine} · ${hebJewish}
     </div>
   `;
 }
+
 
 // ---- view mounting ----
 const app = document.getElementById('app');
