@@ -41,29 +41,52 @@ function getUserName() {
   return last ? `${first} ${last[0]}.` : first;
 }
 
-// --- universal date renderer (one line, auto-updates with current/selected day)
+// --- Universal date renderer — Hebrew lettered date (e.g. יום ב׳ 20 באוקטובר · כ״ח בתשרי תשפ״ו)
 function setHeaderDate(d) {
   headerCursor = new Date(d);
 
-  // 1) Hebrew (weekday · day month) in Hebrew locale
+  // 1) Gregorian (weekday, day, month)
   const hebLine = new Intl.DateTimeFormat('he-IL', {
     weekday: 'short', day: 'numeric', month: 'long'
   }).format(headerCursor);
 
-  // 2) Real Hebrew (Jewish calendar) date
-  const hebJewish = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', {
+  // 2) Hebrew calendar (convert numeric day → letters)
+  const hebrewFormatter = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', {
     day: 'numeric', month: 'long', year: 'numeric'
-  }).format(headerCursor);
+  });
+  const parts = hebrewFormatter.formatToParts(headerCursor);
+  const dayPart = parts.find(p => p.type === 'day');
+  const monthPart = parts.find(p => p.type === 'month');
+  const yearPart = parts.find(p => p.type === 'year');
+
+  // convert day number to Hebrew letters (e.g. 28 → כ״ח)
+  const dayNum = parseInt(dayPart.value, 10);
+  const hebDayLetters = toHebrewNumerals(dayNum);
+
+  const hebJewish = `${hebDayLetters} ב${monthPart.value} ${yearPart.value}`;
 
   const el = document.querySelector('.c-date');
   if (!el) return;
-  // single line, styled by .c-date--singleline in SCSS
   el.innerHTML = `
     <div class="c-date--singleline" dir="rtl" aria-live="polite">
       ${hebLine} · ${hebJewish}
     </div>
   `;
 }
+
+// --- helper: convert 1–31 into Hebrew numeral letters (א, ב, ג, …)
+function toHebrewNumerals(num) {
+  const letters = [
+    '', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
+    'י', 'יא', 'יב', 'יג', 'יד', 'טו', 'טז', 'יז', 'יח', 'יט',
+    'כ', 'כא', 'כב', 'כג', 'כד', 'כה', 'כו', 'כז', 'כח', 'כט', 'ל', 'לא'
+  ];
+  let str = letters[num] || num;
+  // Add gershayim (״) or geresh (׳)
+  if (str.length > 1) return str.slice(0, -1) + '״' + str.slice(-1);
+  return str + '׳';
+}
+
 
 
 // ---- view mounting ----

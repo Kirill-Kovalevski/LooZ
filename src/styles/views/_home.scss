@@ -333,3 +333,22 @@ body { min-height: 100vh; }
   color: var(--ink, #f4ecd7);
   text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
+/* One-line Hebrew date (Venta-Black light / golden-white dark) */
+.c-date--singleline{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Venta-Black', 'Rubik', system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+  font-weight: 900;
+  font-size: clamp(18px, 4.6vw, 22px);
+  line-height: 1.15;
+  letter-spacing: .2px;
+  text-align: center;
+  margin-inline: auto;
+  color: #0f172a; /* Venta black tone */
+}
+
+:is(html,body).is-dark .c-date--singleline{
+  color: var(--ink, #f4ecd7); /* your golden-white hue */
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+}
