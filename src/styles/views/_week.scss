@@ -7,7 +7,7 @@ body[data-view="week"] {
   /* container width matches the shell */
   .p-weekwrap {
     direction: rtl;
-    margin: .75rem auto 1rem;
+    margin: 0;
     max-inline-size: var(--phone-w, 390px);
     padding: .25rem .25rem .5rem;
   }

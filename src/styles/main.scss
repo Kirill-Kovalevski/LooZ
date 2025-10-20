@@ -34,6 +34,7 @@
 @use './views/day';
 @use './views/week';
 @use './views/settings';
+@import './base/dark';
 
 /* Done.
    - Do NOT import SCSS from JS files.

@@ -1,0 +1,89 @@
+/* Global Dark Mode — golden-white text, golden titles, dark pastel background.
+   Activates when <html> or <body> has class "is-dark" (your settings.js already does this). */
+
+:is(html,body).is-dark {
+  /* Core tokens */
+  --bg-0: #0b111d;         /* page base */
+  --bg-1: #0f1422;         /* cards/panels */
+  --line: #2f3b55;
+
+  --ink: #f4ecd7;          /* golden-white body text */
+  --muted: #c7c0b1;        /* softer text */
+  --title: #ffd86b;        /* golden-yellow for titles/headings */
+  --accent: #ffd86b;       /* buttons (ok/X), chips highlight */
+
+  /* Pill colors are still controlled by --task-pill-bg / --task-pill-border */
+}
+
+/* ===== Page background (home shell) ===== */
+:is(html,body).is-dark .o-page{
+  background:
+    linear-gradient(180deg, #0f1422 0%, #0b111d 34%, #0b111d 100%) padding-box,
+    radial-gradient(26vmax 20vmax at 12% 55%, color-mix(in oklab, #7cc0a3 18%, transparent) 0%, transparent 70%),
+    radial-gradient(28vmax 22vmax at 88% 52%, color-mix(in oklab, #5aa1d8 18%, transparent) 0%, transparent 72%),
+    radial-gradient(32vmax 24vmax at 50% 88%, color-mix(in oklab, #6f7fd6 16%, transparent) 0%, transparent 74%),
+    radial-gradient(22vmax 18vmax at 22% 92%, color-mix(in oklab, #7cc0a3 12%, transparent) 0%, transparent 76%),
+    radial-gradient(22vmax 18vmax at 78% 94%, color-mix(in oklab, #7a8fb1 12%, transparent) 0%, transparent 76%);
+}
+
+/* ===== Cards, panels, and common chrome ===== */
+:is(html,body).is-dark .group,
+:is(html,body).is-dark .p-monthview,
+:is(html,body).is-dark .w-rowhead,
+:is(html,body).is-dark .c-dock,
+:is(html,body).is-dark .c-headbtn,
+:is(html,body).is-dark .c-pillnav,
+:is(html,body).is-dark .c-topbtn {
+  background: var(--bg-1);
+  color: var(--ink);
+  border-color: var(--line);
+  box-shadow: 0 10px 22px rgba(0,0,0,.45);
+}
+
+:is(html,body).is-dark .group__title,
+:is(html,body).is-dark .p-monthtitle,
+:is(html,body).is-dark .title { color: var(--title); }
+
+/* Week-day tiny labels & subtle text */
+:is(html,body).is-dark .p-weekbar .p-wday,
+:is(html,body).is-dark .w-right { color: color-mix(in oklab, var(--ink) 65%, #7c879a); }
+
+/* Primary CTAs / small round buttons (OK / X) in golden-yellow */
+:is(html,body).is-dark .p-act--ok,
+:is(html,body).is-dark .p-act--no,
+:is(html,body).is-dark .logout {
+  background: linear-gradient(180deg, #2c2300, #1b1500);
+  border: 1px solid color-mix(in oklab, var(--title) 60%, #a37c0b);
+  color: var(--title);
+  box-shadow: 0 6px 14px rgba(0,0,0,.5);
+}
+
+/* Switch tracks in dark mode */
+:is(html,body).is-dark .switch .track {
+  background: #1a2436;
+  border-color: #2b3c5c;
+}
+:is(html,body).is-dark .switch input:checked + .track {
+  background: color-mix(in oklab, var(--title) 45%, #263a66);
+  border-color: color-mix(in oklab, var(--title) 45%, #263a66);
+}
+
+/* View buttons & selected segmentation highlight */
+:is(html,body).is-dark .seg__btn.is-on,
+:is(html,body).is-dark .c-headbtn.is-active {
+  background: var(--title);
+  border-color: color-mix(in oklab, var(--title) 78%, #f3c340);
+  color: #201a00;
+  box-shadow: 0 10px 20px rgba(248,210,76,.25), inset 0 1px 0 rgba(255,240,200,.4);
+}
+
+/* Month grid cells */
+:is(html,body).is-dark body[data-view='month'] .p-cell{
+  border-color:#354a7a;
+  background: rgba(16,24,40,.88);
+}
+
+/* Ensure counters & numbers are readable on dark */
+:is(html,body).is-dark body[data-view='month'] .p-cell__num,
+:is(html,body).is-dark .w-left,
+:is(html,body).is-dark .pill { color: var(--ink); }

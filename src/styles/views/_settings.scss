@@ -170,3 +170,14 @@
   .title{ font-size:21px; }
   .palette-grid{ grid-template-columns: repeat(4, minmax(0,1fr)); }
 }
+/* in settings.scss (already present but ensure it’s here) */
+.row--stack{
+  grid-template-columns:28px 1fr;
+  grid-auto-rows:auto;
+  align-items:start;
+}
+.row--stack .seg{
+  grid-column: 1 / -1;
+  justify-self: center;   /* dead center */
+  margin-top:8px;
+}
