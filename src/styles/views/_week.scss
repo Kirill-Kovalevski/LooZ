@@ -1,7 +1,9 @@
 /* Week view — minimal, phone-first */
-/* assumes your Day task styles (.p-datask, .p-tasklist, etc.) already exist */
+/* uses the same CSS vars as Month for pill colors:
+   --task-pill-bg, --task-pill-border (applied at boot) */
 
 body[data-view="week"] {
+
   /* container width matches the shell */
   .p-weekwrap {
     direction: rtl;
@@ -36,20 +38,26 @@ body[data-view="week"] {
     align-items: center;
     column-gap: .75rem;
     cursor: pointer;
+
+    position: relative;              /* for gradient pseudo below */
+    overflow: hidden;
+    isolation: isolate;
   }
 
   .w-left  { justify-self: start; font: 800 14px/1 'Rubik', system-ui; color: var(--ink, #0f172a); }
   .w-right { justify-self: end;   font: 700 12px/1 'Rubik', system-ui; color: color-mix(in oklab, var(--ink,#0f172a) 65%, #7c879a); }
 
+  /* <-- THIS is the counter pill that now follows Settings */
   .w-count {
     justify-self: center;
     inline-size: 32px; block-size: 32px;
     display: grid; place-items: center;
     border-radius: 999px;
     font: 800 13px/1 'Rubik', system-ui;
-    background: var(--pill, #eef4ff);
-    border: 1px solid color-mix(in oklab, var(--pill,#eef4ff) 70%, #b9ccf7);
-    color: var(--ink, #0f172a);
+    background: var(--task-pill-bg, #FFE067);
+    border: 1px solid var(--task-pill-border, #f3c340);
+    color: #0f172a;
+    box-shadow: 0 3px 8px rgba(15,23,42,.08);
   }
 
   /* today = gradient border only */
@@ -73,9 +81,38 @@ body[data-view="week"] {
   /* use the exact Day-view cards */
   .p-dayview { margin: 0; }
   .p-tasklist > .p-datask { margin-bottom: .5rem; }
+
+  /* Pastel, semi-transparent inner gradients for week rows */
+  .w-rowhead::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--w-grad, linear-gradient(135deg,
+      rgba(255, 183, 197, .28), rgba(197, 225, 250, .28)
+    ));
+    z-index: 0;                 /* under content, above base background */
+    pointer-events: none;
+  }
+
+  /* 7 soft hue sets (Sun..Sat) */
+  .w-dayrow:nth-child(7n+1) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(255,183,197,.28), rgba(197,225,250,.28)); } /* rose → sky */
+  .w-dayrow:nth-child(7n+2) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(186,230,253,.26), rgba(186,247,212,.26)); } /* light sky → mint */
+  .w-dayrow:nth-child(7n+3) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(221,214,254,.28), rgba(199,210,254,.22)); } /* violet → indigo */
+  .w-dayrow:nth-child(7n+4) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(255,228,181,.26), rgba(255,209,220,.26)); } /* peach → blush */
+  .w-dayrow:nth-child(7n+5) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(187,247,208,.26), rgba(167,243,208,.22)); } /* mint → aqua */
+  .w-dayrow:nth-child(7n+6) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(255,245,199,.26), rgba(191,219,254,.22)); } /* butter → light blue */
+  .w-dayrow:nth-child(7n+7) .w-rowhead { --w-grad:
+    linear-gradient(135deg, rgba(248,212,255,.26), rgba(186,230,253,.22)); } /* lilac → sky */
 }
 
-/* Dark mode (minimal) */
+/* Dark mode (minimal but keeps the same pill vars) */
 :root[data-theme="dark"] {
   body[data-view="week"] {
     .w-rowhead {
@@ -85,7 +122,14 @@ body[data-view="week"] {
       color: var(--ink, #e5e9f5);
     }
     .w-right { color: #a3b0d9; }
-    .w-count { background: #1f2430; border-color: #36456a; color: #eeda88; }
+
+    .w-count {
+      background: var(--task-pill-bg, #FFE067);
+      border: 1px solid var(--task-pill-border, #f3c340);
+      color: #0f172a;
+      box-shadow: 0 4px 12px rgba(0,0,0,.45);
+    }
+
     .w-dayrow--today .w-rowhead {
       background:
         linear-gradient(var(--card, #161a22), var(--card, #161a22)) padding-box,
@@ -103,48 +147,4 @@ body[data-view="week"] {
   body[data-view="week"] .p-weekwrap { max-inline-size: 540px; }
   body[data-view="week"] .w-rowhead  { min-height: 64px; padding: 14px 16px; }
   body[data-view="week"] .w-count    { inline-size: 36px; block-size: 36px; }
-}
-/* Pastel, semi-transparent inner gradients for week rows */
-body[data-view="week"] {
-  .w-rowhead {
-    position: relative;
-    overflow: hidden;           /* keep gradient clipped to rounded corners */
-    isolation: isolate;         /* ensure pseudo z-index works consistently */
-  }
-  .w-rowhead > * {              /* keep text/icons above the gradient */
-    position: relative;
-    z-index: 1;
-  }
-  .w-rowhead::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--w-grad, linear-gradient(135deg,
-      rgba(255, 183, 197, .28), rgba(197, 225, 250, .28)
-    ));
-    z-index: 0;                 /* under content, above base background */
-    pointer-events: none;
-  }
-
-  /* 7 soft hue sets (Sun..Sat) — tweak alphas if you want stronger/weaker */
-  .w-dayrow:nth-child(7n+1) .w-rowhead { --w-grad:
-    linear-gradient(135deg, rgba(255,183,197,.28), rgba(197,225,250,.28)); } /* rose → sky */
-  .w-dayrow:nth-child(7n+2) .w-rowhead { --w-grad:
-    linear-gradient(135deg, rgba(186,230,253,.26), rgba(186,247,212,.26)); } /* light sky → mint */
-  .w-dayrow:nth-child(7n+3) .w-rowhead { --w-grad:
-    linear-gradient(135deg, rgba(221,214,254,.28), rgba(199,210,254,.22)); } /* violet → indigo */
-  .w-dayrow:nth-child(7n+4) .w-rowhead { --w-grad:
-    linear-gradient(135deg, rgba(255,228,181,.26), rgba(255,209,220,.26)); } /* peach → blush */
-  .w-dayrow:nth-child(7n+5) .w-rowhead { --w-grad:
-    linear-gradient(135deg, rgba(187,247,208,.26), rgba(167,243,208,.22)); } /* mint → aqua */
-  .w-dayrow:nth-child(7n+6) .w-rowhead { --w-grad:
-    linear-gradient(135deg, rgba(255,245,199,.26), rgba(191,219,254,.22)); } /* butter → light blue */
-  .w-dayrow:nth-child(7n+7) .w-rowhead { --w-grad:
-    linear-gradient(135deg, rgba(248,212,255,.26), rgba(186,230,253,.22)); } /* lilac → sky */
-}
-
-/* Dark mode: slightly increase opacity so it still pops */
-:root[data-theme="dark"] body[data-view="week"] {
-  .w-rowhead::before { opacity: .45; }
 }

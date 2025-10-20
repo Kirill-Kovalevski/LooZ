@@ -15,6 +15,9 @@ let currentView  = 'week';
 // IMPORTANT: static view map so Vite bundles them for GitHub Pages
 const viewModules = import.meta.glob('./{day,week,month}.js');
 
+// [ADDED] dynamic import for the settings page
+const pageModules = import.meta.glob('./settings.js');
+
 function getUserName() {
   const first = localStorage.getItem('firstName') || 'אורח';
   const last  = localStorage.getItem('lastName')  || '';
@@ -252,7 +255,43 @@ function wireShell(root) {
       if (!dock.contains(e.target) && !lemonBtn.contains(e.target)) closeDock();
     });
   }
+
+  // [ADDED] SETTINGS BUTTON — open settings page
+  const settingsBtn = root.querySelector('.c-topbtn--settings');
+  if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
 }
+
+// [ADDED] navigate to settings (keeps history so Back returns)
+async function openSettings() {
+  try {
+    if (location.hash !== '#/settings') {
+      history.pushState({ page: 'settings' }, '', '#/settings');
+    }
+    const loader = pageModules['./settings.js'];
+    if (!loader) { console.error('settings.js not found'); return; }
+    const mod = await loader();
+    const mountSettings = mod.default || mod.mount;
+    if (typeof mountSettings === 'function') {
+      // settings.js should render into #app by itself
+      mountSettings();
+    } else {
+      console.error('settings.js has no default/mount export');
+    }
+  } catch (err) {
+    console.error('Failed to open settings:', err);
+  }
+}
+
+// [ADDED] restore on Back/Forward
+window.addEventListener('popstate', async () => {
+  if (location.hash === '#/settings') {
+    const mod = await pageModules['./settings.js']();
+    (mod.default || mod.mount)?.();
+  } else {
+    const app = document.getElementById('app');
+    if (app) mount(app);
+  }
+});
 
 // ---- public mount ----
 export function mount(root) {
@@ -260,8 +299,9 @@ export function mount(root) {
   root.innerHTML = shellHTML();
   wireShell(root);
 
-  setHeaderDate(new Date());
-  renderView('week');
+ const boot = localStorage.getItem('defaultView') || 'week';
+renderView(boot);
+
 
   // Show orb only near the bottom
   const orb = document.querySelector('.c-bottom-cta');
@@ -291,3 +331,13 @@ document.addEventListener('go-day', async (e) => {
   currentView = 'day';
   setActive('day');
 });
+// Apply stored pill colors ASAP on load (before views render)
+(() => {
+  try {
+    const bg = localStorage.getItem('pillBg');
+    const br = localStorage.getItem('pillBorder');
+    const s = document.documentElement.style;
+    if (bg) s.setProperty('--task-pill-bg', bg);
+    if (br) s.setProperty('--task-pill-border', br);
+  } catch {}
+})();

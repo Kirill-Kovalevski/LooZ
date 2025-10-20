@@ -1,350 +1,168 @@
 /* ===== Month view (clean, centered, mobile-tuned) ===== */
 
+:root{
+  /* defaults, will be overridden by Settings via localStorage on boot */
+  --task-pill-bg:     #FFE067;
+  --task-pill-border: #f3c340;
+}
+
 body[data-view='month'] {
-  /* Wrapper card */
-  .p-monthview {
-    max-inline-size: var(--phone-w, 390px); /* iPhone 12 Pro = 390px */
+
+  /* Wrapper card (glass + pastel blobs, no overflow) */
+  .p-monthview{
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+
+    max-inline-size: var(--phone-w, 390px); /* iPhone 12 Pro = 390 */
     margin-inline: auto;
     margin-block: .25rem 1rem;
     padding: .75rem .75rem 1rem;
-    border-radius: 18px;
-    /* subtle translucent pastels */
+    border-radius: 16px;
+
+    background: rgba(255,255,255,.86);
     border: 1px solid rgba(100,116,139,.14);
-    background:
-      linear-gradient(180deg, rgba(255,255,255,.86), rgba(247,249,255,.80)) padding-box,
-      radial-gradient(120% 140% at 10% -20%, rgba(255,210,180,.12), transparent 55%),
-      radial-gradient(120% 140% at 100% 0%, rgba(198,219,255,.14), transparent 60%);
-    backdrop-filter: blur(2px);
     box-shadow: 0 10px 26px rgba(15,23,42,.08);
+
+    /* 1) Base wash + big soft blobs (static) */
+    &::before{
+      content:"";
+      position:absolute; inset:-12%;
+      z-index:-1;
+      filter: blur(.5px);
+      pointer-events:none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(245,248,255,.08)),
+        radial-gradient(38% 38% at 10% 8%,  rgba(255,208,160,.55) 0%, rgba(255,208,160,.20) 40%, rgba(255,208,160,0) 62%),
+        radial-gradient(42% 42% at 92% 6%,  rgba(176,206,255,.45) 0%, rgba(176,206,255,.18) 45%, rgba(176,206,255,0) 62%),
+        radial-gradient(55% 55% at 100% 55%, rgba(205,180,255,.35) 0%, rgba(205,180,255,.12) 44%, rgba(205,180,255,0) 64%),
+        radial-gradient(60% 60% at 0% 100%,  rgba(255,206,170,.36) 0%, rgba(255,206,170,.14) 45%, rgba(255,206,170,0) 70%);
+    }
+
+    /* 2) Floating blobs (very subtle motion) */
+    &::after{
+      content:"";
+      position:absolute; inset:-20%;
+      z-index:-1;
+      filter: blur(28px);
+      opacity:.85;
+      pointer-events:none;
+      background:
+        radial-gradient(22% 22% at 18% 25%,  #ffe7b8 0%,  rgba(255,231,184,0) 70%),
+        radial-gradient(18% 18% at 78% 22%,  #d6e2ff 0%,  rgba(214,226,255,0) 70%),
+        radial-gradient(24% 24% at 78% 78%,  #e2ccff 0%,  rgba(226,204,255,0) 70%),
+        radial-gradient(20% 20% at 22% 82%,  #ffd9c0 0%,  rgba(255,217,192,0) 70%);
+      animation: pastel-drift 26s ease-in-out infinite alternate;
+      will-change: transform, opacity;
+    }
   }
 
   /* Title row (centered) */
-  .p-monthhead {
-    display: grid;
-    place-items: center;
-    margin-block: .25rem .5rem;
-
-    .p-monthtitle {
-      text-align: center;
+  .p-monthhead{
+    display: grid; place-items: center;
+    margin-block: .35rem .5rem;
+    .p-monthtitle{
+      text-align:center;
       font: 800 16px/1.2 'Rubik', system-ui, sans-serif;
-      color: #0f172a;
-      letter-spacing: .3px;
+      color:#0f172a; letter-spacing:.3px;
     }
   }
 
   /* Weekday bar (one-piece) */
-  .p-weekbar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: .35rem;
-    margin-bottom: .6rem;
-    direction: rtl; /* Sunday at right for Hebrew */
+  .p-weekbar{
+    display:grid; grid-template-columns:repeat(7, minmax(0,1fr));
+    gap:.35rem; margin-bottom:.6rem; direction: rtl; /* Sunday at right for Hebrew */
     background: rgba(255,255,255,.82);
-    border: 1px solid #e6eeff;
-    border-radius: 14px;
-    padding: .5rem .35rem;
+    border: 1px solid #e6eeff; border-radius: 14px; padding: .5rem .35rem;
 
-    .p-wday {
-      text-align: center;
-      font: 700 11px/1.1 system-ui, sans-serif;
-      color: #64748b;
-    }
+    .p-wday{ text-align:center; font:700 11px/1.1 system-ui, sans-serif; color:#64748b; }
   }
 
   /* Grid of dates */
-  .p-monthgrid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: .55rem;
-    direction: rtl; /* Sunday first */
-  }
+  .p-monthgrid{ display:grid; grid-template-columns:repeat(7, 1fr); gap:.55rem; direction: rtl; }
 
-  /* Date cell (square, centered number) */
-  .p-cell {
-    position: relative;
-    display: grid; place-items: center;
-    aspect-ratio: 1 / 1;
-    border-radius: 16px;
-    border: 1px solid #dbe6ff;
-    background: rgba(255,255,255,.88);
-    box-shadow: 0 3px 10px rgba(15,23,42,.06);
+  /* Date cell */
+  .p-cell{
+    position:relative; display:grid; place-items:center; aspect-ratio:1 / 1;
+    border-radius:16px; border:1px solid #dbe6ff; background: rgba(255,255,255,.88);
+    box-shadow:0 3px 10px rgba(15,23,42,.06);
     transition: box-shadow .12s ease, transform .08s ease, border-color .12s ease;
-
-    &:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+    &:focus-visible{ outline:2px solid #93c5fd; outline-offset:2px; }
   }
+  .p-cell__num{ font:800 18px/1 'Rubik', system-ui, sans-serif; color:#0f172a; translate:0 2px; }
 
-  .p-cell__num {
-    font: 800 18px/1 'Rubik', system-ui, sans-serif;
-    color: #0f172a;
-    translate: 0 2px; /* optical centering */
+  /* Task counter pill — ALWAYS read global vars (with fallbacks) */
+  .p-count{
+    position:absolute; top:-14px; left:50%; translate:-50% 0;
+    inline-size:24px; block-size:24px; border-radius:999px;
+    display:grid; place-items:center;
+    font:800 12px/1 'Rubik', system-ui, sans-serif;
+    background: var(--task-pill-bg, #FFE067);
+    border: 1px solid var(--task-pill-border, #f3c340);
+    color:#0f172a;
+    box-shadow:0 3px 8px rgba(15,23,42,.08);
+    pointer-events:none; opacity:.92;
   }
-
-  /* Top-floating task counter badge — gradient fill + matching border */
-  .p-count {
-    --h: var(--pill-hue, 220); /* set inline by month.js; default 220 (blue) */
-    position: absolute;
-    top: -12px; left: 50%; translate: -50% 0;
-    inline-size: 24px; block-size: 24px;
-    border-radius: 999px;
-    display: grid; place-items: center;
-    font: 800 12px/1 'Rubik', system-ui, sans-serif;
-    background: linear-gradient(180deg,
-      hsl(var(--h) 100% 95%) 0%,
-      hsl(var(--h) 96% 90%) 100%
-    );
-    border: 1px solid hsl(var(--h) 92% 85%);
-    color: #0f172a;
-    box-shadow: 0 3px 8px rgba(15,23,42,.08);
-    pointer-events: none;
-    opacity: .92;
-  }
-  .p-count:not(.has) { opacity: .45; } /* zero tasks look softer */
+  .p-count:not(.has){ opacity:.45; }
 
   /* Today ring */
-  .p-cell--today { box-shadow: 0 0 0 2px color-mix(in oklab, #60a5fa 60%, transparent) inset; }
+  .p-cell--today{ outline:2px solid tomato; outline-offset:-3px; }
 
-  /* Dim filler days if any */
-  .p-cell--dim { opacity: .45; }
+  /* Dim filler days */
+  .p-cell--dim{ opacity:.45; }
 
-  /* Slightly wider on big phones/tablets */
-  @media (min-width: 430px) {
-    .p-monthview { max-inline-size: 430px; }
-  }
+  @media (min-width: 430px){ .p-monthview{ max-inline-size: 430px; } }
+}
+
+/* ---- Motion for blobs (disabled for reduced motion) ---- */
+@keyframes pastel-drift{
+  0%{transform: translate3d(0,0,0) scale(1.00);}
+  50%{transform: translate3d(2%, -1%, 0) scale(1.03);}
+  100%{transform: translate3d(-2%, 1.5%, 0) scale(1.02);}
+}
+@media (prefers-reduced-motion: reduce){
+  body[data-view='month'] .p-monthview::after{ animation: none; }
 }
 
 /* ===== Dark mode ===== */
 :is(html,body).is-dark body[data-view='month'] {
-  .p-monthview {
+  .p-monthview{
+    background: rgba(14,18,30,.92);
     border-color: rgba(148,163,184,.18);
-    background:
-      linear-gradient(180deg, rgba(16,20,34,.90), rgba(12,16,26,.86)) padding-box,
-      radial-gradient(120% 140% at 8% -20%, rgba(246,202,143,.08), transparent 55%),
-      radial-gradient(120% 140% at 100% 0%, rgba(124,164,255,.10), transparent 60%);
     box-shadow: 0 14px 36px rgba(0,0,0,.45);
-  }
-
-  .p-monthhead .p-monthtitle { color: #e6edff; }
-
-  .p-weekbar {
-    background: linear-gradient(180deg, #111827, #0b1220);
-    border-color: #304469;
-
-    .p-wday { color: #9bb7df; }
-  }
-
-  .p-cell {
-    border-color: #354a7a;
-    background: rgba(16,24,40,.88);
-    box-shadow: 0 3px 14px rgba(6,10,22,.55);
-  }
-
-  .p-cell__num { color: #e6edff; }
-
-  .p-count {
-    box-shadow: 0 4px 12px rgba(0,0,0,.45);
-    /* same hue, darker border in dark mode */
-    border-color: hsl(var(--pill-hue,220) 45% 40%);
-  }
-
-  .p-cell--today { box-shadow: 0 0 0 2px color-mix(in oklab, #60a5fa 55%, transparent) inset; }
-}
-/* Ensure the pastel gradient is always visible and cannot be overridden */
-.p-monthview{
-  position: relative;
-  overflow: hidden;
-  border-radius: 16px;
-  background: rgba(255,255,255,.86); /* base glass */
-  border: 1px solid rgba(100,116,139,.14);
-  box-shadow: 0 10px 26px rgba(15,23,42,.08);
-
-  /* pastel gradient layer */
-  &::before{
-    content:"";
-    position:absolute; inset:0;
-    background:
-      linear-gradient(180deg, rgba(255,255,255,.10), rgba(245,248,255,.08)),
-      radial-gradient(120% 140% at 10% -20%, rgba(255,210,180,.16), transparent 55%),
-      radial-gradient(120% 140% at 100% 0%, rgba(198,219,255,.18), transparent 60%);
-    pointer-events:none;
-  }
-
-  .p-monthhead{
-    display:grid; place-items:center;
-    margin-block:.35rem .5rem;
-    .p-monthtitle{
-      text-align:center;
-      font: 800 16px/1.2 'Rubik', system-ui, sans-serif;
-      color:#0f172a;
+    &::before{
+      background:
+        linear-gradient(180deg, rgba(16,20,34,.18), rgba(14,18,30,.14)),
+        radial-gradient(38% 38% at 10% 8%,  rgba(255,208,160,.30) 0%, rgba(255,208,160,0) 62%),
+        radial-gradient(42% 42% at 92% 6%,   rgba(176,206,255,.28) 0%, rgba(176,206,255,0) 62%),
+        radial-gradient(55% 55% at 100% 55%, rgba(205,180,255,.22) 0%, rgba(205,180,255,0) 64%),
+        radial-gradient(60% 60% at 0% 100%,  rgba(255,206,170,.24) 0%, rgba(255,206,170,0) 70%);
     }
+    &::after{ opacity:.7; }
   }
+
+  .p-monthhead .p-monthtitle{ color:#e6edff; }
 
   .p-weekbar{
-    display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
-    gap:.35rem; margin-bottom:.35rem;
-    .p-wday{
-      text-align:center; padding:.35rem 0;
-      font:800 12px/1 'Rubik', system-ui; color:#334155;
-    }
+    background: linear-gradient(180deg, #111827, #0b1220);
+    border-color:#304469;
+    .p-wday{ color:#9bb7df; }
   }
 
-  .p-monthgrid{
-    display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
-    gap:.55rem; direction: rtl;
-  }
-
-  .p-cell{
-    position:relative;
-    display:grid; place-items:center;
-    aspect-ratio:1/1;
-    border-radius:16px;
-    border:1px solid #dbe6ff;
-    background: rgba(255,255,255,.88);
-    box-shadow: 0 3px 10px rgba(15,23,42,.06);
-    transition: box-shadow .12s ease, transform .08s ease, border-color .12s ease;
-
-    &:focus-visible{ outline:2px solid #93c5fd; outline-offset:2px; }
-  }
-
-  /* TODAY = tomato ring, set slightly inside so it never touches the pill */
-  .p-cell--today{
-    outline: 2px solid tomato;
-    outline-offset: -3px;
-  }
-
-  .p-cell__num{
-    font:800 18px/1 'Rubik', system-ui; color:#0f172a;
-    translate:0 2px;
-  }
-
-  /* Blue gradient pill (hue configurable via --pill-hue) */
-  .p-count{
-    --h: var(--pill-hue, 220);
-    position:absolute;
-    top:-14px; left:50%; translate:-50% 0;   /* enough air so it doesn't touch the square */
-    inline-size:24px; block-size:24px;
-    border-radius:999px;
-    display:grid; place-items:center;
-    font:800 12px/1 'Rubik', system-ui;
-    background: linear-gradient(180deg,
-      hsl(var(--h) 100% 95%) 0%,
-      hsl(var(--h) 96% 90%) 100%);
-    border:1px solid hsl(var(--h) 92% 85%);
-    color:#0f172a;
-    box-shadow:0 3px 8px rgba(15,23,42,.08);
-    pointer-events:none;
-    opacity:.92;
-  }
-  .p-count:not(.has){ opacity:.45; }
-
-  .p-cell--dim{ opacity:.55; }
-}
-
-/* Dark mode keeps tomato ring and shows darker glass gradient */
-:is(html,body).is-dark .p-monthview{
-  background: rgba(14,18,30,.92);
-  border-color: rgba(148,163,184,.18);
-  box-shadow: 0 14px 36px rgba(0,0,0,.45);
-  &::before{
-    background:
-      linear-gradient(180deg, rgba(16,20,34,.18), rgba(14,18,30,.14)),
-      radial-gradient(120% 140% at 8% -20%, rgba(246,202,143,.10), transparent 55%),
-      radial-gradient(120% 140% at 100% 0%, rgba(124,164,255,.14), transparent 60%);
-  }
-  .p-cell{ background: rgba(18,23,36,.66); border-color:#354a7a; }
+  .p-cell{ border-color:#354a7a; background: rgba(16,24,40,.88); box-shadow:0 3px 14px rgba(6,10,22,.55); }
   .p-cell__num{ color:#e6edff; }
+
+  /* Important: keep using the same CSS vars in dark, too */
+  .p-count{
+    background: var(--task-pill-bg, #FFE067);
+    border: 1px solid var(--task-pill-border, #f3c340);
+    color:#0f172a; /* looks good on all our pastels */
+    box-shadow:0 4px 12px rgba(0,0,0,.45);
+  }
+
   .p-cell--today{ outline:2px solid tomato; }
-  .p-count{ box-shadow:0 4px 12px rgba(0,0,0,.45); }
-}
-/* ---- Pastel “blob” background for the month card ---- */
-/* The card itself */
-.p-monthview{
-  position: relative;
-  overflow: hidden;
-  border-radius: 16px;
-  isolation: isolate;             /* keeps blends inside */
-
-  /* glass base so dates stay readable on top of blobs */
-  background: rgba(255,255,255,.86);
-  border: 1px solid rgba(100,116,139,.14);
-  box-shadow: 0 10px 26px rgba(15,23,42,.08);
 }
 
-/* 1) Base wash + a couple of big soft blobs (static) */
-.p-monthview::before{
-  content:"";
-  position:absolute; inset:-12%;  /* bleed out so edges never show */
-  z-index:-1;
-  filter: blur(0.5px);
-  background:
-    /* faint vertical wash to calm everything down */
-    linear-gradient(180deg, rgba(255,255,255,.10), rgba(245,248,255,.08)),
-
-    /* warm blob top-left */
-    radial-gradient(38% 38% at 10% 8%,
-      rgba(255,208,160,.55) 0%,
-      rgba(255,208,160,.20) 40%,
-      rgba(255,208,160,0) 62%),
-
-    /* cool blob top-right */
-    radial-gradient(42% 42% at 92% 6%,
-      rgba(176,206,255,.45) 0%,
-      rgba(176,206,255,.18) 45%,
-      rgba(176,206,255,0) 62%),
-
-    /* lavender sweep right side */
-    radial-gradient(55% 55% at 100% 55%,
-      rgba(205,180,255,.35) 0%,
-      rgba(205,180,255,.12) 44%,
-      rgba(205,180,255,0) 64%),
-
-    /* peachy sweep bottom-left */
-    radial-gradient(60% 60% at 0% 100%,
-      rgba(255,206,170,.36) 0%,
-      rgba(255,206,170,.14) 45%,
-      rgba(255,206,170,0) 70%);
-}
-
-/* 2) Floating blobs (very subtle motion) */
-.p-monthview::after{
-  content:"";
-  position:absolute; inset:-20%;
-  z-index:-1;
-  filter: blur(28px);              /* heavy blur = creamy edges */
-  opacity:.85;                     /* keep gentle */
-  background:
-    radial-gradient(22% 22% at 18% 25%,  #ffe7b8 0%,  rgba(255,231,184,.00) 70%),
-    radial-gradient(18% 18% at 78% 22%,  #d6e2ff 0%,  rgba(214,226,255,.00) 70%),
-    radial-gradient(24% 24% at 78% 78%,  #e2ccff 0%,  rgba(226,204,255,.00) 70%),
-    radial-gradient(20% 20% at 22% 82%,  #ffd9c0 0%,  rgba(255,217,192,.00) 70%);
-  animation: pastel-drift 26s ease-in-out infinite alternate;
-  /* prevents color banding on some mobile GPUs */
-  will-change: transform, opacity;
-}
-
-/* Slow parallax drift. Disabled if user prefers reduced motion */
-@keyframes pastel-drift{
-  0%   { transform: translate3d(0,0,0) scale(1.00); }
-  50%  { transform: translate3d(2%, -1%, 0) scale(1.03); }
-  100% { transform: translate3d(-2%, 1.5%, 0) scale(1.02); }
-}
-@media (prefers-reduced-motion: reduce){
-  .p-monthview::after{ animation: none; }
-}
-
-/* Dark mode: slightly deeper, still pastel */
-:is(html,body).is-dark .p-monthview{
-  background: rgba(14,18,30,.92);
-  border-color: rgba(148,163,184,.18);
-  box-shadow: 0 14px 36px rgba(0,0,0,.45);
-}
-:is(html,body).is-dark .p-monthview::before{
-  background:
-    linear-gradient(180deg, rgba(16,20,34,.18), rgba(14,18,30,.14)),
-    radial-gradient(38% 38% at 10% 8%,  rgba(255,208,160,.30) 0%, rgba(255,208,160,0) 62%),
-    radial-gradient(42% 42% at 92% 6%,   rgba(176,206,255,.28) 0%, rgba(176,206,255,0) 62%),
-    radial-gradient(55% 55% at 100% 55%, rgba(205,180,255,.22) 0%, rgba(205,180,255,0) 64%),
-    radial-gradient(60% 60% at 0% 100%,  rgba(255,206,170,.24) 0%, rgba(255,206,170,0) 70%);
-}
-:is(html,body).is-dark .p-monthview::after{
-  opacity:.7;
-}
+/* (legacy) remove unused old tokens to avoid confusion
+.task-counter{ background: var(--pills-bg); border:1px solid var(--pills-br); }
+*/

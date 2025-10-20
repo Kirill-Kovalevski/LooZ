@@ -116,3 +116,20 @@ body[data-view="day"] .p-dayview{
 }
 /* remove the tiny “day when” label */
 .p-day-when { display: none !important; }
+/* Task counter pill — reads CSS vars provided by Settings */
+.p-count{
+  position:absolute; top:-14px; left:50%; translate:-50% 0;
+  inline-size:24px; block-size:24px; border-radius:999px;
+  display:grid; place-items:center;
+  font:800 12px/1 'Rubik', system-ui, sans-serif;
+  background: var(--task-pill-bg);
+  border: 1px solid var(--task-pill-border);
+  color:#0f172a; box-shadow:0 3px 8px rgba(15,23,42,.08);
+  pointer-events:none; opacity:.92;
+}
+.p-count:not(.has){ opacity:.45; }
+/* wherever your pill styles are */
+.p-count, .task-counter{
+  background: var(--task-pill-bg);
+  border: 1px solid var(--task-pill-border);
+}
