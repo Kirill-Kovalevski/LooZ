@@ -22,6 +22,13 @@ body { min-height: 100vh; }
   --s3: hsl(265 70% 88%);  /* lilac */
   --s4: hsl(35  95% 87%);  /* peach */
   --s5: hsl(355 70% 86%);  /* coral */
+
+  /* nav accent for header icons (matches view buttons) */
+  --nav-accent:#FFE067;
+  --nav-accent-br:#f3c340;
+  --nav-accent-ink:#0f172a;
+  --nav-glow: 0 10px 26px rgba(255,224,103,.55), 0 0 0 1px rgba(243,195,64,.55) inset;
+  --nav-ambient: radial-gradient(40% 40% at 50% 50%, rgba(255,224,103,.65), transparent 60%);
 }
 :is(html,body).is-dark{
   --chrome-bg:#0f172a;
@@ -32,6 +39,12 @@ body { min-height: 100vh; }
   --btn-shadow-rest:   0 2px 10px rgba(0,0,0,.30);
   --btn-shadow-hover:  0 10px 26px rgba(0,0,0,.42);
   --btn-shadow-active: 0 4px 12px rgba(0,0,0,.55);
+
+  /* dark keeps same yellow, adjusts glow */
+  --nav-accent:#FFE067;
+  --nav-accent-br:#f3c340;
+  --nav-accent-ink:#0b1220;
+  --nav-glow: 0 14px 36px rgba(255,224,103,.70), 0 0 0 1px rgba(255,239,170,.35) inset;
 }
 
 /* ============== APP BACKGROUND (pastel, seasonal) ============== */
@@ -104,6 +117,33 @@ body { min-height: 100vh; }
 :is(html,body).is-dark .brand-logo--light{ display:none; }
 :is(html,body).is-dark .brand-logo--dark{ display:block; }
 
+/* ===== HEADER ICON BUTTONS (yellow glow, matches view buttons) ===== */
+.c-topbtn{
+  inline-size:44px; block-size:44px; border-radius:50%;
+  display:grid; place-items:center;
+  border:1px solid var(--chrome-border);
+  background:var(--chrome-bg); color:var(--chrome-fg);
+  box-shadow: var(--chrome-shadow);
+}
+.c-topbtn--profile{ justify-self:start; }
+.c-topbtn--settings{ justify-self:end; }
+
+/* upgrade just these two to the yellow accent look */
+.c-topbtn--profile,
+.c-topbtn--settings{
+  position:relative; isolation:isolate;
+  background: var(--nav-accent);
+  border-color: var(--nav-accent-br);
+  color: var(--nav-accent-ink);
+  box-shadow: var(--nav-glow);
+}
+.c-topbtn--profile::after,
+.c-topbtn--settings::after{
+  content:""; position:absolute; inset:-18px; z-index:-1; pointer-events:none;
+  background: var(--nav-ambient); filter: blur(10px); opacity:.85;
+}
+.c-topbtn svg{ width:20px; height:20px; fill: currentColor; }
+
 /* ===================== UNIVERSAL BUTTON MOTION ===================== */
 :where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact){
   transition:
@@ -118,17 +158,6 @@ body { min-height: 100vh; }
 :where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):hover{ box-shadow: var(--btn-shadow-hover); transform: translateY(-1px); }
 :where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):active{ box-shadow: var(--btn-shadow-active); transform: translateY(1px) scale(.98); }
 :where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):focus-visible{ outline:2px solid color-mix(in oklab, #60a5fa 70%, transparent); outline-offset:2px; }
-
-/* top chrome buttons */
-.c-topbtn{
-  inline-size:44px; block-size:44px; border-radius:50%;
-  display:grid; place-items:center;
-  border:1px solid var(--chrome-border);
-  background:var(--chrome-bg); color:var(--chrome-fg);
-  box-shadow: var(--chrome-shadow);
-}
-.c-topbtn--profile{ justify-self:start; }
-.c-topbtn--settings{ justify-self:end; }
 
 /* ===================== LEMON + DOCK ===================== */
 .c-lemon-area{

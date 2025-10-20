@@ -2,7 +2,7 @@
    Activates when <html> or <body> has class "is-dark" (your settings.js already does this). */
 
 :is(html,body).is-dark {
-  /* Core tokens */
+  /* ===== Core tokens ===== */
   --bg-0: #0b111d;         /* page base */
   --bg-1: #0f1422;         /* cards/panels */
   --line: #2f3b55;
@@ -12,7 +12,15 @@
   --title: #ffd86b;        /* golden-yellow for titles/headings */
   --accent: #ffd86b;       /* buttons (ok/X), chips highlight */
 
-  /* Pill colors are still controlled by --task-pill-bg / --task-pill-border */
+  /* Header icons (same yellow as view buttons) */
+  --nav-accent:    #FFE067;
+  --nav-accent-br: #f3c340;
+  --nav-accent-ink:#0b1220;
+  --nav-glow:      0 14px 36px rgba(255,224,103,.70), 0 0 0 1px rgba(255,239,170,.35) inset;
+  --nav-ambient:   radial-gradient(40% 40% at 50% 50%, rgba(255,224,103,.65), transparent 60%);
+
+  /* Month calendar cell bg token (used by pill halo) */
+  --month-cell-bg: rgba(10, 18, 28, .92);
 }
 
 /* ===== Page background (home shell) ===== */
@@ -40,6 +48,7 @@
   box-shadow: 0 10px 22px rgba(0,0,0,.45);
 }
 
+/* Titles */
 :is(html,body).is-dark .group__title,
 :is(html,body).is-dark .p-monthtitle,
 :is(html,body).is-dark .title { color: var(--title); }
@@ -77,13 +86,53 @@
   box-shadow: 0 10px 20px rgba(248,210,76,.25), inset 0 1px 0 rgba(255,240,200,.4);
 }
 
-/* Month grid cells */
+/* ===================== Month view — blue–green ambience ===================== */
+/* Note: this overrides the generic card bg above for the calendar specifically. */
+:is(html,body).is-dark body[data-view='month'] .p-monthview{
+  background:
+    linear-gradient(180deg, #0b1220 0%, #0b1c28 55%, #0a2022 100%);
+  border-color: rgba(126, 160, 200, .20);
+  box-shadow: 0 14px 36px rgba(0,0,0,.55);
+}
+
+:is(html,body).is-dark body[data-view='month'] .p-monthview::before{
+  content:"";
+  position:absolute; inset:-12%;
+  z-index:-1; pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(12,18,32,.22), rgba(10,16,28,.18)),
+    radial-gradient(40% 40% at 12% 10%,  rgba(64, 200, 173, .22) 0%, rgba(64,200,173,0) 62%),
+    radial-gradient(44% 44% at 90% 8%,   rgba(110, 170, 255, .26) 0%, rgba(110,170,255,0) 62%),
+    radial-gradient(58% 58% at 102% 58%, rgba(86, 190, 255, .20) 0%, rgba(86,190,255,0) 64%),
+    radial-gradient(62% 62% at -2% 100%, rgba(41, 171, 135, .22) 0%, rgba(41,171,135,0) 70%);
+}
+
+:is(html,body).is-dark body[data-view='month'] .p-monthview::after{
+  content:"";
+  position:absolute; inset:-20%;
+  z-index:-1; pointer-events:none; filter: blur(28px); opacity:.85;
+  background:
+    radial-gradient(22% 22% at 18% 25%,  rgba(71, 181, 255, .20) 0%, rgba(71,181,255,0) 70%),
+    radial-gradient(18% 18% at 78% 22%,  rgba(79, 230, 199, .22) 0%, rgba(79,230,199,0) 70%),
+    radial-gradient(24% 24% at 78% 78%,  rgba(84, 160, 255, .18) 0%, rgba(84,160,255,0) 70%),
+    radial-gradient(20% 20% at 22% 82%,  rgba(42, 186, 150, .20) 0%, rgba(42,186,150,0) 70%);
+}
+
+/* Month grid cells adopt the token (also used by the pill halo) */
 :is(html,body).is-dark body[data-view='month'] .p-cell{
-  border-color:#354a7a;
-  background: rgba(16,24,40,.88);
+  border-color:#2f4f74;
+  background: var(--month-cell-bg);
+  box-shadow: 0 3px 16px rgba(4, 10, 20, .65);
 }
 
 /* Ensure counters & numbers are readable on dark */
 :is(html,body).is-dark body[data-view='month'] .p-cell__num,
 :is(html,body).is-dark .w-left,
 :is(html,body).is-dark .pill { color: var(--ink); }
+
+/* Zero-state pill remains readable (pairs with your halo around the pill) */
+:is(html,body).is-dark body[data-view='month'] .p-count:not(.has){
+  background:#0f172a;
+  border-color:#334155;
+  color:#e5eefc;
+}

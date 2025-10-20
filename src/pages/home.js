@@ -341,3 +341,96 @@ document.addEventListener('go-day', async (e) => {
     if (br) s.setProperty('--task-pill-border', br);
   } catch {}
 })();
+/* ===== LooZ — Home shell behaviors (RTL, iPhone-first) ===== */
+(function () {
+  'use strict';
+
+  /* ---------- Helpers ---------- */
+  const $  = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const pad2 = (n) => String(n).padStart(2, '0');
+
+  /* ---------- Seasonal background: set soft palette by month ---------- */
+  const month = new Date().getMonth(); // 0..11
+  const PALETTES = [
+    /* Jan..Dec (example gentle monthly shifts) */
+    { s1:'hsl(150 60% 84%)', s2:'hsl(205 85% 86%)', s3:'hsl(265 70% 88%)', s4:'hsl(35 95% 87%)', s5:'hsl(355 70% 86%)' }, // Jan
+    { s1:'hsl(155 60% 84%)', s2:'hsl(208 85% 86%)', s3:'hsl(268 70% 88%)', s4:'hsl(37 95% 87%)', s5:'hsl(355 70% 86%)' }, // Feb
+    { s1:'hsl(160 60% 84%)', s2:'hsl(210 85% 86%)', s3:'hsl(270 70% 88%)', s4:'hsl(38 95% 87%)', s5:'hsl(356 70% 86%)' }, // Mar
+    { s1:'hsl(162 60% 84%)', s2:'hsl(212 85% 86%)', s3:'hsl(272 70% 88%)', s4:'hsl(39 95% 87%)', s5:'hsl(356 70% 86%)' }, // Apr
+    { s1:'hsl(164 60% 84%)', s2:'hsl(214 85% 86%)', s3:'hsl(274 70% 88%)', s4:'hsl(40 95% 87%)', s5:'hsl(357 70% 86%)' }, // May
+    { s1:'hsl(166 60% 84%)', s2:'hsl(216 85% 86%)', s3:'hsl(276 70% 88%)', s4:'hsl(41 95% 87%)', s5:'hsl(357 70% 86%)' }, // Jun
+    { s1:'hsl(168 60% 84%)', s2:'hsl(218 85% 86%)', s3:'hsl(278 70% 88%)', s4:'hsl(42 95% 87%)', s5:'hsl(358 70% 86%)' }, // Jul
+    { s1:'hsl(170 60% 84%)', s2:'hsl(220 85% 86%)', s3:'hsl(280 70% 88%)', s4:'hsl(43 95% 87%)', s5:'hsl(358 70% 86%)' }, // Aug
+    { s1:'hsl(165 60% 84%)', s2:'hsl(215 85% 86%)', s3:'hsl(276 70% 88%)', s4:'hsl(38 95% 87%)', s5:'hsl(356 70% 86%)' }, // Sep
+    { s1:'hsl(160 60% 84%)', s2:'hsl(210 85% 86%)', s3:'hsl(272 70% 88%)', s4:'hsl(36 95% 87%)', s5:'hsl(355 70% 86%)' }, // Oct
+    { s1:'hsl(155 60% 84%)', s2:'hsl(206 85% 86%)', s3:'hsl(268 70% 88%)', s4:'hsl(35 95% 87%)', s5:'hsl(355 70% 86%)' }, // Nov
+    { s1:'hsl(152 60% 84%)', s2:'hsl(204 85% 86%)', s3:'hsl(266 70% 88%)', s4:'hsl(35 95% 87%)', s5:'hsl(355 70% 86%)' }, // Dec
+  ];
+  const pal = PALETTES[month];
+  if (pal) {
+    const rs = document.documentElement.style;
+    rs.setProperty('--s1', pal.s1);
+    rs.setProperty('--s2', pal.s2);
+    rs.setProperty('--s3', pal.s3);
+    rs.setProperty('--s4', pal.s4);
+    rs.setProperty('--s5', pal.s5);
+  }
+
+  /* ---------- Greeting: show user's first name if available ---------- */
+  try {
+    // Accept either a stringified JSON or a plain string key from prior auth screens
+    let user = localStorage.getItem('authUser') || localStorage.getItem('auth.user') || localStorage.getItem('auth.profile');
+    if (user) {
+      try { user = JSON.parse(user); } catch(_) { /* if plain string, keep it */ }
+      const name = (user && (user.firstName || user.given_name || user.name)) || (typeof user === 'string' ? user : '');
+      const first = (name || '').trim().split(/\s+/)[0];
+      const nameSpot = $('.c-greet b') || $('#greetName');
+      if (first && nameSpot) nameSpot.textContent = first;
+    }
+  } catch (e) {
+    /* no-op */
+  }
+
+  /* ---------- Lemon orb toggles dock ---------- */
+  const lemonBtn = $('.c-lemonbtn');
+  const dock = $('.c-dock');
+  if (lemonBtn && dock) {
+    lemonBtn.addEventListener('click', () => {
+      const on = lemonBtn.classList.toggle('is-on');
+      dock.classList.toggle('is-open', on);
+    });
+  }
+
+  /* ---------- Bottom CTA visibility based on scroll-in-view ---------- */
+  const bottomCta = $('.c-bottom-cta');
+  const viewRoot = $('.o-viewroot');
+  if (bottomCta && viewRoot) {
+    const syncCTA = () => {
+      // Show CTA when near the bottom 1/3 of the view content
+      const rect = viewRoot.getBoundingClientRect();
+      const threshold = window.innerHeight * 0.66;
+      bottomCta.classList.toggle('is-visible', rect.bottom < window.innerHeight + threshold);
+    };
+    document.addEventListener('scroll', syncCTA, { passive: true });
+    viewRoot.addEventListener('scroll', syncCTA, { passive: true });
+    window.addEventListener('resize', syncCTA);
+    requestAnimationFrame(syncCTA);
+  }
+
+  /* ---------- View switch buttons (Day / Week / Month) ---------- */
+  const headBtns = $$('.c-headbtn[data-view]');
+  const gotoView = (view) => {
+    // If your app uses different pages, replace with window.location = `${view}.html`
+    document.body.setAttribute('data-view', view);
+    headBtns.forEach(btn => btn.classList.toggle('is-active', btn.dataset.view === view));
+    // Optional: fire a custom event if others depend on this
+    document.dispatchEvent(new CustomEvent('VIEW_CHANGED', { detail: { view } }));
+  };
+  headBtns.forEach(btn => btn.addEventListener('click', () => gotoView(btn.dataset.view)));
+
+  // Initialize active state from body[data-view] if present
+  const currentView = document.body.getAttribute('data-view');
+  if (currentView) headBtns.forEach(btn => btn.classList.toggle('is-active', btn.dataset.view === currentView));
+
+})();
