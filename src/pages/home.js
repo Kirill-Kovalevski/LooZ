@@ -24,10 +24,18 @@ function getUserName() {
   const last  = localStorage.getItem('lastName')  || '';
   return last ? `${first} ${last[0]}.` : first;
 }
+
+/** Pretty date chip (renders spans used by the CSS styles) */
 function setHeaderDate(d) {
   headerCursor = new Date(d);
   const el = document.querySelector('.c-date');
-  if (el) el.textContent = `${hebDay(headerCursor)} ${todayDM(headerCursor)}`;
+  if (!el) return;
+
+  el.innerHTML = `
+    <span class="c-date__dow">${hebDay(headerCursor)}</span>
+    <span class="c-date__dot" aria-hidden="true">·</span>
+    <span class="c-date__md">${todayDM(headerCursor)}</span>
+  `;
 }
 
 // ---- view mounting ----
@@ -80,73 +88,61 @@ function navPeriod(dir /* 'prev' | 'next' | 'today' */) {
 
 // ---- shell ----
 function shellHTML() {
-  const d = headerCursor;
-  const dateStr = `${hebDay(d)} ${todayDM(d)}`;
-
   return `
     <main class="o-page">
       <section class="o-phone o-inner">
 
-      <header class="o-header">
-  <button class="c-topbtn c-topbtn--accent c-topbtn--profile" aria-label="פרופיל" title="פרופיל">
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z" fill="currentColor"/>
-    </svg>
-  </button>
+        <header class="o-header">
+          <button class="c-topbtn c-topbtn--accent c-topbtn--profile" aria-label="פרופיל" title="פרופיל">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z" fill="currentColor"/>
+            </svg>
+          </button>
 
-  <a class="looz-logo" aria-label="LooZ">
-    <img class="brand-logo brand-logo--light" src="${logoLight}" alt="LooZ">
-    <img class="brand-logo brand-logo--dark"  src="${logoDark}"  alt="LooZ">
-  </a>
+          <a class="looz-logo" aria-label="LooZ">
+            <img class="brand-logo brand-logo--light" src="${logoLight}" alt="LooZ">
+            <img class="brand-logo brand-logo--dark"  src="${logoDark}"  alt="LooZ">
+          </a>
 
-  <button class="c-topbtn c-topbtn--accent c-topbtn--settings" aria-label="הגדרות" title="הגדרות">
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path d="M5 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="currentColor"/>
-    </svg>
-  </button>
-</header>
-
+          <button class="c-topbtn c-topbtn--accent c-topbtn--settings" aria-label="הגדרות" title="הגדרות">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path d="M5 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="currentColor"/>
+            </svg>
+          </button>
+        </header>
 
         <!-- Lemon center + quick dock -->
         <div class="c-lemon-area">
-         <button id="lemonToggle"
-        class="c-lemonbtn"
-        type="button"
-        aria-label="פתח/סגור סרגל מהיר"
-        aria-expanded="false">
-  <svg class="c-lemonbtn__svg" viewBox="0 0 48 48" aria-hidden="true">
-    <defs>
-      <radialGradient id="lemGrad" cx="38%" cy="35%" r="70%">
-        <stop offset="0%"  stop-color="#FFF6B8"/>
-        <stop offset="55%" stop-color="#FFE067"/>
-        <stop offset="100%" stop-color="#F7C843"/>
-      </radialGradient>
-      <linearGradient id="lemShine" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".98"/>
-        <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".82"/>
-      </linearGradient>
-      <path id="lemSilhouette"
-            d="M36.8,13.2
-               C30.4,7.0,19.6,7.0,13.2,13.2
-               c-5.0,5.0-5.0,13.6,0,18.6
-               c5.0,5.0,13.6,5.2,18.6,0.2
-               C37.6,27.6,38.4,19.6,36.8,13.2 Z" />
-    </defs>
-    <g transform="translate(2 2) rotate(-8 22 22)">
-      <use href="#lemSilhouette" fill="url(#lemGrad)"/>
-      <path fill="url(#lemShine)"
-            d="M33.2,12.2
-               c-6.8,2.0-12.0,8.0-13.2,15.8
-               c-0.2,1.4-0.2,2.8-0.1,4.0
-               c2.6-6.6,8.6-12.4,15.6-15.2
-               c0.4-0.2,0.8-0.3,1.2-0.4
-               C36.0,14.8,34.8,13.2,33.2,12.2 Z"/>
-      <circle cx="10.6" cy="31.8" r="2.2" fill="#F1B731"/>
-      <use href="#lemSilhouette" fill="none" stroke="#D9A21C" stroke-opacity=".35" stroke-width=".9"/>
-    </g>
-  </svg>
-</button>
-
+          <button id="lemonToggle"
+                  class="c-lemonbtn"
+                  type="button"
+                  aria-label="פתח/סגור סרגל מהיר"
+                  aria-expanded="false">
+            <svg class="c-lemonbtn__svg" viewBox="0 0 48 48" aria-hidden="true">
+              <defs>
+                <radialGradient id="lemGrad" cx="38%" cy="35%" r="70%">
+                  <stop offset="0%"  stop-color="#FFF6B8"/>
+                  <stop offset="55%" stop-color="#FFE067"/>
+                  <stop offset="100%" stop-color="#F7C843"/>
+                </radialGradient>
+                <linearGradient id="lemShine" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".98"/>
+                  <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".82"/>
+                </linearGradient>
+                <path id="lemSilhouette"
+                      d="M36.8,13.2 C30.4,7.0,19.6,7.0,13.2,13.2 c-5.0,5.0-5.0,13.6,0,18.6
+                         c5.0,5.0,13.6,5.2,18.6,0.2 C37.6,27.6,38.4,19.6,36.8,13.2 Z" />
+              </defs>
+              <g transform="translate(2 2) rotate(-8 22 22)">
+                <use href="#lemSilhouette" fill="url(#lemGrad)"/>
+                <path fill="url(#lemShine)"
+                      d="M33.2,12.2 c-6.8,2.0-12.0,8.0-13.2,15.8 c-0.2,1.4-0.2,2.8-0.1,4.0
+                         c2.6-6.6,8.6-12.4,15.6-15.2 c0.4-0.2,0.8-0.3,1.2-0.4 C36.0,14.8,34.8,13.2,33.2,12.2 Z"/>
+                <circle cx="10.6" cy="31.8" r="2.2" fill="#F1B731"/>
+                <use href="#lemSilhouette" fill="none" stroke="#D9A21C" stroke-opacity=".35" stroke-width=".9"/>
+              </g>
+            </svg>
+          </button>
 
           <div id="quickDock" class="c-dock" hidden aria-hidden="true">
             <button class="c-dock__side c-dock__left" aria-label="קטגוריות" title="קטגוריות">…</button>
@@ -159,7 +155,7 @@ function shellHTML() {
 
         <!-- date + greeting -->
         <div class="c-meta-block">
-          <div class="c-date">${dateStr}</div>
+          <div class="c-date" aria-live="polite"></div>
           <p class="c-greet">ברוכים השבים <b>${getUserName()}</b> 👋</p>
         </div>
 
@@ -243,16 +239,13 @@ function wireShell(root) {
   // SETTINGS
   root.querySelector('.c-topbtn--settings')?.addEventListener('click', openSettings);
 
-  // CREATE EVENT (orb)
-// inside wireShell(root) -> CREATE EVENT (orb)
-root.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.btn-create-orb, .c-cta, [data-act="create"]');
-  if (!btn) return;
-
-  const dk = localStorage.getItem('selectedDate') || undefined; // e.g. "2025-10-20"
-  openCreateModal(dk);
-});
-
+  // CREATE EVENT (orb) — prefill with selected date if available
+  root.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-create-orb, .c-cta, [data-act="create"]');
+    if (!btn) return;
+    const dk = localStorage.getItem('selectedDate') || undefined; // e.g. "2025-10-20"
+    openCreateModal(dk);
+  });
 }
 
 // settings navigation
@@ -286,6 +279,9 @@ export function mount(root) {
   document.body.setAttribute('data-view', 'home');
   root.innerHTML = shellHTML();
   wireShell(root);
+
+  // render the pretty date chip immediately
+  setHeaderDate(headerCursor);
 
   const boot = localStorage.getItem('defaultView') || 'week';
   renderView(boot);

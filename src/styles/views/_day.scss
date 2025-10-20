@@ -88,3 +88,60 @@
   .p-act--ok:hover{ filter:brightness(1.06) saturate(1.02); }
   .p-act--no:hover{ filter:brightness(1.06) saturate(1.02); }
 }
+/* ===== Pretty day chip in Day view ===== */
+.p-day-head{
+  display:flex;
+  justify-content:center;
+  margin-block: .25rem .7rem;
+}
+
+.p-day-when{
+  display:inline-flex;
+  align-items:baseline;
+  gap:.42rem;
+  padding:.42rem .80rem;
+  border:1px solid #e7edff;
+  border-radius:999px;
+  background: linear-gradient(180deg, #ffffff, #f7f9ff);
+  box-shadow: 0 6px 18px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.6);
+  color:#0f172a;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.p-day-when:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(15,23,42,.12), inset 0 1px 0 rgba(255,255,255,.65);
+}
+
+.p-when__dow{
+  font: 800 15px/1 'Rubik', system-ui, sans-serif;
+  letter-spacing:.2px;
+  color:#1e293b; /* slightly darker anchor */
+}
+.p-when__dot{
+  opacity:.55;
+  transform: translateY(-1px);
+}
+.p-when__md{
+  font: 900 16px/1 'Rubik', system-ui, sans-serif;
+  letter-spacing:.25px;
+  background: linear-gradient(180deg, #334155, #0f172a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent; /* gradient text */
+}
+
+/* Dark mode */
+:is(html,body).is-dark .p-day-when{
+  border-color:#2f3b55;
+  background: linear-gradient(180deg, #0f1422, #0b1220);
+  box-shadow: 0 10px 26px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+  color:#eaf2ff;
+}
+:is(html,body).is-dark .p-when__dow{ color:#cfe2ff; }
+:is(html,body).is-dark .p-when__dot{ color:#9fb7d8; opacity:.65; }
+:is(html,body).is-dark .p-when__md{
+  background: linear-gradient(180deg, #ffffff, #cfe2ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
