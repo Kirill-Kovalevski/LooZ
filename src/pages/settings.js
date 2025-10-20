@@ -1,14 +1,14 @@
 // src/pages/settings.js
-// Settings: modern RTL, perfect alignment, Hebrew palettes, centered demo & maker button.
-// Hooks: dark mode, auto dark, reminders, language, pill colors, default opening view, logout.
+// Settings: modern RTL, Hebrew palettes, centered demo. Hooks: theme, auto-dark,
+// reminders, language, pill colors, default view, logout.
 
 import logoLight from '../icons/main-logo.png';
+import { setTheme, getTheme } from '../utils/theme.js'; // canonical theme helpers
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
 const K = {
-  THEME: "theme",              // 'light' | 'dark'
   THEME_AUTO: "themeAuto",     // '1' | '0'
   LANG: "lang",                // 'he' | 'en'
   PILL_BG: "pillBg",
@@ -17,60 +17,44 @@ const K = {
   REMIND: "reminders",         // '1' | '0'
 };
 
-// developer defaults (for "Maker's choice")
+// maker defaults
 const DEV_DEFAULTS = { bg: "#FFE067", br: "#f3c340" };
 
 /* Hebrew, connected, pastel-forward palettes */
-/* Hebrew, connected, pastel-forward palettes (7 rows × 3) */
 const PALETTES = [
-  // Row 1 — Citrus
   { name: "לימון בהיר",   bg:"#FFE067", br:"#F3C340" },
   { name: "אפרסק עדין",   bg:"#FFE3C4", br:"#FDBA74" },
   { name: "חמאת תכלת",   bg:"#FFF6C2", br:"#FACC15" },
 
-  // Row 2 — Greens
   { name: "עלה מנטה",    bg:"#DBFCE5", br:"#34D399" },
   { name: "עשב אביב",    bg:"#E9FCE8", br:"#86EFAC" },
   { name: "מרווה ים",    bg:"#DFFAF5", br:"#14B8A6" },
 
-  // Row 3 — Blues
   { name: "שמיים רכים",  bg:"#E7F2FF", br:"#9CC6FF" },
   { name: "תכלת קרירה",  bg:"#E6F0FF", br:"#60A5FA" },
   { name: "ים עמוק",     bg:"#E0F2FE", br:"#38BDF8" },
 
-  // Row 4 — Purples
   { name: "לילך זוהר",   bg:"#F5E8FF", br:"#D0A3FF" },
   { name: "לבנדר חלומי", bg:"#EEE5FF", br:"#C4B5FD" },
   { name: "לילך קריר",   bg:"#F0F1FF", br:"#A5B4FC" },
 
-  // Row 5 — Warm
   { name: "רוז גולד",    bg:"#FFE6EC", br:"#F39FB6" },
   { name: "שקיעה רכה",   bg:"#FFE4E6", br:"#FB7185" },
   { name: "קורל פופ",    bg:"#FEE2E2", br:"#F87171" },
 
-  // Row 6 — Neutrals
   { name: "ירח חלב",     bg:"#F7F7F7", br:"#CBD5E1" },
   { name: "אבן חוף",     bg:"#F2F4F7", br:"#94A3B8" },
   { name: "קרם עדין",    bg:"#FFF7ED", br:"#FED7AA" },
 
-  // Row 7 — Cool blends
   { name: "לילה אינדיגו", bg:"#E0E7FF", br:"#818CF8" },
   { name: "אבן מרווה",    bg:"#ECFDF5", br:"#2DD4BF" },
   { name: "אפור כחלחל",   bg:"#EEF2FF", br:"#93C5FD" }
 ];
 
-
 let autoTimer = null;
 let reminderTimer = null;
 
 /* ---------- helpers ---------- */
-const setTheme = (mode) => {
-  const r = document.documentElement;
-  r.classList.toggle("is-dark", mode === "dark");
-  r.setAttribute("data-theme", mode);
-  try { localStorage.setItem(K.THEME, mode); } catch {}
-};
-
 const setLang = (lang) => {
   const r = document.documentElement;
   r.setAttribute("data-lang", lang);
@@ -96,7 +80,7 @@ function startAutoDark(){
     const h = new Date().getHours();
     const mode = h >= hourThreshold() ? "dark" : "light";
     const pinned = sessionStorage.getItem("themePinned");
-    if (!pinned) setTheme(mode);
+    if (!pinned) setTheme(mode); // use utils/theme.js
   };
   tick();
   autoTimer = setInterval(tick, 60*1000);
@@ -158,7 +142,7 @@ const I = {
 };
 
 /* --------------------------------------------------------------------------------
-   PUBLIC MOUNT (named export, accepts root) — this is the critical fix
+   PUBLIC MOUNT (named export, accepts root)
 ---------------------------------------------------------------------------------*/
 export function mount(root){
   const target = root || $("#app") || document.body;
@@ -238,23 +222,20 @@ function template(){
         <input id="pillBorder" class="color" type="color" />
       </div>
 
-      <!-- connected palettes -->
       <div class="palettes">
         <div class="palette-grid" id="paletteGrid"></div>
       </div>
 
-      <!-- maker's choice -->
       <div class="maker-row">
         <button class="maker-btn" id="makerBtn">${I.reset}&nbsp;בחירת המפתח</button>
       </div>
 
-      <!-- centered demo -->
       <div class="pill-demo">
         <span class="pill">8</span>
       </div>
     </section>
 
-    <!-- DEFAULT OPENING VIEW (stacked layout so nothing overlaps) -->
+    <!-- DEFAULT OPENING VIEW -->
     <section class="group">
       <div class="group__title">מסך פתיחה</div>
       <div class="row row--stack">
@@ -315,7 +296,7 @@ function renderPalettes(root){
     const demo = root.querySelector(".pill");
     if (demo){ demo.style.background = `var(--task-pill-bg)`; demo.style.borderColor = `var(--task-pill-border)`; }
     selectFromStorage();
-    document.dispatchEvent(new Event('events-changed')); // let views re-render if they listen
+    document.dispatchEvent(new Event('events-changed'));
   });
 
   selectFromStorage();
@@ -326,7 +307,6 @@ function wire(root){
   // back & home
   $("[data-act='back']", root)?.addEventListener("click", ()=> history.back());
   $("[data-act='home']", root)?.addEventListener("click", async ()=>{
-    // dynamic import keeps your lazy-loading pattern intact
     const { mount } = await import('./home.js');
     const app = document.getElementById('app');
     mount(app);
@@ -338,12 +318,12 @@ function wire(root){
     location.replace("auth.html");
   });
 
-  // theme manual
+  // theme manual toggle
   $("#themeToggle", root)?.addEventListener("change", (e)=>{
     const on = e.currentTarget.checked;
     sessionStorage.setItem("themePinned", "1");
     setTimeout(()=> sessionStorage.removeItem("themePinned"), 60*1000);
-    setTheme(on ? "dark" : "light");
+    setTheme(on ? "dark" : "light"); // from utils/theme.js
   });
 
   // theme auto
@@ -400,7 +380,7 @@ function wire(root){
     const bgInp = $("#pillBg"); const brInp = $("#pillBorder");
     if (bgInp) bgInp.value = DEV_DEFAULTS.bg;
     if (brInp) brInp.value = DEV_DEFAULTS.br;
-    renderPalettes(root); // re-highlight the default chip
+    renderPalettes(root);
     document.dispatchEvent(new Event('events-changed'));
   });
 
@@ -410,8 +390,8 @@ function wire(root){
 /* ---------- restore current settings into UI ---------- */
 function restore(root){
   try{
-    const mode = localStorage.getItem(K.THEME) || "light";
-    setTheme(mode);
+    // theme (from utils)
+    const mode = getTheme();
     $("#themeToggle") && ($("#themeToggle").checked = mode === "dark");
 
     const auto = localStorage.getItem(K.THEME_AUTO);

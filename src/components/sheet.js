@@ -1,11 +1,46 @@
 // src/components/sheet.js
+// Hybrid adapter: try new modal; if unavailable, fall back to legacy sheet UI.
+
 import { addEvent, keyOf, hhmm } from '../utils/events.js';
 
-export function openCreateSheet() {
+// ---- Try the new modal lazily (so missing file/exports won't crash at load) ----
+async function tryOpenNewModal(date) {
+  try {
+    const mod = await import('./create.js' /* @vite-ignore */);
+    const openCreateModal = mod.openCreateModal || mod.default;
+    if (typeof openCreateModal === 'function') {
+      openCreateModal(date);
+      return true;
+    }
+  } catch (err) {
+    // console.warn('New modal not available, using legacy sheet.', err);
+  }
+  return false;
+}
+
+async function tryCloseNewModal() {
+  try {
+    const mod = await import('./create.js' /* @vite-ignore */);
+    if (typeof mod.closeCreateModal === 'function') {
+      mod.closeCreateModal();
+      return true;
+    }
+  } catch (_err) {}
+  return false;
+}
+
+// ---- Public API (keeps legacy signature) ----
+export async function openCreateSheet(opts = {}) {
+  // 1) Prefer the new modal if present
+  const wantedDate = typeof opts === 'string' ? opts : opts?.date;
+  if (await tryOpenNewModal(wantedDate)) return;
+
+  // 2) Legacy fallback (your original implementation)
   let wrap = document.querySelector('.c-sheet');
   if (!wrap) {
     wrap = document.createElement('div');
     wrap.className = 'c-sheet u-hidden';
+    wrap.setAttribute('data-legacy', '1'); // mark legacy so we can clean it later if needed
     wrap.innerHTML = `
       <div class="c-sheet__backdrop" data-sheet="close"></div>
 
@@ -49,10 +84,10 @@ export function openCreateSheet() {
     // save handler -> addEvent(...) then close/reset
     const form = wrap.querySelector('#newEventForm');
 
-    // default values
-    const now = new Date();
-    form.querySelector('#eventDate').value = keyOf(now);
-    form.querySelector('#eventTime').value = hhmm(now);
+    // set defaults (use provided date if any)
+    const base = wantedDate ? new Date(wantedDate) : new Date();
+    form.querySelector('#eventDate').value = keyOf(base);
+    form.querySelector('#eventTime').value = hhmm(new Date());
 
     wrap.querySelector('#evtSave')?.addEventListener('click', () => {
       if (!form.reportValidity()) return;
@@ -63,8 +98,9 @@ export function openCreateSheet() {
       const tl = (data.title || '').trim() || 'ללא כותרת';
 
       addEvent({ date: dk, time: tm, title: tl, done: false });
+
+      // reset defaults for the next open
       form.reset();
-      // reset defaults again so the next open is friendly
       const again = new Date();
       form.querySelector('#eventDate').value = keyOf(again);
       form.querySelector('#eventTime').value = hhmm(again);
@@ -79,7 +115,11 @@ export function openCreateSheet() {
   });
 }
 
-export function closeCreateSheet() {
+export async function closeCreateSheet() {
+  // 1) Try to close the new modal if it’s the one open
+  if (await tryCloseNewModal()) return;
+
+  // 2) Otherwise close the legacy sheet if present
   const wrap = document.querySelector('.c-sheet');
   if (!wrap) return;
   wrap.classList.remove('is-open');

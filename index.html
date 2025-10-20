@@ -1,18 +1,37 @@
 <!doctype html>
 <html lang="he" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-    <title>LooZ</title>
-    <link rel="icon" href="/favicon.ico" />
-    <!-- (optional) fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700;900&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="app"></div>
-    <!-- Vite loads your app here -->
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>LooZ</title>
+  <link rel="icon" href="/favicon.ico" />
+  <!-- (optional) fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700;900&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <!-- Early theme application: prevents light flash on refresh -->
+  <script>
+  (function () {
+    try {
+      var KEY = 'looz.theme';
+      var t = localStorage.getItem(KEY);
+
+      // Default to system preference if user didn't pick yet
+      if (!t) {
+        t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+
+      var root = document.documentElement; // <html>
+      root.classList.toggle('is-dark', t === 'dark');
+      root.setAttribute('data-theme', t);
+    } catch (_) {}
+  })();
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <!-- Vite loads your app here -->
+  <script type="module" src="/src/main.js"></script>
+</body>
 </html>

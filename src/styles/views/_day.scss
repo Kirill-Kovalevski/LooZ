@@ -1,135 +1,90 @@
-/* Day & Week share the same task card */
-@use '../core/tokens' as *;
-
+/* ========= Task action tokens (light & dark) ========= */
 :root{
-  --pill-ok-bg: #eaf6d6;
-  --pill-ok-fg: #1b5e20;      /* green-ish */
-  --pill-no-bg: #ffe1db;
-  --pill-no-fg: #b71c1c;      /* tomato-ish */
+  /* ✓ OK (light) */
+  --act-ok-bg: #e8f7e4;              /* soft green surface */
+  --act-ok-fg: #1e7a37;              /* readable green text/icon */
+  --act-ok-br: color-mix(in oklab, #1e7a37 28%, white);
+
+  /* ✕ NO (light) */
+  --act-no-bg: #ffe8e4;              /* soft red surface */
+  --act-no-fg: #b43b2f;              /* readable red text/icon */
+  --act-no-br: color-mix(in oklab, #b43b2f 28%, white);
+
+  /* Task card (light) – keep your existing if already set */
   --task-bg: rgba(255,255,255,.9);
   --task-bd: #e3ecff;
   --task-shadow: 0 8px 24px rgba(15,23,42,.08);
 }
+
 :is(html,body).is-dark{
-  --pill-ok-bg: #3e3412;      /* deeper gold-ish */
-  --pill-ok-fg: #f0d574;      /* gold */
-  --pill-no-bg: #3a1511;      /* red-gold base */
-  --pill-no-fg: #ffb3a2;      /* red-gold text */
+  /* ✓ OK (dark) — golden */
+  --act-ok-bg: #342a0d;              /* deep, low-glare base */
+  --act-ok-fg: #f2d971;              /* warm gold glyph */
+  --act-ok-br: #b9962a;
+
+  /* ✕ NO (dark) — golden-red (very smooth) */
+  --act-no-bg: #2f1713;              /* muted claret base */
+  --act-no-fg: #ffb8a6;              /* peach-red glyph */
+  --act-no-br: #e59a84;
+
+  /* Task card (dark) */
   --task-bg: rgba(18,22,34,.92);
   --task-bd: #2a365a;
   --task-shadow: 0 10px 28px rgba(0,0,0,.45);
 }
 
-/* Shell slot width harmony */
-body[data-view="day"] .p-dayview{
-  margin: 0 auto;
-  max-inline-size: var(--phone-w, 390px);
-  padding: .5rem .75rem 1rem;
-}
+/* ========= Task card base ========= */
+.p-tasklist{ display:grid; gap:.55rem; }
 
-/* Date ribbon at top of day */
-.p-day-head{
-  display: flex;
-  justify-content: center;
-  margin-block: .2rem .6rem;
-  .p-day-when{
-    font: 700 14px/1.2 'Rubik', system-ui, sans-serif;
-    color: #0f172a;
-    background: linear-gradient(180deg,#ffffff80,#ffffff40);
-    border: 1px solid var(--task-bd);
-    border-radius: 10px;
-    padding: .35rem .6rem;
-    box-shadow: 0 2px 8px rgba(15,23,42,.06);
-  }
-}
-
-/* List wrapper */
-.p-tasklist{
-  display: grid;
-  gap: .5rem;
-}
-
-/* Unified task card used by Day and Week */
 .p-datask{
-  --h: 54px;                 /* CONSISTENT HEIGHT */
-  display: grid;
-  grid-template-columns: 56px 1fr 64px;  /* time | title | actions */
-  align-items: center;
-  min-block-size: var(--h);
-  border: 1px solid var(--task-bd);
-  background: var(--task-bg);
-  border-radius: 14px;
-  padding: .5rem .5rem;
-  box-shadow: var(--task-shadow);
-  backdrop-filter: saturate(110%) blur(2px);
+  --h: 54px;
+  display:grid; grid-template-columns: 56px 1fr 68px;
+  align-items:center; min-block-size:var(--h);
+  border:1px solid var(--task-bd);
+  background:var(--task-bg);
+  border-radius:14px; padding:.5rem .55rem;
+  box-shadow:var(--task-shadow);
+  backdrop-filter:saturate(110%) blur(2px);
 }
 
-.p-datask.is-done .p-title{
-  text-decoration: line-through;
-  opacity: .65;
-}
+.p-datask.is-done .p-title{ text-decoration:line-through; opacity:.65; }
 
-.p-time{
-  justify-self: start;
-  font: 600 12px/1 'Rubik', system-ui, sans-serif;
-  color: #334155;
-  inline-size: 44px;
-  text-align: left;
-}
+/* time + title colors (light) */
+.p-time{ justify-self:start; font:600 12px/1 'Rubik',system-ui; color:#334155; inline-size:44px; text-align:left; }
+.p-body .p-title{ font:600 15px/1.2 'Rubik',system-ui; color:#0f172a; }
 
-.p-body .p-title{
-  font: 600 15px/1.2 'Rubik', system-ui, sans-serif;
-  color: #0f172a;
-}
+/* improve legibility in dark mode */
+:is(html,body).is-dark .p-time{ color:#9fb0d8; }
+:is(html,body).is-dark .p-body .p-title{ color:#eaf2ff; }
 
-.p-actions{
-  display: grid; grid-auto-flow: column; gap: .4rem; justify-content: end;
-}
+/* ========= Actions (use tokens) ========= */
+.p-actions{ display:grid; grid-auto-flow:column; gap:.45rem; justify-content:end; }
+
 .p-act{
-  min-inline-size: 34px;
-  inline-size: 34px; block-size: 30px;
-  border-radius: 999px;
-  display: grid; place-items: center;
-  font: 800 14px/1 system-ui;
-  border: 1px solid transparent;
-  box-shadow: 0 2px 6px rgba(15,23,42,.08);
-}
-.p-act--ok{
-  background: var(--pill-ok-bg);
-  color: var(--pill-ok-fg);
-  border-color: color-mix(in oklch, var(--pill-ok-fg), white 70%);
-}
-.p-act--no{
-  background: var(--pill-no-bg);
-  color: var(--pill-no-fg);
-  border-color: color-mix(in oklch, var(--pill-no-fg), white 70%);
+  inline-size:34px; block-size:30px; min-inline-size:34px;
+  display:grid; place-items:center; border-radius:999px;
+  font:800 14px/1 system-ui; border:1px solid transparent;
+  box-shadow:0 2px 6px rgba(15,23,42,.08);
 }
 
-/* Empty state */
-.p-empty{
-  border: 1px dashed var(--task-bd);
-  border-radius: 12px;
-  padding: .9rem .8rem;
-  text-align: center;
-  color:#445;
-  background: linear-gradient(180deg, #ffffff8c, #ffffff52);
+/* ✓ OK */
+.p-act--ok{
+  background: var(--act-ok-bg);
+  color:      var(--act-ok-fg);
+  border-color: var(--act-ok-br);
+  text-shadow: 0 0 0 transparent; /* crisp glyph */
 }
-/* remove the tiny “day when” label */
-.p-day-when { display: none !important; }
-/* Task counter pill — reads CSS vars provided by Settings */
-.p-count{
-  position:absolute; top:-14px; left:50%; translate:-50% 0;
-  inline-size:24px; block-size:24px; border-radius:999px;
-  display:grid; place-items:center;
-  font:800 12px/1 'Rubik', system-ui, sans-serif;
-  background: var(--task-pill-bg);
-  border: 1px solid var(--task-pill-border);
-  color:#0f172a; box-shadow:0 3px 8px rgba(15,23,42,.08);
-  pointer-events:none; opacity:.92;
+
+/* ✕ NO */
+.p-act--no{
+  background: var(--act-no-bg);
+  color:      var(--act-no-fg);
+  border-color: var(--act-no-br);
+  text-shadow: 0 0 0 transparent;
 }
-.p-count:not(.has){ opacity:.45; }
-/* wherever your pill styles are */
-.p-count, .task-counter{
-  background: var(--task-pill-bg);
-  border: 1px solid var(--task-pill-border);
+
+/* optional hover (kept subtle) */
+@media (hover:hover){
+  .p-act--ok:hover{ filter:brightness(1.06) saturate(1.02); }
+  .p-act--no:hover{ filter:brightness(1.06) saturate(1.02); }
 }

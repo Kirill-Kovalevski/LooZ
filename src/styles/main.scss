@@ -1,20 +1,17 @@
 /* ────────────────────────────────────────────────────────────────
    LooZ – main SCSS entry
-   This file only wires partials together with Sass @use.
-   Order matters: core → base → utilities → components → views.
+   Wires partials together with Sass @use.
+   Order: core → base → utilities → components → views → dark overrides
    ──────────────────────────────────────────────────────────────── */
-@use './views/home';
-@use './views/month';
-/* 1) Core design tokens & mixins (variables, colors, helpers) */
+
+/* 1) Core design tokens & mixins */
 @use './core/tokens'  as tokens;
 @use './core/mixins'  as mx;
 
-/* 2) Base layer (normalize/reset, element defaults)
-   If you have a _reset.scss inside styles/base, keep this line.
-   If not, just leave it — Sass will error if the file is missing. */
+/* 2) Base layer (normalize/reset, element defaults) */
 @use './base/reset';
 
-/* 3) Utilities (tiny helpers used across components) */
+/* 3) Utilities (tiny helpers) */
 @use './utils/helpers';
 
 /* 4) Components (reusable UI parts) */
@@ -22,21 +19,22 @@
 @use './components/pills';
 @use './components/cta';
 @use './components/logo';
-
-/* Header lives in components AND there may also be a layout header later.
-   To avoid a Sass namespace collision, alias this one. */
-@use './components/header' as appHeader;
-
+@use './components/header' as appHeader;  /* avoid namespace collision */
 @use './components/search';
-@use './components/sheet';
+/* legacy sheet is not used anymore */
+// @use './components/sheet';
+@use './components/create';
 
-/* 5) Views (page-level styles, each is scoped with body[data-view="…"]) */
+/* 5) Views (page-level styles) */
+@use './views/home';
 @use './views/day';
 @use './views/week';
+@use './views/month';
 @use './views/settings';
-@import './base/dark';
+
+/* 6) Dark-mode overrides (keep LAST so it wins the cascade) */
+@use './base/dark';
 
 /* Done.
-   - Do NOT import SCSS from JS files.
    - Import THIS file once in src/main.js:  import './styles/main.scss'
 */

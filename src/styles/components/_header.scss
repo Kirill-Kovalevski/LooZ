@@ -28,3 +28,19 @@
   border:0; box-shadow:0 .4rem 1rem rgba(245,215,115,.25),0 0 0 8px rgba(245,215,115,.10);
   color:#0e1424;
 }
+/* Accent version of the small round top buttons (profile/settings) */
+.c-topbtn--accent{
+  border: 1px solid #f3c340;
+  background: #FFE067;
+  color: #0b1220;
+  box-shadow: 0 10px 24px rgba(250, 206, 85, .45), inset 0 1px 0 rgba(255,255,255,.55);
+}
+.c-topbtn--accent svg{ filter: drop-shadow(0 1px 0 rgba(255,255,255,.40)); }
+
+/* Dark retains the same hue using tokens from dark.scss */
+:is(html,body).is-dark .c-topbtn--accent{
+  background: var(--nav-accent);
+  border-color: var(--nav-accent-br);
+  color: var(--nav-accent-ink);
+  box-shadow: var(--nav-glow);
+}

@@ -47,7 +47,7 @@ body[data-view="week"] {
   .w-left  { justify-self: start; font: 800 14px/1 'Rubik', system-ui; color: var(--ink, #0f172a); }
   .w-right { justify-self: end;   font: 700 12px/1 'Rubik', system-ui; color: color-mix(in oklab, var(--ink,#0f172a) 65%, #7c879a); }
 
-  /* <-- THIS is the counter pill that now follows Settings */
+  /* <-- counter pill follows Settings */
   .w-count {
     justify-self: center;
     inline-size: 32px; block-size: 32px;
@@ -60,7 +60,7 @@ body[data-view="week"] {
     box-shadow: 0 3px 8px rgba(15,23,42,.08);
   }
 
-  /* today = gradient border only */
+  /* LIGHT MODE: today ring (your original colorful ring) */
   .w-dayrow--today .w-rowhead {
     border: 2px solid transparent;
     background:
@@ -110,32 +110,6 @@ body[data-view="week"] {
     linear-gradient(135deg, rgba(255,245,199,.26), rgba(191,219,254,.22)); } /* butter → light blue */
   .w-dayrow:nth-child(7n+7) .w-rowhead { --w-grad:
     linear-gradient(135deg, rgba(248,212,255,.26), rgba(186,230,253,.22)); } /* lilac → sky */
-}
-
-/* Dark mode (minimal but keeps the same pill vars) */
-:root[data-theme="dark"] {
-  body[data-view="week"] {
-    .w-rowhead {
-      background: var(--card, #161a22);
-      border-color: #3b4a72;
-      box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,.45));
-      color: var(--ink, #e5e9f5);
-    }
-    .w-right { color: #a3b0d9; }
-
-    .w-count {
-      background: var(--task-pill-bg, #FFE067);
-      border: 1px solid var(--task-pill-border, #f3c340);
-      color: #0f172a;
-      box-shadow: 0 4px 12px rgba(0,0,0,.45);
-    }
-
-    .w-dayrow--today .w-rowhead {
-      background:
-        linear-gradient(var(--card, #161a22), var(--card, #161a22)) padding-box,
-        conic-gradient(from 0deg, #d4af37, #34d399, #60a5fa, #d4af37) border-box;
-    }
-  }
 }
 
 /* Small responsive bumps */
