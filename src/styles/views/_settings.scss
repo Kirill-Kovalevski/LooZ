@@ -29,11 +29,28 @@
   inline-size:44px; block-size:44px; border-radius:12px; border:1px solid var(--line);
   background:var(--bg); color:var(--fg); display:grid; place-items:center; font-weight:900;
 }
+
+/* --- MINI LOGO (fix background tile) --- */
 .looz-mini-btn{
   inline-size:64px; block-size:44px; display:grid; place-items:center;
   background:transparent; border:0; padding:0; justify-self:end; cursor:pointer;
+
+  /* hard reset: if any generic topbar/button styles add a card bg/shadow */
+  box-shadow:none !important;
+  outline:none !important;
 }
-.looz-mini{ inline-size:56px; block-size:auto; }
+.looz-mini-btn::before,
+.looz-mini-btn::after{
+  content:none !important; display:none !important;
+}
+.looz-mini{
+  inline-size:56px; block-size:auto;
+  background:transparent !important;
+  box-shadow:none !important;
+  border:0 !important;
+  /* keeps only the pixels of the logo; avoids any overlay effect */
+  mix-blend-mode: normal;
+}
 
 /* groups */
 .group{
@@ -170,7 +187,8 @@
   .title{ font-size:21px; }
   .palette-grid{ grid-template-columns: repeat(4, minmax(0,1fr)); }
 }
-/* in settings.scss (already present but ensure it’s here) */
+
+/* (already present but keep it here for clarity) */
 .row--stack{
   grid-template-columns:28px 1fr;
   grid-auto-rows:auto;

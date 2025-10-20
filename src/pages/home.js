@@ -42,14 +42,15 @@ function getUserName() {
 }
 
 /* =========================
-   Universal date renderer — one line:
-   "יום ב׳ 20 באוקטובר · כ״ח בתשרי התשפ״ו"
+   Two-line header date:
+   Line 1: "יום ב׳ 20 באוקטובר"
+   Line 2: "כ״ח בתשרי התשפ״ו"
    ========================= */
 function setHeaderDate(d) {
   headerCursor = new Date(d);
 
   // 1) Gregorian (Hebrew UI) — weekday + day + month
-  const hebLine = new Intl.DateTimeFormat('he-IL', {
+  const gregLine = new Intl.DateTimeFormat('he-IL', {
     weekday: 'short', day: 'numeric', month: 'long'
   }).format(headerCursor);
 
@@ -70,12 +71,16 @@ function setHeaderDate(d) {
 
   const el = document.querySelector('.c-date');
   if (!el) return;
+
+  // No semicolon; we render on two lines with dedicated classes for sizing
   el.innerHTML = `
-    <div class="c-date--singleline" dir="rtl" aria-live="polite">
-      ${hebLine} ; ${hebDayLetters} ב${monthPart?.value || ''} ${hebYearLetters}
+    <div class="c-datewrap" dir="rtl" aria-live="polite">
+      <div class="c-date__primary">${gregLine}</div>
+      <div class="c-date__hebrew">${hebDayLetters} ב${monthPart?.value || ''} ${hebYearLetters}</div>
     </div>
   `;
 }
+
 
 /* ------------------ Hebrew numeral helpers (robust, no duplicate ׳/״) ------------------ */
 

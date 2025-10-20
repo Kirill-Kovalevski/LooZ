@@ -352,3 +352,23 @@ body { min-height: 100vh; }
   color: var(--ink, #f4ecd7); /* your golden-white hue */
   text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
+/* Header date two-line layout */
+.c-date { text-align: center; }
+.c-datewrap { display: inline-grid; gap: 2px; }
+
+/* First line: slightly smaller than before but larger than Hebrew line */
+.c-date__primary{
+  font-weight: 800;
+  font-size: clamp(18px, 2.7vw, 19px);
+  line-height: 1.15;
+}
+
+/* Second line: a bit smaller and under the first */
+.c-date__hebrew{
+  font-weight: 700;
+  font-size: clamp(14px, 2.2vw, 16px);
+  line-height: 1.15;
+  opacity: .95;
+}
+
+/* Dark mode keeps the same sizes; colors inherit your --fg */
