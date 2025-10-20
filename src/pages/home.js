@@ -15,6 +15,22 @@ let currentView  = 'week';
 
 // IMPORTANT: static view map so Vite bundles them for GitHub Pages
 const viewModules = import.meta.glob('./{day,week,month}.js');
+function startTodayTicker() {
+  // schedule an update a couple seconds after next midnight local time
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
+  const ms = next.getTime() - now.getTime();
+  setTimeout(() => {
+    // Only auto-advance if we're NOT in Day view or Day view has no explicit selection
+    if (currentView !== 'day') {
+      setHeaderDate(new Date());
+    } else {
+      const sel = localStorage.getItem('selectedDate');
+      setHeaderDate(sel ? new Date(sel) : new Date());
+    }
+    startTodayTicker(); // schedule again for the following midnight
+  }, ms);
+}
 
 // settings page (lazy)
 const pageModules = import.meta.glob('./settings.js');
@@ -25,16 +41,31 @@ function getUserName() {
   return last ? `${first} ${last[0]}.` : first;
 }
 
-/** Pretty date chip (renders spans used by the CSS styles) */
+/* =========================
+   Universal date renderer
+   - Line 1: full Hebrew (weekday, day, month, year) using Gregorian date
+   - Line 2: real Hebrew calendar date (e.g., ט״ז בתשרי תשפ״ו)
+   ========================= */
 function setHeaderDate(d) {
   headerCursor = new Date(d);
+
+  // 1) Hebrew (locale) — Gregorian date in Hebrew language
+  const hebFull = new Intl.DateTimeFormat('he-IL', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  }).format(headerCursor);
+
+  // 2) Real Hebrew (Jewish) calendar date
+  const hebJewish = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  }).format(headerCursor);
+
   const el = document.querySelector('.c-date');
   if (!el) return;
-
   el.innerHTML = `
-    <span class="c-date__dow">${hebDay(headerCursor)}</span>
-    <span class="c-date__dot" aria-hidden="true">·</span>
-    <span class="c-date__md">${todayDM(headerCursor)}</span>
+    <div class="c-datebox" dir="rtl" aria-live="polite">
+      <div class="c-datebox__heb">${hebFull}</div>
+      <div class="c-datebox__hebcal">${hebJewish}</div>
+    </div>
   `;
 }
 
@@ -53,11 +84,13 @@ async function renderView(view /* 'day' | 'week' | 'month' */) {
   mod.mount(app);
   setActive(view);
 
-  // header date only moves in Day view
-  if (view === 'day') {
-    const sel = localStorage.getItem('selectedDate');
-    setHeaderDate(sel ? new Date(sel) : new Date());
-  }
+if (view === 'day') {
+  const sel = localStorage.getItem('selectedDate');
+  setHeaderDate(sel ? new Date(sel) : new Date());   // Day view respects picked date
+} else {
+  setHeaderDate(new Date());                          // Other views show today
+}
+
 }
 
 function setActive(view) {
@@ -88,6 +121,7 @@ function navPeriod(dir /* 'prev' | 'next' | 'today' */) {
 
 // ---- shell ----
 function shellHTML() {
+  // we render an empty .c-date shell and fill it via setHeaderDate()
   return `
     <main class="o-page">
       <section class="o-phone o-inner">
@@ -130,14 +164,21 @@ function shellHTML() {
                   <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".82"/>
                 </linearGradient>
                 <path id="lemSilhouette"
-                      d="M36.8,13.2 C30.4,7.0,19.6,7.0,13.2,13.2 c-5.0,5.0-5.0,13.6,0,18.6
-                         c5.0,5.0,13.6,5.2,18.6,0.2 C37.6,27.6,38.4,19.6,36.8,13.2 Z" />
+                      d="M36.8,13.2
+                         C30.4,7.0,19.6,7.0,13.2,13.2
+                         c-5.0,5.0-5.0,13.6,0,18.6
+                         c5.0,5.0,13.6,5.2,18.6,0.2
+                         C37.6,27.6,38.4,19.6,36.8,13.2 Z" />
               </defs>
               <g transform="translate(2 2) rotate(-8 22 22)">
                 <use href="#lemSilhouette" fill="url(#lemGrad)"/>
                 <path fill="url(#lemShine)"
-                      d="M33.2,12.2 c-6.8,2.0-12.0,8.0-13.2,15.8 c-0.2,1.4-0.2,2.8-0.1,4.0
-                         c2.6-6.6,8.6-12.4,15.6-15.2 c0.4-0.2,0.8-0.3,1.2-0.4 C36.0,14.8,34.8,13.2,33.2,12.2 Z"/>
+                      d="M33.2,12.2
+                         c-6.8,2.0-12.0,8.0-13.2,15.8
+                         c-0.2,1.4-0.2,2.8-0.1,4.0
+                         c2.6-6.6,8.6-12.4,15.6-15.2
+                         c0.4-0.2,0.8-0.3,1.2-0.4
+                         C36.0,14.8,34.8,13.2,33.2,12.2 Z"/>
                 <circle cx="10.6" cy="31.8" r="2.2" fill="#F1B731"/>
                 <use href="#lemSilhouette" fill="none" stroke="#D9A21C" stroke-opacity=".35" stroke-width=".9"/>
               </g>
@@ -155,7 +196,7 @@ function shellHTML() {
 
         <!-- date + greeting -->
         <div class="c-meta-block">
-          <div class="c-date" aria-live="polite"></div>
+          <div class="c-date"></div>
           <p class="c-greet">ברוכים השבים <b>${getUserName()}</b> 👋</p>
         </div>
 
@@ -243,7 +284,7 @@ function wireShell(root) {
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-create-orb, .c-cta, [data-act="create"]');
     if (!btn) return;
-    const dk = localStorage.getItem('selectedDate') || undefined; // e.g. "2025-10-20"
+    const dk = localStorage.getItem('selectedDate') || undefined; // "YYYY-MM-DD"
     openCreateModal(dk);
   });
 }
@@ -280,11 +321,12 @@ export function mount(root) {
   root.innerHTML = shellHTML();
   wireShell(root);
 
-  // render the pretty date chip immediately
-  setHeaderDate(headerCursor);
-
   const boot = localStorage.getItem('defaultView') || 'week';
   renderView(boot);
+
+  // Prime the date chip immediately (use selected date if any)
+  const sel = localStorage.getItem('selectedDate');
+  setHeaderDate(sel ? new Date(sel) : new Date());
 
   // Show orb only near the bottom
   const orb = document.querySelector('.c-bottom-cta');

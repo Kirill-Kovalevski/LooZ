@@ -291,3 +291,15 @@ body { min-height: 100vh; }
 @media (min-width: 430px){
   .c-dock{ inline-size: 400px; }
 }
+/* Real Hebrew calendar line (under the Hebrew locale date) */
+.c-datebox__hebcal{
+  margin-top: 2px;
+  font: 800 13px/1.15 'Rubik', system-ui, sans-serif;
+  color:#475569;          /* soft slate to differentiate from the line above */
+  letter-spacing: .2px;
+}
+
+:is(html,body).is-dark .c-datebox__hebcal{
+  color:#b9c9ef;          /* cozy blue-white in dark mode */
+  opacity:.95;
+}
