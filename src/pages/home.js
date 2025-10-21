@@ -4,6 +4,17 @@ import logoLight from '../icons/main-logo.png';
 import logoDark  from '../icons/dark-logo.png';
 import { openCreateModal } from '../components/create.js';  // create-event modal
 import { mountCategoryButton } from '../components/category.js';
+import { initTaskFX } from '../utils/effects.js';
+
+// Wire V/X effects once for the whole app (delegated on document)
+if (!window.__taskFxInit) {
+  window.__taskFxInit = true;
+  if (document.readyState !== 'loading') {
+    initTaskFX(document);
+  } else {
+    document.addEventListener('DOMContentLoaded', () => initTaskFX(document), { once: true });
+  }
+}
 
 // ---- tiny helpers ----
 const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];

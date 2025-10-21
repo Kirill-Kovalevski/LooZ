@@ -1,0 +1,86 @@
+/* ── Confetti ───────────────────────────────────── */
+.fx-confetti{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  /* place children using left/top on parent as origin */
+}
+.fx-confetti .fx-c{
+  position: absolute;
+  left: 0; top: 0;
+  border-radius: 2px;
+  /* pastel sheet colors, auto adapts to light/dark */
+  background: hsl(var(--fx-h, 48) 90% 60% / .95);
+  /* randomize hue via filter trick */
+  filter: hue-rotate(calc(var(--i, 0) * 37deg));
+  transform: translate3d(0,0,0) rotate(0deg);
+  animation: fx-confetti-move 1.2s cubic-bezier(.15,.7,.15,1) forwards;
+  will-change: transform, opacity;
+}
+.fx-confetti .fx-c:nth-child(odd){ --fx-h: 210; }
+.fx-confetti .fx-c:nth-child(3n){  --fx-h: 330; }
+.fx-confetti .fx-c:nth-child(5n){  --fx-h: 140; }
+
+@keyframes fx-confetti-move{
+  0%   { opacity: 1; transform: translate(0px, 0px) rotate(0deg); }
+  70%  { opacity: .95; transform: translate(var(--dx), calc(var(--dy) + 40px)) rotate(var(--rot)); }
+  100% { opacity: 0; transform: translate(calc(var(--dx) * 1.1), calc(var(--dy) + 160px)) rotate(var(--rot)); }
+}
+
+/* ── Done (fade & lift) ─────────────────────────── */
+.fx-done{
+  transition: transform .28s ease, opacity .28s ease, filter .28s ease;
+  opacity: 0;
+  transform: translateY(-4px) scale(.98);
+  filter: saturate(.2);
+}
+
+/* ── Ink delete: quick scratch + fill, then vanish ─ */
+.fx-ink-removing{
+  position: relative;
+  color: var(--fg, currentColor);
+  animation: fx-ink-dim .32s ease forwards;
+}
+.fx-ink-removing::before{
+  /* scratch stroke */
+  content: "";
+  position: absolute;
+  inset-inline: -4px;
+  top: 50%;
+  height: 3px;
+  background: currentColor;
+  opacity: .95;
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: right center; /* RTL-friendly */
+  animation: fx-ink-scratch .22s ease-out forwards;
+}
+.fx-ink-removing::after{
+  /* ink fill sweep (like pen bleeding) */
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background:
+    /* “scribbly” repeating lines for texture */
+    repeating-linear-gradient(-14deg,
+      rgba(0,0,0,0) 0 9px,
+      rgba(0,0,0,.88) 9px 13px);
+  mix-blend-mode: multiply;
+  opacity: .0;
+  clip-path: inset(0 100% 0 0 round 6px); /* start hidden, sweep left→right */
+  animation: fx-ink-fill .48s .12s ease-in forwards, fx-ink-vanish .26s .62s ease forwards;
+  border-radius: 8px;
+}
+@keyframes fx-ink-scratch{
+  to { transform: translateY(-50%) scaleX(1); }
+}
+@keyframes fx-ink-dim{
+  to { filter: grayscale(.25) brightness(.9); }
+}
+@keyframes fx-ink-fill{
+  0%   { opacity: .0; clip-path: inset(0 100% 0 0 round 6px); }
+  60%  { opacity: .9; }
+  100% { opacity: .95; clip-path: inset(0 0 0 0 round 6px); }
+}
+@keyframes fx-ink-vanish{
+  to { opacity: 0; }
+}
