@@ -24,3 +24,13 @@
 
 $radius: 14px;
 $font-sans: 'Rubik', system-ui, -apple-system, Segoe UI, sans-serif;
+:root{
+  --cat-btn-bg: #3CE35E;      // ירוק מודרני
+  --cat-btn-fg: #0B3B17;      // טקסט/אייקון מעל הירוק
+  --cat-btn-ring: rgba(60,227,94,.35);
+
+  --cat-card-bg: #ffffff;
+  --cat-card-fg: #0f172a;
+  --cat-card-line: rgba(100,116,139,.16);
+  --cat-card-glow: rgba(60,227,94,.18);
+}

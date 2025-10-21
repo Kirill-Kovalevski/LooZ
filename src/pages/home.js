@@ -3,6 +3,7 @@
 import logoLight from '../icons/main-logo.png';
 import logoDark  from '../icons/dark-logo.png';
 import { openCreateModal } from '../components/create.js';  // create-event modal
+import { mountCategoryButton } from '../components/category.js';
 
 // ---- tiny helpers ----
 const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
@@ -32,7 +33,7 @@ function startTodayTicker() {
   }, ms);
 }
 
-// settings + profile pages (lazy)  ← UPDATED
+// settings + profile pages (lazy)
 const pageModules = import.meta.glob('./{settings,profile}.js');
 
 function getUserName() {
@@ -72,7 +73,6 @@ function setHeaderDate(d) {
   const el = document.querySelector('.c-date');
   if (!el) return;
 
-  // No semicolon; we render on two lines with dedicated classes for sizing
   el.innerHTML = `
     <div class="c-datewrap" dir="rtl" aria-live="polite">
       <div class="c-date__primary">${gregLine}</div>
@@ -80,7 +80,6 @@ function setHeaderDate(d) {
     </div>
   `;
 }
-
 
 /* ------------------ Hebrew numeral helpers (robust, no duplicate ׳/״) ------------------ */
 
@@ -177,6 +176,9 @@ function setActive(view) {
 }
 
 function navPeriod(dir /* 'prev' | 'next' | 'today' */) {
+  // NEW: ignore period navigation when on categories page
+  if (location.hash === '#/categories') return;
+
   // tell current view to change its period
   document.dispatchEvent(new CustomEvent('period-nav', { detail: dir }));
 
@@ -254,7 +256,8 @@ function shellHTML() {
             </svg>
           </button>
 
-          <div id="quickDock" class="c-dock" hidden aria-hidden="true">
+          <!-- NOTE: mark the dock as the searchbar host so category.js finds it -->
+          <div id="quickDock" class="c-dock" data-role="searchbar" hidden aria-hidden="true">
             <button class="c-dock__side c-dock__left" aria-label="קטגוריות" title="קטגוריות">…</button>
             <label class="c-dock__search" for="lemonSearch">
               <input id="lemonSearch" type="search" inputmode="search" placeholder="חפש פעילויות…" autocomplete="off" />
@@ -300,10 +303,10 @@ function shellHTML() {
 
 // ---- wire ----
 function wireShell(root) {
-  // view switch
-  root.querySelector('[data-viewbtn="day"]')  ?.addEventListener('click', () => renderView('day'));
-  root.querySelector('[data-viewbtn="week"]') ?.addEventListener('click', () => renderView('week'));
-  root.querySelector('[data-viewbtn="month"]')?.addEventListener('click', () => renderView('month'));
+  // view switch — NEW: drive via hash so the router mounts
+  root.querySelector('[data-viewbtn="day"]')  ?.addEventListener('click', () => { location.hash = '#/day';  });
+  root.querySelector('[data-viewbtn="week"]') ?.addEventListener('click', () => { location.hash = '#/week'; });
+  root.querySelector('[data-viewbtn="month"]')?.addEventListener('click', () => { location.hash = '#/month';});
 
   // period nav
   root.querySelector('[data-prev]') ?.addEventListener('click', () => navPeriod('prev'));
@@ -346,7 +349,7 @@ function wireShell(root) {
     });
   }
 
-  // PROFILE  ← NEW
+  // PROFILE
   root.querySelector('.c-topbtn--profile')?.addEventListener('click', openProfile);
 
   // SETTINGS
@@ -376,7 +379,7 @@ async function openSettings() {
   } catch (err) { console.error('Failed to open settings:', err); }
 }
 
-// profile navigation  ← NEW
+// profile navigation
 async function openProfile() {
   try {
     if (location.hash !== '#/profile') {
@@ -391,7 +394,7 @@ async function openProfile() {
   } catch (err) { console.error('Failed to open profile:', err); }
 }
 
-// restore on Back/Forward (supports profile)  ← UPDATED
+// restore on Back/Forward (supports profile)
 window.addEventListener('popstate', async () => {
   if (location.hash === '#/settings') {
     const mod = await pageModules['./settings.js']();
@@ -411,8 +414,17 @@ export function mount(root) {
   root.innerHTML = shellHTML();
   wireShell(root);
 
+  // make sure the category button is mounted (searchbar host exists now)
+  requestAnimationFrame(() => mountCategoryButton(root));
+
+  // NEW: let the router decide what to render
   const boot = localStorage.getItem('defaultView') || 'week';
-  renderView(boot);
+  if (!location.hash || location.hash === '#/home') {
+    location.hash = `#/${boot}`;
+  } else {
+    // ensure router re-applies current route after shell mount
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  }
 
   // Prime the date chip immediately (use selected date if any) + start midnight ticker
   const sel = localStorage.getItem('selectedDate');

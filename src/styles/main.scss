@@ -24,6 +24,7 @@
 /* legacy sheet is not used anymore */
 // @use './components/sheet';
 @use './components/create';
+@use './components/category';
 
 /* 5) Views (page-level styles) */
 @use './views/home';
@@ -32,6 +33,7 @@
 @use './views/month';
 @use './views/settings';
 @use './views/profile'; /* ← NEW: profile page styles */
+@use './views/categories';
 
 /* 6) Dark-mode overrides (keep LAST so it wins the cascade) */
 @use './base/dark';

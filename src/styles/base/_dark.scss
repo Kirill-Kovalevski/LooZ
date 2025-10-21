@@ -206,3 +206,13 @@
   border-color: #2f3b55;
   box-shadow: 0 6px 12px rgba(0,0,0,.5);
 }
+body.dark, [data-theme="dark"]{
+  --cat-btn-bg: #27C64A;
+  --cat-btn-fg: #04160A;
+  --cat-btn-ring: rgba(39,198,74,.35);
+
+  --cat-card-bg: #0b1220;
+  --cat-card-fg: #e6edf6;
+  --cat-card-line: rgba(148,163,184,.16);
+  --cat-card-glow: rgba(39,198,74,.20);
+}

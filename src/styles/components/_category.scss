@@ -1,0 +1,120 @@
+/* ===== Categories Page (RTL, iPhone 12+ friendly) ===== */
+body[data-view='categories']{
+  .p-categories{
+    max-inline-size: var(--phone-w, 390px);
+    margin-inline: auto;
+    padding: 12px 12px 20px;
+  }
+
+  .cat-head{
+    text-align: center;
+    margin-block: .25rem .75rem;
+    h1{ margin: 0 0 .25rem; font-size: 1.35rem; color: var(--ink,#0f172a); }
+    .sub{ margin: 0; color: var(--muted,#64748b); font-size: .95rem; }
+  }
+
+  .filter-sec{ margin-block: .75rem .25rem; }
+  .sec-title{
+    font-size: .95rem;
+    font-weight: 700;
+    margin: 0 0 .4rem;
+    color: var(--ink,#0f172a);
+  }
+
+  /* Grid of chips – auto-fit to small square buttons on iPhone width */
+  .chip-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: .5rem;
+  }
+
+  .chip{
+    display: grid;
+    justify-items: center;
+    padding: .55rem .4rem .5rem;
+    border-radius: 14px;
+    border: 1px solid rgba(100,116,139,.14);
+    background: var(--paper,#fff);
+    color: var(--ink,#0f172a);
+    box-shadow: 0 8px 22px rgba(15,23,42,.06);
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    text-align: center;
+
+    .chip-ic { inline-size: 20px; block-size: 20px; line-height: 0; margin-block-end: .25rem;
+      svg{ display:block; }
+    }
+    .chip-tx { font-size: .8rem; white-space: nowrap; }
+
+    &:hover{ transform: translateY(-1px); }
+    &.is-on{
+      background: var(--cat-btn-bg, #3CE35E);
+      color: var(--cat-btn-fg, #0B3B17);
+      box-shadow:
+        0 8px 22px var(--cat-btn-ring, rgba(60,227,94,.35)),
+        inset 0 -2px 6px rgba(0,0,0,.12);
+      border-color: transparent;
+    }
+  }
+
+  .cat-actions{
+    display:flex; align-items:center; justify-content: space-between;
+    margin-block: .75rem .5rem;
+    .cat-clear{
+      border: 0; border-radius: 999px;
+      padding: .45rem .8rem; font-weight: 700;
+      background: linear-gradient(180deg, #fff6b8, #ffe067);
+      color: #3b2a00; box-shadow: 0 8px 24px rgba(247,200,67,.35);
+      cursor: pointer;
+    }
+    .cat-count{ font-size: .9rem; color: var(--muted,#64748b); }
+  }
+
+  .cat-results{
+    display: grid; gap: .6rem;
+  }
+  .res-card{
+    border: 1px solid rgba(100,116,139,.14);
+    background: var(--paper,#fff);
+    color: var(--ink,#0f172a);
+    border-radius: 14px;
+    padding: .7rem .8rem;
+    box-shadow: 0 10px 26px rgba(15,23,42,.07);
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+
+    .res-title{ font-weight: 800; margin-bottom: .2rem; }
+    .res-desc{ font-size: .92rem; opacity: .9; margin-bottom: .35rem; }
+    .res-tags{ display:flex; gap:.25rem; flex-wrap:wrap; }
+    .tag{
+      font-size: .72rem; padding:.18rem .45rem; border-radius: 999px;
+      background: rgba(148,163,184,.18); color: var(--ink,#0f172a);
+    }
+
+    &:hover{ transform: translateY(-1px); box-shadow: 0 14px 30px rgba(15,23,42,.1); }
+  }
+}
+
+/* Dark mode (your project uses .is-dark) */
+:is(html,body).is-dark body[data-view='categories']{
+  .chip{
+    border-color: var(--dm-border,#2c4676);
+    background: var(--dm-bg1,#0f1930);
+    color: var(--dm-text,#eaf2ff);
+    box-shadow: 0 10px 26px rgba(3,8,30,.45);
+  }
+  .res-card{
+    border-color: var(--dm-border,#2c4676);
+    background: var(--dm-surface,#162540);
+    color: var(--dm-text,#eaf2ff);
+    box-shadow: 0 14px 30px rgba(3,8,30,.5);
+    .tag{ background: rgba(99,123,169,.26); color: var(--dm-text,#eaf2ff); }
+  }
+  .cat-head h1{ color: var(--dm-text,#eaf2ff); }
+  .cat-head .sub, .sec-title, .cat-count{ color: var(--dm-muted,#b5c3de); }
+  .cat-actions .cat-clear{
+    background: linear-gradient(180deg, #334155, #1e293b);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+}

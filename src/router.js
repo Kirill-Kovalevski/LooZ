@@ -1,17 +1,29 @@
 // src/router.js
 export function startRouter(app) {
   async function show(view) {
+    // day/week/month modules expose mount(app)
     const mod = await import(`./pages/${view}.js`);
-    mod.mount(app);                     // <- each view mounts into #viewRoot
+    mod.mount(app);
   }
 
   async function apply() {
-    const h = location.hash.replace(/^#\/?/, '');
-    if (h === 'day')  return show('day');
-    if (h === 'week') return show('week');
-    if (h === 'month')return show('month');
-    // default: land on month (or day) but KEEP the shell
-    return show('month');
+    const h = (location.hash || '#/month').replace(/^#\/?/, '');
+
+    switch (h) {
+      case 'day':    return show('day');
+      case 'week':   return show('week');
+      case 'month':  return show('month');
+
+      // Categories is a full page that mounts into #viewRoot (same as other views)
+      case 'categories': {
+        const mod = await import('./pages/categories.js');
+        (mod.mount || mod.renderCategories)(app);
+        return;
+      }
+
+      default:
+        return show('month');
+    }
   }
 
   window.addEventListener('hashchange', apply);
