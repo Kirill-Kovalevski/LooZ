@@ -32,8 +32,8 @@ function startTodayTicker() {
   }, ms);
 }
 
-// settings page (lazy)
-const pageModules = import.meta.glob('./settings.js');
+// settings + profile pages (lazy)  ← UPDATED
+const pageModules = import.meta.glob('./{settings,profile}.js');
 
 function getUserName() {
   const first = localStorage.getItem('firstName') || 'אורח';
@@ -346,6 +346,9 @@ function wireShell(root) {
     });
   }
 
+  // PROFILE  ← NEW
+  root.querySelector('.c-topbtn--profile')?.addEventListener('click', openProfile);
+
   // SETTINGS
   root.querySelector('.c-topbtn--settings')?.addEventListener('click', openSettings);
 
@@ -373,11 +376,29 @@ async function openSettings() {
   } catch (err) { console.error('Failed to open settings:', err); }
 }
 
-// restore on Back/Forward
+// profile navigation  ← NEW
+async function openProfile() {
+  try {
+    if (location.hash !== '#/profile') {
+      history.pushState({ page: 'profile' }, '', '#/profile');
+    }
+    const loader = pageModules['./profile.js'];
+    if (!loader) { console.error('profile.js not found'); return; }
+    const mod = await loader();
+    const mountProfile = mod.default?.mount || mod.mount || mod.default;
+    if (typeof mountProfile === 'function') mountProfile();
+    else console.error('profile.js has no default/mount export');
+  } catch (err) { console.error('Failed to open profile:', err); }
+}
+
+// restore on Back/Forward (supports profile)  ← UPDATED
 window.addEventListener('popstate', async () => {
   if (location.hash === '#/settings') {
     const mod = await pageModules['./settings.js']();
     (mod.default || mod.mount)?.();
+  } else if (location.hash === '#/profile') {
+    const mod = await pageModules['./profile.js']();
+    (mod.default?.mount || mod.mount || mod.default)?.();
   } else {
     const app = document.getElementById('app');
     if (app) mount(app);

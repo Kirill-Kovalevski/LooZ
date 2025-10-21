@@ -31,6 +31,7 @@
 @use './views/week';
 @use './views/month';
 @use './views/settings';
+@use './views/profile'; /* ← NEW: profile page styles */
 
 /* 6) Dark-mode overrides (keep LAST so it wins the cascade) */
 @use './base/dark';

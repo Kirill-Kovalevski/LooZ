@@ -1,5 +1,5 @@
 /* Global Dark Mode — golden-white text, golden titles, dark pastel background.
-   Activates when <html> or <body> has class "is-dark" (your settings.js already does this). */
+   Activates when <html> or <body> has class "is-dark". */
 
 :is(html,body).is-dark {
   /* ===== Core tokens ===== */
@@ -12,7 +12,7 @@
   --title: #ffd86b;        /* golden-yellow for titles/headings */
   --accent: #ffd86b;       /* buttons (ok/X), chips highlight */
 
-  /* Header icons (same yellow as view buttons) */
+  /* Header icon glow tokens (parity with view buttons) */
   --nav-accent:    #FFE067;
   --nav-accent-br: #f3c340;
   --nav-accent-ink:#0b1220;
@@ -52,11 +52,11 @@
 :is(html,body).is-dark .p-monthtitle,
 :is(html,body).is-dark .title { color: var(--title); }
 
-/* Week-day tiny labels & subtle text */
+/* Subtle text */
 :is(html,body).is-dark .p-weekbar .p-wday,
 :is(html,body).is-dark .w-right { color: color-mix(in oklab, var(--ink) 65%, #7c879a); }
 
-/* Primary CTAs in dark: ✓ stays golden, ✕ becomes golden-red, logout stays golden */
+/* Primary CTAs / logout */
 :is(html,body).is-dark .p-act--ok,
 :is(html,body).is-dark .logout{
   background: linear-gradient(180deg, #2c2300, #1b1500);
@@ -65,16 +65,15 @@
   box-shadow: 0 6px 14px rgba(0,0,0,.5);
 }
 
-/* ✕ (delete) — golden-red, easy on the eyes */
+/* Danger CTAs */
 :is(html,body).is-dark .p-act--no{
-  background: linear-gradient(180deg, #2b1713, #1f0f0d); /* deep claret */
-  border: 1px solid #cc8b7f;                             /* warm border */
-  color: #ffb8a6;                                        /* peach-red glyph */
+  background: linear-gradient(180deg, #2b1713, #1f0f0d);
+  border: 1px solid #cc8b7f;
+  color: #ffb8a6;
   box-shadow: 0 6px 14px rgba(0,0,0,.5), 0 0 0 1px rgba(255,186,174,.14) inset;
 }
 
-
-/* Switch tracks in dark mode */
+/* Switch tracks */
 :is(html,body).is-dark .switch .track {
   background: #1a2436;
   border-color: #2b3c5c;
@@ -84,7 +83,7 @@
   border-color: color-mix(in oklab, var(--title) 45%, #263a66);
 }
 
-/* View buttons & selected segmentation highlight */
+/* View buttons & segmented pills */
 :is(html,body).is-dark .seg__btn.is-on,
 :is(html,body).is-dark .c-headbtn.is-active {
   background: var(--title);
@@ -94,14 +93,11 @@
 }
 
 /* ===================== Month view — blue–green ambience ===================== */
-/* Note: this overrides the generic card bg above for the calendar specifically. */
 :is(html,body).is-dark body[data-view='month'] .p-monthview{
-  background:
-    linear-gradient(180deg, #0b1220 0%, #0b1c28 55%, #0a2022 100%);
+  background: linear-gradient(180deg, #0b1220 0%, #0b1c28 55%, #0a2022 100%);
   border-color: rgba(126, 160, 200, .20);
   box-shadow: 0 14px 36px rgba(0,0,0,.55);
 }
-
 :is(html,body).is-dark body[data-view='month'] .p-monthview::before{
   content:"";
   position:absolute; inset:-12%;
@@ -113,7 +109,6 @@
     radial-gradient(58% 58% at 102% 58%, rgba(86, 190, 255, .20) 0%, rgba(86,190,255,0) 64%),
     radial-gradient(62% 62% at -2% 100%, rgba(41, 171, 135, .22) 0%, rgba(41,171,135,0) 70%);
 }
-
 :is(html,body).is-dark body[data-view='month'] .p-monthview::after{
   content:"";
   position:absolute; inset:-20%;
@@ -125,60 +120,7 @@
     radial-gradient(20% 20% at 22% 82%,  rgba(42, 186, 150, .20) 0%, rgba(42,186,150,0) 70%);
 }
 
-/* Month grid cells adopt the token (also used by the pill halo) */
-:is(html,body).is-dark body[data-view='month'] .p-cell{
-  border-color:#2f4f74;
-  background: var(--month-cell-bg);
-  box-shadow: 0 3px 16px rgba(4, 10, 20, .65);
-}
-
-/* Ensure counters & numbers are readable on dark */
-:is(html,body).is-dark body[data-view='month'] .p-cell__num,
-:is(html,body).is-dark .w-left,
-:is(html,body).is-dark .pill { color: var(--ink); }
-
-/* Zero-state pill remains readable (pairs with your halo around the pill) */
-:is(html,body).is-dark body[data-view='month'] .p-count:not(.has){
-  background:#0f172a;
-  border-color:#334155;
-  color:#e5eefc;
-}
-/* Tokens used by halo + month cells in dark */
-:is(html,body).is-dark{
-  --month-cell-bg: rgba(10, 18, 28, .92);
-
-  /* header icon glow tokens for parity with view buttons */
-  --nav-accent:#FFE067;
-  --nav-accent-br:#f3c340;
-  --nav-accent-ink:#0b1220;
-  --nav-glow: 0 14px 36px rgba(255,224,103,.70), 0 0 0 1px rgba(255,239,170,.35) inset;
-  --nav-ambient: radial-gradient(40% 40% at 50% 50%, rgba(255,224,103,.65), transparent 60%);
-}
-
-/* Month view — blue–green ambience */
-:is(html,body).is-dark body[data-view='month'] .p-monthview{
-  background: linear-gradient(180deg, #0b1220 0%, #0b1c28 55%, #0a2022 100%);
-  border-color: rgba(126,160,200,.20);
-  box-shadow: 0 14px 36px rgba(0,0,0,.55);
-}
-:is(html,body).is-dark body[data-view='month'] .p-monthview::before{
-  content:""; position:absolute; inset:-12%; z-index:-1; pointer-events:none;
-  background:
-    linear-gradient(180deg, rgba(12,18,32,.22), rgba(10,16,28,.18)),
-    radial-gradient(40% 40% at 12% 10%,  rgba(64,200,173,.22) 0%, rgba(64,200,173,0) 62%),
-    radial-gradient(44% 44% at 90% 8%,   rgba(110,170,255,.26) 0%, rgba(110,170,255,0) 62%),
-    radial-gradient(58% 58% at 102% 58%, rgba(86,190,255,.20) 0%, rgba(86,190,255,0) 64%),
-    radial-gradient(62% 62% at -2% 100%, rgba(41,171,135,.22) 0%, rgba(41,171,135,0) 70%);
-}
-:is(html,body).is-dark body[data-view='month'] .p-monthview::after{
-  content:""; position:absolute; inset:-20%; z-index:-1; pointer-events:none; filter: blur(28px); opacity:.85;
-  background:
-    radial-gradient(22% 22% at 18% 25%,  rgba(71,181,255,.20) 0%, rgba(71,181,255,0) 70%),
-    radial-gradient(18% 18% at 78% 22%,  rgba(79,230,199,.22) 0%, rgba(79,230,199,0) 70%),
-    radial-gradient(24% 24% at 78% 78%,  rgba(84,160,255,.18) 0%, rgba(84,160,255,0) 70%),
-    radial-gradient(20% 20% at 22% 82%,  rgba(42,186,150,.20) 0%, rgba(42,186,150,0) 70%);
-}
-
+/* Month cells & text */
 :is(html,body).is-dark body[data-view='month'] .p-weekbar{
   background: linear-gradient(180deg, #0f1b2a 0%, #0a2230 100%);
   border-color:#2a4e6c;
@@ -188,11 +130,16 @@
 :is(html,body).is-dark body[data-view='month'] .p-cell{
   border-color:#2f4f74;
   background: var(--month-cell-bg);
-  box-shadow: 0 3px 16px rgba(4,10,20,.65);
+  box-shadow: 0 3px 16px rgba(4, 10, 20, .65);
 }
 :is(html,body).is-dark body[data-view='month'] .p-cell__num{ color:#e6f0ff; }
 
-/* Pill halo + readable zero-state */
+:is(html,body).is-dark body[data-view='month'] .p-monthhead .p-monthtitle{
+  color:#eaf2ff;
+  text-shadow:0 1px 0 rgba(0,0,0,.35);
+}
+
+/* Pill halo + zero-state */
 :is(html,body).is-dark body[data-view='month'] .p-count{
   background: var(--task-pill-bg, #FFE067);
   border: 1px solid var(--task-pill-border, #f3c340);
@@ -205,39 +152,57 @@
 :is(html,body).is-dark body[data-view='month'] .p-cell--today::after{
   box-shadow: 0 0 0 var(--month-ring-thickness) #ff6a55 inset;
 }
-/* === Screenshot-matched text colors (month + weekday bars in dark) === */
-:is(html,body).is-dark body[data-view='month'] .p-monthhead .p-monthtitle{
-  color:#eaf2ff;                       /* bright, readable blue-white */
-  text-shadow:0 1px 0 rgba(0,0,0,.35); /* soft lift on OLED dark */
-}
 
-:is(html,body).is-dark body[data-view='month'] .p-weekbar .p-wday{
-  color:#eaf2ff;
-  letter-spacing:.35px;
-  text-shadow:0 1px 0 rgba(0,0,0,.35);
-}
-
-/* Week header labels in dark */
+/* ===== Week view labels ===== */
 :is(html,body).is-dark body[data-view='week'] .w-left{
   color:#eaf2ff;
   text-shadow:0 1px 0 rgba(0,0,0,.35);
 }
 :is(html,body).is-dark body[data-view='week'] .w-right{
-  color:#b9c9ef;                        /* slightly softer secondary */
+  color:#b9c9ef;
   text-shadow:0 1px 0 rgba(0,0,0,.35);
 }
 
-
-/* === Week view: GOLDEN gradient border for TODAY (dark) ===
-   Use the same "border-box gradient" trick you use in light-mode,
-   just swap the ring colors to a warm golden hue. */
+/* Week view: golden gradient border for TODAY chip */
 :is(html,body).is-dark body[data-view='week'] .w-dayrow--today .w-rowhead{
-  border: 2px solid transparent;            /* required so the border-box layer shows */
+  border: 2px solid transparent;
   background:
-    /* inside (the chip surface) */
     linear-gradient(var(--card, #161a22), var(--card, #161a22)) padding-box,
-    /* outside (the ring itself) */
-    conic-gradient(from 0deg,
-      #f7d05a, #e0b33a, #cfa22a, #e0b33a, #f7d05a
-    ) border-box;
+    conic-gradient(from 0deg, #f7d05a, #e0b33a, #cfa22a, #e0b33a, #f7d05a) border-box;
+}
+
+/* ===== Profile view (DARK) — title + counters + social bar ===== */
+:is(html,body).is-dark body[data-view='profile'] .topbar .title{
+  color: var(--title);
+  text-shadow: 0 1px 0 rgba(0,0,0,.25);
+}
+
+:is(html,body).is-dark body[data-view='profile'] .pp-count{
+  background: linear-gradient(180deg,#0f172a,#111827);
+}
+:is(html,body).is-dark body[data-view='profile'] .pp-count b{ color:#f1f5f9; }
+:is(html,body).is-dark body[data-view='profile'] .pp-count span{ color:#cbd5e1; }
+
+:is(html,body).is-dark body[data-view='profile'] .pp-socialbar{
+  border-color: #3A2A1E;
+  background: linear-gradient(180deg,#231911,#1B1611);
+  box-shadow: 0 8px 18px rgba(0,0,0,.45);
+}
+:is(html,body).is-dark body[data-view='profile'] .pp-socbtn{
+  color: #FFE067;                       /* lemon-gold */
+  transition: color .16s ease, background .16s ease, transform .12s ease;
+}
+:is(html,body).is-dark body[data-view='profile'] .pp-socbtn + .pp-socbtn{
+  border-inline-start-color: #3A2A1E;
+}
+:is(html,body).is-dark body[data-view='profile'] .pp-socbtn:hover,
+:is(html,body).is-dark body[data-view='profile'] .pp-socbtn:focus-visible{
+  color: #FFF2A6;
+  background: linear-gradient(180deg,#2A2119,#1C1712);
+}
+:is(html,body).is-dark body[data-view="profile"] .pp-editbtn{
+  background: linear-gradient(180deg,#0f172a,#111827);
+  color: #f1f5f9;
+  border-color: #2f3b55;
+  box-shadow: 0 6px 12px rgba(0,0,0,.5);
 }

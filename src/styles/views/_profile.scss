@@ -1,0 +1,197 @@
+/* ───────────────────────────────────────────────────────────────
+   Profile view — clean, scoped (LIGHT + SHARED)
+   Uses shared .topbar from Settings. Dark-mode lives in _dark.scss.
+   ─────────────────────────────────────────────────────────────── */
+
+body[data-view="profile"] {
+
+  /* page wrap */
+  .profile-page.o-wrap{
+    inline-size: clamp(320px, 100vw, 430px);
+    margin-inline: auto;
+    padding: 10px 12px 24px;
+    color: var(--fg);
+  }
+
+  /* cover */
+  .pp-cover{
+    height: 180px;
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--cover,
+      radial-gradient(60% 80% at 20% 0%, #fff6c2 0%, #ffe067 35%, #f0f9ff 60%, #dce6ff 100%));
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 16px 34px rgba(15,23,42,.12);
+    position: relative;
+  }
+  .pp-cover__edit{
+    position: absolute; inset-inline-end: 10px; inset-block-end: 10px;
+    height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line);
+    background: linear-gradient(180deg,#fff,#f7fafc);
+    color:#1f2937; font: 900 12px/1 'Rubik', system-ui;
+    box-shadow: 0 6px 12px rgba(15,23,42,.12);
+  }
+
+  /* generic card */
+  .pp-card{
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: 0 10px 20px rgba(15,23,42,.08);
+    padding: 14px;
+    margin-top: 12px;
+  }
+
+  /* header card (avatar + name + actions) */
+  .pp-head{
+    display: grid; justify-items: center; row-gap: 10px;
+    margin-top: -56px; padding-top: 66px;
+  }
+  .pp-avatar{
+    position: relative;
+    inline-size: 122px; block-size: 122px; border-radius: 50%;
+    border: 4px solid #fff; overflow: hidden;
+    background: #f1f5f9;
+    box-shadow: 0 12px 28px rgba(15,23,42,.20);
+    z-index: 2;
+  }
+  .pp-avatar__img{ inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+  .pp-avatar__edit{
+    position: absolute; inset-inline-end: 6px; inset-block-end: 6px;
+    inline-size: 28px; block-size: 28px; border-radius: 50%;
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg,#fff,#f3f4f6);
+    color:#111827; font: 900 12px/1 'Rubik', system-ui;
+    box-shadow: 0 4px 10px rgba(15,23,42,.18);
+  }
+
+  .pp-id{ text-align: center; }
+  .pp-name{ font: 900 20px/1.2 'Rubik', system-ui; }
+  .pp-handle{ font: 800 13px/1 'Rubik', system-ui; color: #6b7280; }
+
+  /* follow button */
+  .pp-followrow{ display: flex; gap: 10px; margin-top: 4px; }
+  .pp-btn--follow{
+    block-size: 40px; padding-inline: 18px; border-radius: 999px;
+    border: 1px solid #d4b232;
+    background: linear-gradient(180deg,#ffefb6,#ffe067);
+    color:#1f2937; font: 900 14px/1 'Rubik', system-ui;
+    box-shadow: 0 12px 20px rgba(213,178,50,.28), inset 0 1px 0 rgba(255,255,255,.62);
+  }
+  .pp-btn--follow.is-on{
+    background: linear-gradient(180deg,#e9ffd6,#caff8c);
+    border-color: #79c23a;
+  }
+
+  /* followers/following + totals */
+  .pp-counters{
+    margin-top: 6px;
+    display: flex; gap: 18px; flex-wrap: wrap; justify-content: center;
+  }
+  .pp-count{
+    display: grid; justify-items: center; min-inline-size: 98px; row-gap: 3px; padding: 8px 10px;
+    border-radius: 14px; border: 1px solid var(--line);
+    background: linear-gradient(180deg,#ffffff,#f8fafc);
+    box-shadow: 0 6px 14px rgba(15,23,42,.06);
+  }
+  .pp-count b{ font: 900 20px/1 'Rubik', system-ui; color: #1f2937; }
+  .pp-count span{ font: 800 12px/1 'Rubik', system-ui; color: #6b7280; }
+
+  /* stats block */
+  .pp-statrow{ display: flex; justify-content: space-between; }
+  .pp-stat{ display: grid; justify-items: center; row-gap: 2px; }
+  .pp-num{ font: 900 20px/1 'Rubik', system-ui; }
+  .pp-lbl{ font: 800 12px/1 'Rubik', system-ui; color:#6b7280; }
+  .pp-spark{ margin-top: 10px; filter: drop-shadow(0 6px 12px rgba(15,23,42,.16)); }
+  .pp-sub{ text-align: center; font: 800 12px/1 'Rubik', system-ui; color:#6b7280; margin-top: 6px; }
+
+  /* Social bar — EXACT same palette as the Follow button (light mode) */
+  .pp-socialbar{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    border: 1px solid #d4b232;                /* same border as follow */
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(180deg,#ffefb6,#ffe067); /* same gradient */
+    box-shadow:
+      0 12px 20px rgba(213,178,50,.28),       /* same glow */
+      inset 0 1px 0 rgba(255,255,255,.62);
+    backdrop-filter: saturate(1.05);
+  }
+  .pp-socbtn{
+    min-block-size: 48px;
+    display: grid; place-items: center;
+    position: relative;
+    color: #1f2937;                            /* same ink as button */
+    text-decoration: none;
+    background: transparent;
+    transition: color .16s ease, background .16s ease, transform .12s ease;
+  }
+  .pp-socbtn + .pp-socbtn{
+    border-inline-start: 1px solid color-mix(in oklab, #d4b232 60%, #fff);
+  }
+  .pp-socbtn svg{
+    inline-size: 22px; block-size: 22px;
+    fill: currentColor; transform: translateY(1px);
+  }
+  .pp-socbtn:hover,
+  .pp-socbtn:focus-visible{
+    background: linear-gradient(180deg,#ffe99d,#ffdd5b); /* brighter hover */
+    transform: translateY(-1px);
+    outline: none;
+  }
+  .pp-socbtn:active{ transform: translateY(0); }
+  .pp-socbtn:active::after,
+  .pp-socbtn.is-on::after{
+    content:""; position:absolute; inset-inline:10px; inset-block-end:0;
+    block-size:3px; border-radius:2px; background: currentColor; opacity:.9;
+  }
+
+  .pp-space{ block-size: 22px; }
+
+  /* hide global orb/cta on this view */
+  .c-bottom-cta, .c-cta, .btn-create-orb { display: none; }
+
+  /* Shared topbar title (light mode) */
+  .topbar .title{
+    font: 900 20px/1 'Rubik', system-ui;
+    letter-spacing: .2px;
+    color: var(--fg);
+  }
+
+  @media (min-width:430px){
+    .profile-page.o-wrap{ inline-size: min(480px, 100vw); }
+    .topbar .title{ font-size: 21px; }
+  }
+
+  /* respectful motion */
+  @media (prefers-reduced-motion: reduce){
+    .pp-socbtn{ transition: none; transform: none; }
+    .pp-socbtn:hover{ transform: none; }
+  }
+}
+/* Tiny camera icon buttons (shared) */
+.pp-editbtn{
+  position: absolute;
+  inline-size: 32px; block-size: 32px;
+  border-radius: 999px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg,#fff,#f3f4f6);
+  color: #111827;
+  box-shadow: 0 6px 12px rgba(15,23,42,.18);
+}
+
+.pp-editbtn svg{ inline-size: 18px; block-size: 18px; }
+
+/* Placement: screen-left (RTL-aware) */
+.pp-editbtn--cover{ inset-inline-start: 10px; inset-block-start: 10px; }
+.pp-editbtn--avatar{
+  /* the avatar is already position:relative */
+  inset-inline-start: -6px;   /* hugs the circle from the left side */
+  inset-block-end:  -6px;
+}
+
+/* dark-mode polish handled in _dark.scss (optional) */
