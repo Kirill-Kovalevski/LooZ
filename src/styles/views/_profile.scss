@@ -177,3 +177,53 @@ body[data-view="profile"] {
 .pp-editbtn svg{ inline-size: 18px; block-size: 18px; }
 .pp-editbtn--cover{ inset-inline-start: 10px; inset-block-start: 10px; }
 .pp-editbtn--avatar{ inset-inline-start: -6px; inset-block-end: -6px; }
+/* Centered archive buttons */
+.pp-arch-head{
+  display:flex; gap:.6rem; justify-content:center; margin:.4rem 0 .8rem;
+  flex-wrap:wrap;
+}
+.pp-arch-toggle{
+  padding:.55rem .9rem; border-radius:999px; border:1px solid rgba(0,0,0,.08);
+  background:#f7f8fb; font-weight:700; box-shadow:0 1px 0 rgba(0,0,0,.04);
+}
+.pp-arch-toggle[aria-expanded="true"]{ background:#fff7d8; border-color:#ffe067; }
+
+/* Filters */
+.pp-filters{
+  display:flex; gap:.5rem; justify-content:flex-end; align-items:center;
+  padding:.25rem .6rem .5rem;
+}
+.pp-filters input[type="date"]{
+  padding:.35rem .5rem; border:1px solid rgba(0,0,0,.08); border-radius:8px;
+  background:#fff;
+}
+.pp-filterbtn{
+  padding:.45rem .8rem; border-radius:999px; border:1px solid #e3e6ef; background:#fff;
+}
+
+/* Archived list looks dim/inactive */
+.pp-dsec{ border:1px solid rgba(0,0,0,.06); border-radius:14px; margin:.45rem 0; background:#fff; }
+.pp-dsum{ list-style:none; cursor:pointer; padding:.6rem .8rem; display:flex; gap:.5rem; align-items:center; }
+.pp-dsum::-webkit-details-marker{ display:none; }
+.pp-dlabel{ font-weight:800; }
+.pp-dcount{ opacity:.55; font-size:.9em; }
+.pp-list{ padding:.3rem .9rem .7rem; margin:0; }
+.pp-taskli{ display:flex; gap:.6rem; padding:.35rem 0; align-items:center; }
+.pp-taskli.is-archived{ opacity:.7; }
+.pp-taskli .pp-time{ min-width:3.4rem; text-align:left; opacity:.7; }
+.pp-delperm{
+  margin-inline-start:auto; border:none; background:transparent; font-size:1rem; line-height:1;
+  opacity:.7; cursor:pointer;
+}
+.pp-delperm:hover{ opacity:1; }
+
+/* Graph */
+.pp-spark{ display:block; }
+.pp-statrow{ display:flex; justify-content:space-between; margin:.2rem 0 .4rem; }
+.pp-stat .pp-num{ font-weight:800; font-size:1.15rem; }
+
+/* iPhone 12+ touch targets */
+@media (min-width: 390px) {
+  .pp-arch-toggle, .pp-filterbtn { padding:.6rem 1rem; }
+  .pp-taskli .pp-time{ min-width:3.8rem; }
+}

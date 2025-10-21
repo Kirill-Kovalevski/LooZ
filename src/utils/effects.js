@@ -1,135 +1,132 @@
-// src/utils/effects.js
-
-// Simple confetti burst at x,y (viewport coords)
-export function confetti(x, y){
-  const root = document.createElement('div');
-  root.className = 'fx-confetti';
-  document.body.appendChild(root);
-
-  const COUNT = 28;
-  for (let i = 0; i < COUNT; i++){
-    const c = document.createElement('i');
-    c.className = 'fx-c';
-    const dx = (Math.random()*240 - 120) + 'px';
-    const dy = (Math.random()*-240) + 'px';
-    const rot = (Math.random()*720 - 360) + 'deg';
-    const t   = (600 + Math.random()*600) + 'ms';
-    c.style.setProperty('--dx', dx);
-    c.style.setProperty('--dy', dy);
-    c.style.setProperty('--r', rot);
-    c.style.setProperty('--t', t);
-    c.style.left = x + 'px';
-    c.style.top  = y + 'px';
-    root.appendChild(c);
-  }
-  setTimeout(() => root.remove(), 1200);
-}
-
-// tiny utility to add/remove a class briefly (for press feedback)
-export function pulse(el, cls = 'is-pressed', ms = 150){
-  el.classList.add(cls);
-  setTimeout(() => el.classList.remove(cls), ms);
-}
 // /src/utils/effects.js
-// Visual effects + small helpers for task actions (V = confetti, X = ink delete)
-// Works RTL/LTR. No deps.
+// Visual effects used across views: confetti, mark-done, delete-ink, counters.
+// Self-contained: no imports from events.js. Safe no-ops where appropriate.
 
-// ---------------- Confetti (subtle, graceful, big spread) ----------------
-export function confetti(x, y, opts = {}) {
-  const root = document.createElement('div');
-  root.className = 'fx-confetti';
-  root.style.left = `${x}px`;
-  root.style.top  = `${y}px`;
-  document.body.appendChild(root);
+let _wired = false;
 
-  const COUNT = opts.count ?? 32;
-  const LIFETIME = opts.ms ?? 1200;
-
-  for (let i = 0; i < COUNT; i++) {
-    const p = document.createElement('i');
-    p.className = 'fx-c';
-    // random travel
-    const angle = (Math.random() * Math.PI) - (Math.PI / 2); // up-left..up-right
-    const speed = 180 + Math.random() * 240;                 // px
-    const dx = Math.cos(angle) * speed;
-    const dy = Math.sin(angle) * speed - (80 + Math.random() * 80); // initial burst upward
-    // random spin & size
-    const rot = (Math.random() * 720 - 360) + 'deg';
-    const s   = 6 + Math.random() * 6;
-
-    p.style.setProperty('--dx', `${dx}px`);
-    p.style.setProperty('--dy', `${dy}px`);
-    p.style.setProperty('--rot', rot);
-    p.style.width  = `${s}px`;
-    p.style.height = `${s * (0.5 + Math.random())}px`;
-    // tiny delay so they don't all start at the same millisecond
-    p.style.animationDelay = (Math.random() * 60) + 'ms';
-    root.appendChild(p);
-  }
-
-  // cleanup
-  window.setTimeout(() => root.remove(), LIFETIME + 120);
+/** Optional global init (kept for compatibility with home.js) */
+export function initTaskFX(root = document) {
+  if (_wired) return; _wired = true;
+  // place to wire global listeners later (sounds, ripples, etc.)
 }
 
-// ---------------- Ink “scratch + fill” delete ----------------
-export function inkDelete(taskEl) {
-  if (!taskEl) return;
-  taskEl.classList.add('fx-ink-removing');
+/** Confetti burst at viewport (x,y) with upgraded “satisfying” feel */
+export function fxConfetti(x, y, opts = {}) {
+  const {
+    ms = 1200,
+    count = 46,
+    gravity = 0.18,
+    spread = Math.PI * 2,
+    startV = 6.8,
+  } = opts;
 
-  // optional: strike-through quickly before fill
-  taskEl.classList.add('fx-ink-strike');
+  if (typeof window === 'undefined' || !document?.createElement) return;
 
-  // after animation ends, remove from DOM
-  const removeAfter = () => {
-    taskEl.removeEventListener('animationend', removeAfter);
-    taskEl.remove();
-  };
-  taskEl.addEventListener('animationend', removeAfter);
-}
+  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const c = document.createElement('canvas');
+  const ctx = c.getContext('2d', { alpha: true });
 
-// ---------------- Mark done (fade + remove) ----------------
-export function markDone(taskEl) {
-  if (!taskEl) return;
-  taskEl.classList.add('fx-done');
-  window.setTimeout(() => taskEl.remove(), 420);
-}
-
-// ---------------- Task counter helpers ----------------
-export function bumpTaskCounter(delta = -1) {
-  // Decrease remaining tasks by default (delta = -1)
-  const nodes = document.querySelectorAll('.task-count, [data-role="task-count"]');
-  nodes.forEach((n) => {
-    const current = parseInt((n.textContent || '').replace(/[^\d]/g, ''), 10) || 0;
-    const next = Math.max(0, current + delta);
-    n.textContent = String(next);
+  Object.assign(c.style, {
+    position: 'fixed',
+    inset: 0,
+    width: '100vw',
+    height: '100vh',
+    pointerEvents: 'none',
+    zIndex: '2147483647'
   });
 
-  // If you keep profile totals in localStorage, lightly sync:
+  const { innerWidth: W, innerHeight: H } = window;
+  c.width = Math.floor(W * dpr);
+  c.height = Math.floor(H * dpr);
+  document.body.appendChild(c);
+
+  const ox = Math.floor(x * dpr);
+  const oy = Math.floor(y * dpr);
+
+  const colors = ['#FFE067','#F7C843','#9CC6FF','#6EA8FF','#C8F3C1','#FF9FB3','#FFD2A6'];
+  const shapes = ['rect','circ','tri'];
+
+  const parts = Array.from({ length: count }, () => {
+    const ang = (Math.random() - 0.5) * spread;
+    const spd = (0.6 + Math.random() * 0.9) * startV;
+    return {
+      x: ox, y: oy,
+      vx: Math.cos(ang) * spd * dpr,
+      vy: Math.sin(ang) * spd * dpr - 6.5 * dpr,
+      r: 2 + Math.random() * 4.2,
+      rot: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.45,
+      col: colors[(Math.random() * colors.length) | 0],
+      shape: shapes[(Math.random() * shapes.length) | 0],
+      life: 0.7 + Math.random() * 0.6
+    };
+  });
+
+  let start = performance.now();
+  (function tick(t) {
+    const k = (t - start) / ms;
+    if (k >= 1) { try { document.body.removeChild(c); } catch {} return; }
+
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (const p of parts) {
+      // ease-out alpha so it feels soft
+      const alpha = Math.max(0, 1 - (k / p.life));
+      if (alpha <= 0) continue;
+
+      p.vy += gravity * dpr;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.col;
+
+      if (p.shape === 'rect') {
+        ctx.fillRect(-p.r, -p.r * 0.6, p.r * 2, p.r * 1.2);
+      } else if (p.shape === 'tri') {
+        ctx.beginPath();
+        ctx.moveTo(0, -p.r);
+        ctx.lineTo(p.r, p.r);
+        ctx.lineTo(-p.r, p.r);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    requestAnimationFrame(tick);
+  })(start);
+}
+
+/** Quick “done” visual */
+export function fxMarkDone(cardEl) {
+  if (!cardEl) return;
+  cardEl.classList.add('fx-done');
+}
+
+/** Quick “ink/scratch” delete visual */
+export function fxInkDelete(cardEl) {
+  if (!cardEl) return;
+  cardEl.classList.add('fx-delete');
+}
+
+/**
+ * Optional helper so views can signal a visible task counter change.
+ * If no one listens, nothing happens.
+ */
+export function bumpTaskCounter(delta) {
   try {
-    const key = 'profile.task.count';
-    const cur = parseInt(localStorage.getItem(key) || '0', 10) || 0;
-    const next = Math.max(0, cur + delta);
-    localStorage.setItem(key, String(next));
-  } catch (_) {}
+    document.dispatchEvent(new CustomEvent('task-counter-delta', { detail: delta }));
+  } catch {}
 }
 
-// ---------------- One-time initializer: wire V/X buttons ----------------
-export function initTaskFX(root = document) {
-  root.addEventListener('click', (ev) => {
-    const doneBtn = ev.target.closest('.btn-v, [data-action="done"]');
-    const delBtn  = ev.target.closest('.btn-x, [data-action="delete"]');
-
-    if (doneBtn) {
-      const task = doneBtn.closest('.task, .task-item, li, .card');
-      confetti(ev.clientX, ev.clientY, { count: 36, ms: 1200 });
-      markDone(task);
-      bumpTaskCounter(-1);
-    }
-
-    if (delBtn) {
-      const task = delBtn.closest('.task, .task-item, li, .card');
-      inkDelete(task);
-      bumpTaskCounter(-1);
-    }
-  }, { passive: true });
-}
+/* Suggested minimal CSS (put in your global stylesheet):
+.fx-done   { opacity:.45; transform:scale(.98); transition:opacity .28s ease, transform .28s ease; }
+.fx-delete { opacity:.25; transform:translateX(4px); filter:grayscale(.5); transition:opacity .28s ease, transform .28s ease, filter .28s ease; }
+*/

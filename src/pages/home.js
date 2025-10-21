@@ -6,7 +6,6 @@ import { openCreateModal } from '../components/create.js';  // create-event moda
 import { mountCategoryButton } from '../components/category.js';
 import { initTaskFX } from '../utils/effects.js';
 
-// Wire V/X effects once for the whole app (delegated on document)
 if (!window.__taskFxInit) {
   window.__taskFxInit = true;
   if (document.readyState !== 'loading') {
@@ -14,6 +13,8 @@ if (!window.__taskFxInit) {
   } else {
     document.addEventListener('DOMContentLoaded', () => initTaskFX(document), { once: true });
   }
+  // optional: quick console beacon
+  // console.log('[LooZ] Task FX wired');
 }
 
 // ---- tiny helpers ----
@@ -21,6 +22,14 @@ const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 const pad2     = n => String(n).padStart(2, '0');
 const todayDM  = d => `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}`;
 const hebDay   = d => HEB_DAYS[d.getDay()];
+
+/** Parse "YYYY-MM-DD" as a *local* date (avoid UTC off-by-one). */
+function fromDateKey(key) {
+  if (!key || typeof key !== 'string') return new Date();
+  const [y, m, d] = key.split('-').map(v => parseInt(v, 10));
+  if (!y || !m || !d) return new Date();
+  return new Date(y, m - 1, d);
+}
 
 let headerCursor = new Date();
 let currentView  = 'week';
@@ -38,7 +47,7 @@ function startTodayTicker() {
       setHeaderDate(new Date());
     } else {
       const sel = localStorage.getItem('selectedDate');
-      setHeaderDate(sel ? new Date(sel) : new Date());
+      setHeaderDate(sel ? fromDateKey(sel) : new Date());
     }
     startTodayTicker();
   }, ms);
@@ -166,9 +175,9 @@ async function renderView(view /* 'day' | 'week' | 'month' */) {
 
   if (view === 'day') {
     const sel = localStorage.getItem('selectedDate');
-    setHeaderDate(sel ? new Date(sel) : new Date());   // Day view respects picked date
+    setHeaderDate(sel ? fromDateKey(sel) : new Date());   // Day view respects picked date
   } else {
-    setHeaderDate(new Date());                          // Other views show today
+    setHeaderDate(new Date());                             // Other views show today
   }
 }
 
@@ -180,7 +189,7 @@ function setActive(view) {
   };
   Object.entries(map).forEach(([k, btn]) => {
     if (!btn) return;
-    const on = k === view;
+    const on = (k === view);
     btn.classList.toggle('is-active', on);
     btn.setAttribute('aria-pressed', String(on));
   });
@@ -439,7 +448,7 @@ export function mount(root) {
 
   // Prime the date chip immediately (use selected date if any) + start midnight ticker
   const sel = localStorage.getItem('selectedDate');
-  setHeaderDate(sel ? new Date(sel) : new Date());
+  setHeaderDate(sel ? fromDateKey(sel) : new Date());
   startTodayTicker();
 
   // Show orb only near the bottom
@@ -461,7 +470,7 @@ document.addEventListener('go-day', async (e) => {
   const dk = e.detail; // "YYYY-MM-DD"
   if (dk) {
     localStorage.setItem('selectedDate', dk);
-    setHeaderDate(new Date(dk));
+    setHeaderDate(fromDateKey(dk));
   }
   const loadDay = viewModules['./day.js'];
   const mod = await loadDay();

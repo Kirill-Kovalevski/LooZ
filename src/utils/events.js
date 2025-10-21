@@ -92,3 +92,4 @@ export default {
   removeEvent,
   deleteEvent,
 };
+
