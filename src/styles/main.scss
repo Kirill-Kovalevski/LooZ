@@ -34,6 +34,7 @@
 @use './views/settings';
 @use './views/profile'; /* ← NEW: profile page styles */
 @use './views/categories';
+@use './views/social';
 
 @use './scss/effects';
 /* 6) Dark-mode overrides (keep LAST so it wins the cascade) */

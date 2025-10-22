@@ -1,50 +1,18 @@
 // /src/pages/day.js
-// Day view (id-based ✓/✕, archives to events.done / events.rem, plays effects)
+// Day view — acts only on the item by id, archives via utils/events.
 
 import {
-  EVENTS_CHANGED,
-  getEventsByDate,   // (dateKey) => [{ id, date, time, title, done }, ...]
-  removeEvent,       // (id) -> void
-  toggleDone         // (id) -> void  (used for legacy 'done' flag then remove)
+  EVENTS_CHANGED, keyOf, getEventsByDate,
+  completeEvent, trashEvent
 } from '../utils/events.js';
 
-import { fxConfetti, fxInkDelete, fxMarkDone, bumpTaskCounter } from '../utils/effects.js';
-
-const STORE_DONE    = 'events.done';
-const STORE_REMOVED = 'events.rem';
-const STATS_CHANGED = 'stats-changed';
+import { fxConfetti, fxInkDelete, bumpTaskCounter } from '../utils/effects.js';
 
 const HEB_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
-
-/* ---------- helpers ---------- */
 const pad2 = n => String(n).padStart(2,'0');
-const keyOf = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const dayParts = d => ({ dow: HEB_DAYS[d.getDay()], md:  `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}` });
 
-function dayParts(d){
-  const dow = HEB_DAYS[d.getDay()];
-  const md  = `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}`;
-  return { dow, md };
-}
-function escapeHTML(s){
-  return String(s || '').replace(/[&<>"']/g, m => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  })[m]);
-}
-
-// tiny store helpers for archives + stats
-const readJSON  = (k,d=[]) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(d)); } catch { return d; } };
-const writeJSON = (k,v)   => localStorage.setItem(k, JSON.stringify(v));
-function archiveDone(item){ const l = readJSON(STORE_DONE);   l.push({ ...item, done:true,  completedAt: Date.now() }); writeJSON(STORE_DONE, l); }
-function archiveRemoved(i){ const l = readJSON(STORE_REMOVED); l.push({ ...i,   deleted:true, removedAt:   Date.now() }); writeJSON(STORE_REMOVED, l); }
-function bumpStats({ done=0, removed=0, activeDelta=0 }){
-  try {
-    const inc = (k, d=1) => localStorage.setItem(k, String(Math.max(0,(parseInt(localStorage.getItem(k)||'0',10)||0)+d)));
-    if (done)       inc('profile.done.count', done);
-    if (removed)    inc('profile.removed.count', removed);
-    if (activeDelta)inc('profile.task.count', activeDelta);
-  } catch {}
-  document.dispatchEvent(new Event(STATS_CHANGED));
-}
+const escapeHTML = s => String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 
 function ensureHost(root){
   let host = root.querySelector('#viewRoot') || document.getElementById('viewRoot');
@@ -52,31 +20,23 @@ function ensureHost(root){
   return host;
 }
 
-/* ---------- local state ---------- */
 let state = { date: new Date(), cleanup: null };
 
-/* ---------- view ---------- */
-function taskCard(task){
-  const time = task.time || '—';
-  const doneCls = task.done ? ' is-done' : '';
-  return `
-    <article class="p-datask${doneCls}" data-task data-id="${task.id}">
-      <div class="p-time" dir="ltr">${time}</div>
-      <div class="p-body"><div class="p-title">${escapeHTML(task.title || 'ללא כותרת')}</div></div>
-      <div class="p-actions">
-        <button class="p-act p-act--ok" aria-label="בוצע" title="בוצע">✓</button>
-        <button class="p-act p-act--no" aria-label="מחק"  title="מחק">✕</button>
-      </div>
-    </article>
-  `;
-}
-function emptyCard(){
-  return `<article class="p-empty">אין משימות להיום. לחץ על הכפתור למטה כדי ליצור משימה חדשה.</article>`;
-}
+const cardHTML = (t) => `
+  <article class="p-datask" data-task data-id="${t.id}">
+    <div class="p-time" dir="ltr">${t.time || '—'}</div>
+    <div class="p-body"><div class="p-title">${escapeHTML(t.title || 'ללא כותרת')}</div></div>
+    <div class="p-actions">
+      <button class="p-act p-act--ok" type="button" aria-label="בוצע">✓</button>
+      <button class="p-act p-act--no" type="button" aria-label="מחק">✕</button>
+    </div>
+  </article>
+`;
+const emptyHTML = `<article class="p-empty">אין משימות להיום. לחץ על הכפתור למטה כדי ליצור משימה חדשה.</article>`;
 
 function render(host){
-  const dateKey = keyOf(state.date);
-  const list = getEventsByDate(dateKey);
+  const dateKey   = keyOf(state.date);
+  const items     = getEventsByDate(dateKey);
   const { dow, md } = dayParts(state.date);
 
   host.innerHTML = `
@@ -89,51 +49,35 @@ function render(host){
         </div>
       </header>
       <div class="p-tasklist">
-        ${list.length ? list.map(taskCard).join('') : emptyCard()}
+        ${items.length ? items.map(cardHTML).join('') : emptyHTML}
       </div>
     </section>
   `;
 
-  // delegation for ✓ / ✕
-  host.querySelector('.p-tasklist')?.addEventListener('click', (e)=>{
-    const okBtn = e.target.closest('.p-act--ok');
-    const noBtn = e.target.closest('.p-act--no');
-    const card  = e.target.closest('[data-task]');
-    if (!card || (!okBtn && !noBtn)) return;
+  // delegation for ✓ / ✕ (stop nav flip)
+  host.addEventListener('click', async (e) => {
+    const ok   = e.target.closest('.p-act--ok');
+    const del  = e.target.closest('.p-act--no');
+    const card = e.target.closest('[data-task]');
+    if (!card || (!ok && !del)) return;
 
-    e.stopPropagation();
-    e.preventDefault();
+    e.preventDefault(); e.stopPropagation();
 
-    const id   = card.getAttribute('data-id');
-    const item = list.find(x => String(x.id) === String(id));
-    if (!id || !item) return;
+    const id = card.getAttribute('data-id');
+    if (!id) return;
 
-    if (okBtn) {
-      const r = okBtn.getBoundingClientRect();
-      fxConfetti(r.left + r.width/2, r.top + r.height/2, { count: 36, ms: 1200 });
-      fxMarkDone(card);
-      bumpTaskCounter(-1);
-      bumpStats({ done: 1, activeDelta: -1 });
-
-      // keep compatibility: some code expects toggleDone to flip a flag; we also remove it from active
-      setTimeout(()=> {
-        try { toggleDone(id); } catch {}
-        try { removeEvent(id); } catch {}
-        archiveDone(item);
-        document.dispatchEvent(new Event(EVENTS_CHANGED)); // ensure re-renderers fire
-      }, 420);
+    if (ok) {
+      fxConfetti(e.clientX, e.clientY, { count: 36, ms: 1200 });
+      card.classList.add('fx-done');
+      bumpTaskCounter?.(-1);
+      setTimeout(() => { completeEvent(id); }, 440);
+      return;
     }
 
-    if (noBtn) {
-      fxInkDelete(card);
-      bumpTaskCounter(-1);
-      bumpStats({ removed: 1, activeDelta: -1 });
-
-      setTimeout(()=> {
-        try { removeEvent(id); } catch {}
-        archiveRemoved(item);
-        document.dispatchEvent(new Event(EVENTS_CHANGED));
-      }, 700);
+    if (del) {
+      await fxInkDelete(card);
+      bumpTaskCounter?.(-1);
+      setTimeout(() => { trashEvent(id); }, 0);
     }
   });
 }
@@ -143,7 +87,6 @@ export function mount(root){
   document.body.setAttribute('data-view','day');
   const host = ensureHost(root);
 
-  // honor a selected date (set by other views)
   try {
     const sel = localStorage.getItem('selectedDate');
     if (sel) state.date = new Date(sel);
@@ -152,10 +95,10 @@ export function mount(root){
   render(host);
 
   const onPeriod = (e)=>{
-    const dir = e.detail; // 'prev' | 'next' | 'today'
-    if(dir==='prev')  state.date = new Date(state.date.getFullYear(), state.date.getMonth(), state.date.getDate()-1);
-    if(dir==='next')  state.date = new Date(state.date.getFullYear(), state.date.getMonth(), state.date.getDate()+1);
-    if(dir==='today') state.date = new Date();
+    const dir = e.detail;
+    if (dir==='prev')  state.date = new Date(state.date.getFullYear(), state.date.getMonth(), state.date.getDate()-1);
+    if (dir==='next')  state.date = new Date(state.date.getFullYear(), state.date.getMonth(), state.date.getDate()+1);
+    if (dir==='today') state.date = new Date();
     render(host);
   };
   const onEvents = ()=> render(host);

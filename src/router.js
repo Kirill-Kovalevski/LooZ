@@ -1,7 +1,6 @@
-// src/router.js
+// /src/router.js
 export function startRouter(app) {
   async function show(view) {
-    // day/week/month modules expose mount(app)
     const mod = await import(`./pages/${view}.js`);
     mod.mount(app);
   }
@@ -14,10 +13,27 @@ export function startRouter(app) {
       case 'week':   return show('week');
       case 'month':  return show('month');
 
-      // Categories is a full page that mounts into #viewRoot (same as other views)
       case 'categories': {
         const mod = await import('./pages/categories.js');
         (mod.mount || mod.renderCategories)(app);
+        return;
+      }
+
+      case 'social': {
+        const mod = await import('./pages/social.js');
+        (mod.default?.mount || mod.mount)(app);
+        return;
+      }
+
+      case 'settings': {
+        const mod = await import('./pages/settings.js');
+        (mod.default || mod.mount)();
+        return;
+      }
+
+      case 'profile': {
+        const mod = await import('./pages/profile.js');
+        (mod.default?.mount || mod.mount || mod.default)();
         return;
       }
 
