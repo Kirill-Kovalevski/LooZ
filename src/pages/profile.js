@@ -425,7 +425,26 @@ function headerHTML(mode='done'){
     </main>
   `;
 }
+function headerHTML(mode='done'){
+  // ...
+  return `...`;
+} // <-- headerHTML ends here
 
+// ADD THIS EXACTLY HERE ▼
+function paintCoverFromLS(root) {
+  const url = lsGet(K.COVER) || '';
+  const $cover = root.querySelector('.pp-cover');
+  if (!$cover) return;
+
+  if (url) {
+    const painted = `url(${cssUrlSafe(bust(url))})`;
+    $cover.style.setProperty('--cover', painted);
+    $cover.style.backgroundImage = 'var(--cover)';
+  } else {
+    $cover.style.removeProperty('--cover');
+    $cover.style.removeProperty('background-image');
+  }
+}
 /* ===================== wiring ===================== */
 export async function mount(root){
   // Wait for the initial Firebase user (fixes “guest” flash on refresh)
