@@ -1,9 +1,7 @@
 // /src/pages/profile.js
-// Profile page with safe output + validated uploads.
+// Profile page with safe output + validated uploads + auth-aware rendering.
 
-// /src/pages/profile.js
-import { auth, authReady, db } from '../core/firebase.js';  // <— bring in authReady too
-// (remove the separate `import { db } from '../core/firebase.js';` at the top)
+import { auth, authReady, db } from '../core/firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
 
 import { getUser } from '../services/auth.service.js';
@@ -34,7 +32,6 @@ const K = {
 
 /* ---------- per-user localStorage helpers ---------- */
 const LS_PREFIX = 'looz';
-// ✅ Prefer the live Firebase user; fall back to your helper; finally 'guest'
 const curUid = () => auth.currentUser?.uid || (getUser?.() && getUser().uid) || 'guest';
 const keyScoped = (k) => `${LS_PREFIX}:${curUid()}:${k}`;
 const lsGet = (k) => localStorage.getItem(keyScoped(k));
@@ -42,8 +39,8 @@ const lsSet = (k, v) => localStorage.setItem(keyScoped(k), v ?? '');
 const lsDel = (k) => localStorage.removeItem(keyScoped(k));
 
 /**
- * Load the profile document from Firestore and mirror to per-user LS.
- * This ensures the correct avatar/cover appear after refresh or account switch.
+ * Load the user's profile doc from Firestore and mirror to per-user LS.
+ * Ensures correct avatar/cover after refresh or account switch.
  */
 async function hydrateProfileFromFirestore() {
   const uid = curUid();
@@ -71,9 +68,26 @@ async function hydrateProfileFromFirestore() {
 const EVENTS_CHANGED = 'events-changed';
 const STATS_CHANGED  = 'stats-changed';
 
-const escCSS = v => (window.CSS && CSS.escape ? CSS.escape(v) : String(v));
 const pad2 = n => String(n).padStart(2,'0');
 const keyOf = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+// Forces the cover to repaint from per-user LS
+function paintCoverFromLS(root) {
+  const url = lsGet(K.COVER) || '';
+  const $cover = root.querySelector('.pp-cover');
+  if (!$cover) return;
+
+  if (url) {
+    const painted = `url(${cssUrlSafe(bust(url))})`;
+    $cover.style.setProperty('--cover', painted);
+    // use explicit background-image to avoid relying on CSS fallback
+    $cover.style.backgroundImage = 'var(--cover)';
+  } else {
+    // clear custom cover and let your CSS fallback (gradient) show
+    $cover.style.removeProperty('--cover');
+    $cover.style.removeProperty('background-image');
+  }
+}
+
 
 /* ---------- image helpers ---------- */
 async function downscaleImage(file, max = 1400) {
@@ -148,13 +162,12 @@ function grid(seriesLen, w=296, h=120, pad=18){
   return Array.from({length:seriesLen}, (_,i)=> pad + i*step);
 }
 
-/* ========== Graph HTML (mode: 'done' | 'removed') ========== */
-function graphHTML(stats, mode='done'){
-  const W=296,H=120,P=18;
-  const series = mode==='done' ? stats.bucketsDone : stats.bucketsRem;
+function graphHTML(stats, mode = 'done') {
+  const W = 296, H = 120, P = 18;
+  const series = mode === 'done' ? stats.bucketsDone : stats.bucketsRem;
   const gxs    = grid(series.length, W, H, P);
   const ds     = dots(series, W, H, P);
-  const title  = mode==='done' ? 'בוצעו' : 'בוטלו';
+  const title  = mode === 'done' ? 'בוצעו' : 'בוטלו';
 
   return `
     <div class="pp-graph" data-mode="${mode}" dir="rtl">
@@ -166,19 +179,23 @@ function graphHTML(stats, mode='done'){
           </linearGradient>
         </defs>
 
-        ${gxs.map(x => `<line x1="${x}" y1="${P}" x2="${x}" y2="${H-P}" class="pp-grid"/>`).join('')}
-        <line x1="${P}" y1="${H-P}" x2="${W-P}" y2="${H-P}" class="pp-grid"/>
+        ${gxs.map(x => `<line x1="${x}" y1="${P}" x2="${x}" y2="${H-P}" class="pp-grid"></line>`).join('')}
+        <line x1="${P}" y1="${H-P}" x2="${W-P}" y2="${H-P}" class="pp-grid"></line>
 
         <g class="pp-series">
-          <g class="pp-area-wrap" style="color:var(--pp-active)"><path d="${pathArea(series, W, H, P)}" fill="url(#ppArea)"/></g>
-          <path d="${pathLine(series, W, H, P)}" class="pp-line" style="color:var(--pp-active)"/>
+          <g class="pp-area-wrap" style="color:var(--pp-active)">
+            <path d="${pathArea(series, W, H, P)}" fill="url(#ppArea)"></path>
+          </g>
+          <path d="${pathLine(series, W, H, P)}" class="pp-line" style="color:var(--pp-active)"></path>
+
           ${ds.map(d => `
-            <circle cx="${d.x}" cy="${d.y}" r="4" class="pp-dot"/>
+            <circle cx="${d.x}" cy="${d.y}" r="4" class="pp-dot"></circle>
             ${d.isLast ? `
-              <g transform="translate(${d.x+6}, ${d.y-16})" class="pp-badge">
+              <g transform="translate(${d.x + 6}, ${d.y - 16})" class="pp-badge">
                 <rect rx="6" ry="6" width="28" height="16"></rect>
                 <text x="14" y="12" text-anchor="middle">${d.n}</text>
-              </g>` : '' }
+              </g>
+            ` : ''}
           `).join('')}
         </g>
       </svg>
@@ -189,11 +206,14 @@ function graphHTML(stats, mode='done'){
       </div>
 
       <div class="pp-ticks" dir="rtl">
-        ${Array.from({length:7}, (_,i)=> i===6 ? '<span class="pp-tick">היום</span>' : '<span class="pp-tick"></span>').join('')}
+        ${Array.from({ length: 7 }, (_, i) =>
+          i === 6 ? '<span class="pp-tick">היום</span>' : '<span class="pp-tick"></span>'
+        ).join('')}
       </div>
     </div>
   `;
 }
+
 
 /* ===================== Archive + header ===================== */
 function sparklessCounters(stats){
@@ -337,8 +357,9 @@ function socialActivityHTML(){
   `;
 }
 
+/* ===================== Page header ===================== */
 function headerHTML(mode='done'){
-  // Pull the latest (possibly hydrated) values *now*
+  // Pull latest (possibly hydrated) values at render time
   const cover   = lsGet(K.COVER)  || '';
   const avatar  = lsGet(K.AVATAR) || '';
   const isOn    = (lsGet(K.IS_FOLLOW) || '0') === '1';
@@ -349,7 +370,10 @@ function headerHTML(mode='done'){
   const fullName = () => [f,l].filter(Boolean).join(' ');
 
   const stats = getStats();
-  const coverStyle = cover ? `--cover:url(${cssUrlSafe(bust(cover))})` : '';
+  const coverStyle = cover
+  ? `--cover:url(${cssUrlSafe(bust(cover))});background-image:var(--cover)`
+  : '';
+
 
   return `
     <main class="profile-page o-wrap" dir="rtl">
@@ -387,13 +411,13 @@ function headerHTML(mode='done'){
         </div>
 
         <div class="pp-counters" role="group" aria-label="מונה">
-          <div class="pp-count"><b id="ppFollowers">${Number(localStorage.getItem(K.FOLLOWERS) || '0')}</b><span>עוקבים</span></div>
-          <div class="pp-count"><b id="ppFollowing">${Number(localStorage.getItem(K.FOLLOWING) || '0')}</b><span>נעקבים</span></div>
-          <div class="pp-count"><b>${getStats().total}</b><span>משימות</span></div>
+          <div class="pp-count"><b id="ppFollowers">${Number(lsGet(K.FOLLOWERS) || '0')}</b><span>עוקבים</span></div>
+          <div class="pp-count"><b id="ppFollowing">${Number(lsGet(K.FOLLOWING) || '0')}</b><span>נעקבים</span></div>
+          <div class="pp-count"><b>${stats.total}</b><span>משימות</span></div>
         </div>
       </section>
 
-      ${sparklessCounters(getStats())}
+      ${sparklessCounters(stats)}
       ${archivesHTML('today')}
       ${socialActivityHTML()}
 
@@ -402,23 +426,25 @@ function headerHTML(mode='done'){
   `;
 }
 
-
 /* ===================== wiring ===================== */
 export async function mount(root){
-  // ✅ wait for the initial Firebase user
+  // Wait for the initial Firebase user (fixes “guest” flash on refresh)
   await authReady;
 
-  // ✅ pull the latest profile for that user into per-user localStorage
+  // Pull the latest profile for that user into per-user LocalStorage
   await hydrateProfileFromFirestore();
 
   const target = root || document.getElementById('app') || document.body;
   target.innerHTML = headerHTML('done');
+
+  // Ensure the cover is painted immediately from LS
+  paintCoverFromLS(target);
+
   wire(target, 'done');
 }
 export default { mount };
 
-
-function wire(root, mode='done'){
+function wire(root, mode = 'done'){
   document.body.setAttribute('data-view', 'profile');
 
   document.querySelectorAll('.c-bottom-cta, .c-cta, .btn-create-orb')
@@ -452,12 +478,14 @@ function wire(root, mode='done'){
         lsSet(K.COVER, url);
         lsSet(K.COVER_PATH, path);
         await saveUserProfile?.(user.uid, { coverUrl: url, coverPath: path });
-        root.querySelector('.pp-cover')?.setAttribute('style', `--cover:url(${cssUrlSafe(bust(url))})`);
+
+        // Paint from LS (keeps behavior consistent & survives re-mounts)
+        paintCoverFromLS(root);
       } else {
-        // guest fallback
+        // guest fallback: store data URL per-user (guest scope) and paint
         const dataUrl = await fileToDataURL(downscaled);
         lsSet(K.COVER, dataUrl);
-        root.querySelector('.pp-cover')?.setAttribute('style', `--cover:url(${cssUrlSafe(bust(dataUrl))})`);
+        paintCoverFromLS(root);
       }
     } catch (err) {
       console.error('cover upload failed:', err);
@@ -484,7 +512,6 @@ function wire(root, mode='done'){
         await saveUserProfile?.(user.uid, { avatarUrl: url, avatarPath: path });
         root.querySelector('.pp-avatar__img')?.setAttribute('src', bust(url));
       } else {
-        // guest fallback
         const dataUrl = await fileToDataURL(downscaled);
         lsSet(K.AVATAR, dataUrl);
         root.querySelector('.pp-avatar__img')?.setAttribute('src', bust(dataUrl));
@@ -497,7 +524,7 @@ function wire(root, mode='done'){
     }
   });
 
-  // graph
+  // ---------- graphs ----------
   const paintGraph = (m) => {
     const stats = getStats();
     const slot  = root.querySelector('#ppGraphSlot');
@@ -505,7 +532,7 @@ function wire(root, mode='done'){
   };
   paintGraph(mode);
 
-  // toggles
+  // ---------- toggles ----------
   const toggles = [...root.querySelectorAll('.pp-arch-toggle')];
   const panels  = {
     done:    root.querySelector('.pp-arch[data-arch="done"]'),
@@ -521,7 +548,7 @@ function wire(root, mode='done'){
     });
   });
 
-  // quick range
+  // ---------- quick range ----------
   root.querySelectorAll('.pp-range').forEach(chip => {
     chip.addEventListener('click', () => {
       root.querySelectorAll('.pp-range').forEach(c => c.classList.toggle('is-active', c === chip));
@@ -552,7 +579,7 @@ function wire(root, mode='done'){
     });
   });
 
-  // archive actions
+  // ---------- archive actions ----------
   root.addEventListener('click', (e)=>{
     const del = e.target.closest('[data-delperm]');
     const rep = e.target.closest('[data-repeat]');
@@ -583,7 +610,7 @@ function wire(root, mode='done'){
     }
   });
 
-  // follow (scoped per user)
+  // ---------- follow (scoped per user) ----------
   const $followBtn = root.querySelector('[data-act="follow"]');
   const $followers = root.querySelector('#ppFollowers');
   if ($followBtn && $followers){
@@ -606,13 +633,20 @@ function wire(root, mode='done'){
     });
   }
 
-  // live refresh
-  const refreshAll = ()=>{
+    // ---------- live refresh ----------
+  const refreshAll = () => {
     const app = document.getElementById('app');
-    const modeNow = root.querySelector('.pp-arch-toggle.is-active')?.getAttribute('data-toggle') || 'done';
+    const modeNow =
+      root.querySelector('.pp-arch-toggle.is-active')?.getAttribute('data-toggle') || 'done';
+
     app.innerHTML = headerHTML(modeNow);
+
+    // Re-apply cover on every remount
+    paintCoverFromLS(app);
+
     wire(app, modeNow);
   };
+
   document.addEventListener(EVENTS_CHANGED, refreshAll);
   document.addEventListener(STATS_CHANGED,  refreshAll);
-}
+} // <-- end wire()
