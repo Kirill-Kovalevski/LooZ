@@ -17,7 +17,7 @@ import { storage } from '../core/firebase.js';
 export function assertImageAcceptable(file, type = 'avatar') {
   const maxSizeMB = 5;
   if (!file) throw new Error('לא נבחר קובץ');
-  if (!file.type.startsWith('image/')) {
+  if (!file.type?.startsWith?.('image/')) {
     throw new Error('אנא בחר/י קובץ תמונה בלבד');
   }
   if (file.size > maxSizeMB * 1024 * 1024) {
@@ -31,22 +31,41 @@ export function assertImageAcceptable(file, type = 'avatar') {
  * @param {string} uid - The user's UID
  * @param {string} kind - 'avatar' | 'cover' | other
  * @param {File|Blob} file
- * @param {string=} prevPath - optional previous path to delete
+ * @param {string=} prevPath - optional previous path to delete (after successful upload)
  * @returns {Promise<{url:string, path:string}>}
  */
 export async function uploadUserImage(uid, kind, file, prevPath) {
-  try {
-    // Remove previous version if provided
-    if (prevPath) {
-      const oldRef = ref(storage, prevPath);
-      try { await deleteObject(oldRef); } catch (_) {}
-    }
+  if (!uid) throw new Error('User not logged in');
 
-    const path = `users/${uid}/${kind}-${Date.now()}.jpg`;
+  try {
+    // choose extension from MIME type
+    const mime = file.type || 'image/jpeg';
+    let ext = (mime.split('/')[1] || 'jpeg').toLowerCase();
+    if (ext === 'jpeg') ext = 'jpg'; // normalize
+
+    const path = `users/${uid}/${kind}-${Date.now()}.${ext}`;
     const fileRef = ref(storage, path);
 
-    await uploadBytes(fileRef, file);
+    // include metadata (content type + cache)
+    const metadata = {
+      contentType: mime,
+      cacheControl: 'public, max-age=604800, s-maxage=604800' // 7 days
+    };
+
+    // upload
+    await uploadBytes(fileRef, file, metadata);
+
+    // retrieve a download URL
     const url = await getDownloadURL(fileRef);
+
+    // delete the previous object *after* a successful upload
+    if (prevPath) {
+      try {
+        await deleteObject(ref(storage, prevPath));
+      } catch (_) {
+        // ignore if old file missing or already deleted
+      }
+    }
 
     return { url, path };
   } catch (err) {
@@ -64,6 +83,6 @@ export async function deleteUserFile(path) {
     const fileRef = ref(storage, path);
     await deleteObject(fileRef);
   } catch (err) {
-    console.warn('[deleteUserFile]', err.message);
+    console.warn('[deleteUserFile]', err?.message || err);
   }
 }

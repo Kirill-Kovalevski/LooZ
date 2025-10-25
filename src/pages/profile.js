@@ -1,6 +1,9 @@
 // /src/pages/profile.js
 // Profile page with safe output + validated uploads.
 
+import { db, auth } from '../core/firebase.js';
+import { doc, getDoc } from 'firebase/firestore';
+
 import { getUser } from '../services/auth.service.js';
 import { uploadUserImage, assertImageAcceptable } from '../services/storage.service.js';
 import { saveUserProfile } from '../services/firestore.service.js';
@@ -11,7 +14,6 @@ import {
   permaDelete, addEvent
 } from '../utils/events.js';
 import { getSocialActivity } from '../pages/social.js';
-import { auth } from '../core/firebase.js'; // needed for upload context
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -27,6 +29,44 @@ const K = {
   FOLLOWING:   'profile.following',
   IS_FOLLOW:   'profile.is_followed',
 };
+
+/* ---------- per-user localStorage helpers ---------- */
+const LS_PREFIX = 'looz';
+const curUid = () => {
+  try { return getUser?.()?.uid || 'guest'; } catch { return 'guest'; }
+};
+const keyScoped = (k) => `${LS_PREFIX}:${curUid()}:${k}`;
+
+const lsGet = (k) => localStorage.getItem(keyScoped(k));
+const lsSet = (k, v) => localStorage.setItem(keyScoped(k), v ?? '');
+const lsDel = (k) => localStorage.removeItem(keyScoped(k));
+
+/**
+ * Load the profile document from Firestore and mirror to per-user LS.
+ * This ensures the correct avatar/cover appear after refresh or account switch.
+ */
+async function hydrateProfileFromFirestore() {
+  const uid = curUid();
+  if (!uid || uid === 'guest') return;
+
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!snap.exists()) return;
+    const d = snap.data() || {};
+
+    if (d.avatarUrl)  lsSet(K.AVATAR, d.avatarUrl);
+    if (d.avatarPath) lsSet(K.AVATAR_PATH, d.avatarPath);
+    if (d.coverUrl)   lsSet(K.COVER, d.coverUrl);
+    if (d.coverPath)  lsSet(K.COVER_PATH, d.coverPath);
+    if (d.firstName)  lsSet(K.NAME, d.firstName);
+    if (d.lastName)   lsSet(K.SUR, d.lastName);
+    if (d.profile?.handle) lsSet(K.HANDLE, d.profile.handle);
+    if (Number.isFinite(d.followers)) lsSet(K.FOLLOWERS, String(d.followers));
+    if (Number.isFinite(d.following)) lsSet(K.FOLLOWING, String(d.following));
+  } catch (e) {
+    console.warn('[profile] hydrateProfileFromFirestore failed', e);
+  }
+}
 
 const EVENTS_CHANGED = 'events-changed';
 const STATS_CHANGED  = 'stats-changed';
@@ -299,22 +339,16 @@ function socialActivityHTML(){
 
 /* ===================== Page header ===================== */
 function headerHTML(mode='done'){
-  if (localStorage.getItem(K.FOLLOWERS) == null) localStorage.setItem(K.FOLLOWERS, '0');
-  if (localStorage.getItem(K.FOLLOWING) == null) localStorage.setItem(K.FOLLOWING, '0');
+  const cover   = lsGet(K.COVER)  || '';
+  const avatar  = lsGet(K.AVATAR) || '';
+  const isOn    = (lsGet(K.IS_FOLLOW) || '0') === '1';
 
-  const cover   = localStorage.getItem(K.COVER)  || '';
-  const avatar  = localStorage.getItem(K.AVATAR) || '';
-  const isOn    = (localStorage.getItem(K.IS_FOLLOW) || '0') === '1';
-
-  const fullName = () => {
-    const f = escapeHTML(localStorage.getItem(K.NAME) || 'אורח');
-    const l = escapeHTML(localStorage.getItem(K.SUR)  || '');
-    return l ? `${f} ${l}` : f;
-  };
-  const handle = () => escapeHTML(localStorage.getItem(K.HANDLE) || '@looz_user');
+  const f = escapeHTML(lsGet(K.NAME) || 'אורח');
+  const l = escapeHTML(lsGet(K.SUR)  || '');
+  const fullName = () => (f + (l ? ` ${l}` : ''));
+  const handle = () => escapeHTML(lsGet(K.HANDLE) || '@looz_user');
 
   const stats = getStats();
-
   const coverStyle = cover ? `--cover:url(${cssUrlSafe(bust(cover))})` : '';
 
   return `
@@ -353,8 +387,8 @@ function headerHTML(mode='done'){
       </div>
 
       <div class="pp-counters" role="group" aria-label="מונה">
-        <div class="pp-count"><b id="ppFollowers">${Number(localStorage.getItem(K.FOLLOWERS) || '0')}</b><span>עוקבים</span></div>
-        <div class="pp-count"><b id="ppFollowing">${Number(localStorage.getItem(K.FOLLOWING) || '0')}</b><span>נעקבים</span></div>
+        <div class="pp-count"><b id="ppFollowers">${Number(lsGet(K.FOLLOWERS) || '0')}</b><span>עוקבים</span></div>
+        <div class="pp-count"><b id="ppFollowing">${Number(lsGet(K.FOLLOWING) || '0')}</b><span>נעקבים</span></div>
         <div class="pp-count"><b>${stats.total}</b><span>משימות</span></div>
       </div>
     </section>
@@ -368,8 +402,9 @@ function headerHTML(mode='done'){
   `;
 }
 
-// ===================== wiring =====================
-export function mount(root){
+/* ===================== wiring ===================== */
+export async function mount(root){
+  await hydrateProfileFromFirestore();   // <— make sure current user's data fills LS
   const target = root || document.getElementById('app') || document.body;
   target.innerHTML = headerHTML('done');
   wire(target, 'done');
@@ -405,16 +440,16 @@ function wire(root, mode='done'){
       const downscaled = await downscaleImage(file, 1600);
 
       if (user) {
-        const prev = localStorage.getItem('profile.coverPath') || undefined;
+        const prev = lsGet(K.COVER_PATH) || undefined;
         const { url, path } = await uploadUserImage(user.uid, 'cover', downscaled, prev);
-        localStorage.setItem('profile.cover', url);
-        localStorage.setItem('profile.coverPath', path);
+        lsSet(K.COVER, url);
+        lsSet(K.COVER_PATH, path);
         await saveUserProfile?.(user.uid, { coverUrl: url, coverPath: path });
         root.querySelector('.pp-cover')?.setAttribute('style', `--cover:url(${cssUrlSafe(bust(url))})`);
       } else {
         // guest fallback
         const dataUrl = await fileToDataURL(downscaled);
-        localStorage.setItem('profile.cover', dataUrl);
+        lsSet(K.COVER, dataUrl);
         root.querySelector('.pp-cover')?.setAttribute('style', `--cover:url(${cssUrlSafe(bust(dataUrl))})`);
       }
     } catch (err) {
@@ -435,16 +470,16 @@ function wire(root, mode='done'){
       const downscaled = await downscaleImage(file, 800);
 
       if (user) {
-        const prev = localStorage.getItem('profile.avatarPath') || undefined;
+        const prev = lsGet(K.AVATAR_PATH) || undefined;
         const { url, path } = await uploadUserImage(user.uid, 'avatar', downscaled, prev);
-        localStorage.setItem('profile.avatar', url);
-        localStorage.setItem('profile.avatarPath', path);
+        lsSet(K.AVATAR, url);
+        lsSet(K.AVATAR_PATH, path);
         await saveUserProfile?.(user.uid, { avatarUrl: url, avatarPath: path });
         root.querySelector('.pp-avatar__img')?.setAttribute('src', bust(url));
       } else {
         // guest fallback
         const dataUrl = await fileToDataURL(downscaled);
-        localStorage.setItem('profile.avatar', dataUrl);
+        lsSet(K.AVATAR, dataUrl);
         root.querySelector('.pp-avatar__img')?.setAttribute('src', bust(dataUrl));
       }
     } catch (err) {
@@ -541,23 +576,24 @@ function wire(root, mode='done'){
     }
   });
 
-  // follow
+  // follow (scoped per user)
   const $followBtn = root.querySelector('[data-act="follow"]');
   const $followers = root.querySelector('#ppFollowers');
   if ($followBtn && $followers){
     const paint = () => {
-      const on = (localStorage.getItem(K.IS_FOLLOW) || '0') === '1';
+      const on = (lsGet(K.IS_FOLLOW) || '0') === '1';
       $followBtn.classList.toggle('is-on', on);
       $followBtn.textContent = on ? 'עוקב ✓' : 'עקוב';
     };
     paint();
 
     $followBtn.addEventListener('click', () => {
-      const was = (localStorage.getItem(K.IS_FOLLOW) || '0') === '1';
-      localStorage.setItem(K.IS_FOLLOW, was ? '0' : '1');
-      const cur  = Number(localStorage.getItem(K.FOLLOWERS) || '0');
+      const was = (lsGet(K.IS_FOLLOW) || '0') === '1';
+      lsSet(K.IS_FOLLOW, was ? '0' : '1');
+
+      const cur  = Number(lsGet(K.FOLLOWERS) || '0');
       const next = was ? Math.max(0, cur - 1) : cur + 1;
-      localStorage.setItem(K.FOLLOWERS, String(next));
+      lsSet(K.FOLLOWERS, String(next));
       $followers.textContent = String(next);
       paint();
     });

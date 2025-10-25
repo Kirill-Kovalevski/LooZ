@@ -1,6 +1,11 @@
 // /src/core/firebase.js
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  GoogleAuthProvider,
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
@@ -8,26 +13,27 @@ const cfg = {
   apiKey:            import.meta.env.VITE_FB_API_KEY,
   authDomain:        import.meta.env.VITE_FB_AUTH_DOMAIN,
   projectId:         import.meta.env.VITE_FB_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FB_STORAGE_BUCKET,
+  // IMPORTANT: must match your bucket exactly as shown in Firebase Storage
+  storageBucket:     import.meta.env.VITE_FB_STORAGE_BUCKET, // e.g. looz-11581.firebasestorage.app
   messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
   appId:             import.meta.env.VITE_FB_APP_ID,
+  measurementId:     import.meta.env.VITE_FB_MEASUREMENT_ID,
 };
 
-function normalizeBucket(bucket, projectId) {
-  if (!bucket && projectId) return `${projectId}.appspot.com`;
-  if (/\.firebasestorage\.app$/i.test(bucket)) {
-    const id = bucket.replace(/\.firebasestorage\.app$/i, '');
-    return `${id}.appspot.com`;
-  }
-  return bucket;
+// sanity check in dev
+if (import.meta.env.DEV && Object.values(cfg).some(v => !v)) {
+  // eslint-disable-next-line no-console
+  console.error('[Firebase] Missing env vars — check .env.local', cfg);
 }
-cfg.storageBucket = normalizeBucket(cfg.storageBucket, cfg.projectId);
 
-const app = getApps().length ? getApps()[0] : initializeApp(cfg);
-const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence).catch(() => {});
-const db = getFirestore(app);
-const storage = getStorage(app, `gs://${cfg.storageBucket}`);
+export const app     = initializeApp(cfg);
+export const auth    = getAuth(app);
+export const db      = getFirestore(app);
+export const storage = getStorage(app);
 
-export { app, auth, db, storage };
-export default { app, auth, db, storage };
+// persist auth between reloads
+setPersistence(auth, browserLocalPersistence);
+
+// Google provider (popup first, redirect fallback handled in login.js)
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
