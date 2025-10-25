@@ -1,8 +1,13 @@
 [
   {
-    "origin": ["http://localhost:5173", "https://looz-11581.web.app", "https://looz-11581.firebaseapp.com"],
-    "method": ["GET", "POST", "PUT", "HEAD", "DELETE"],
-    "maxAgeSeconds": 3600,
-    "responseHeader": ["Content-Type", "x-goog-meta-*", "Authorization"]
+    "origin": [
+      "http://localhost:5173",
+      "https://kirill-kovalevski.github.io",
+      "https://looz-11581.web.app",
+      "https://looz-11581.firebaseapp.com"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "responseHeader": ["Content-Type", "x-goog-meta-*", "Authorization"],
+    "maxAgeSeconds": 3600
   }
 ]
