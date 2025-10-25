@@ -27,6 +27,8 @@
 @use './components/category';
 
 /* 5) Views (page-level styles) */
+@use './views/_login.scss';
+
 @use './views/home';
 @use './views/day';
 @use './views/week';
@@ -35,6 +37,7 @@
 @use './views/profile'; /* ← NEW: profile page styles */
 @use './views/categories';
 @use './views/social';
+
 
 @use './scss/effects';
 /* 6) Dark-mode overrides (keep LAST so it wins the cascade) */

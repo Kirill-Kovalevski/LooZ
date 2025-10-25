@@ -1,3 +1,8 @@
+import './core/firebase.js';  // initializes Firebase once
+import { initAuthWatcher } from './utils/authWatcher.js';
+
+initAuthWatcher();
+
 import './styles/main.scss';
 import { mount as mountHome } from './pages/home.js';
 import { startRouter } from './router.js';   // <- single router

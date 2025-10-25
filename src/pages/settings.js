@@ -4,7 +4,10 @@
 
 import { getSmallLogo } from '../utils/logo.js';
 import { setTheme, getTheme } from '../utils/theme.js';
+import { getUser, signOutUser } from '../services/auth.service.js';
 
+import logoLight from '../icons/main-logo.png';
+import logoDark  from '../icons/dark-logo.png';
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -162,8 +165,7 @@ function template(){
       <button class="navbtn" data-act="back" aria-label="חזרה">‹</button>
       <h1 class="title">הגדרות</h1>
       <button class="looz-mini-btn" data-act="home" aria-label="עמוד ראשי">
-        <img class="looz-mini" src="${getSmallLogo()}" alt="LooZ" />
-
+        <img class="looz-mini" src="${logoLight}" alt="LooZ" />
       </button>
     </header>
 
@@ -253,9 +255,18 @@ function template(){
 
     <!-- LOGOUT -->
     <section class="group group--footer">
-      <button class="logout" data-act="logout" aria-label="התנתקות">
-        ${I.logout}
-      </button>
+      <div class="row row--stack">
+        <div class="row__title" style="font-weight:800">
+          ${(() => {
+            const u = getUser?.();
+            const name = u?.displayName || u?.email || 'משתמש';
+            return `מחובר כעת: <span style="opacity:.8">${name}</span>`;
+          })()}
+        </div>
+        <button class="logout" data-act="logout" aria-label="התנתקות">
+          ${I.logout} &nbsp; התנתקות מהחשבון
+        </button>
+      </div>
     </section>
 
     <div class="bottom-space"></div>
@@ -314,10 +325,15 @@ function wire(root){
     mount(app);
   });
 
-  // logout
-  $("[data-act='logout']", root)?.addEventListener("click", ()=>{
-    try { localStorage.removeItem("authUser"); localStorage.removeItem("auth.user"); } catch {}
-    location.replace("auth.html");
+  // logout (Firebase)
+  $("[data-act='logout']", root)?.addEventListener("click", async ()=>{
+    try {
+      await signOutUser();                                 // real Firebase sign-out
+      sessionStorage.removeItem('looz.postLoginRedirect'); // cleanup
+      location.hash = '#/login';                           // go to login screen
+    } catch (e) {
+      alert(e?.message || 'שגיאה בהתנתקות');
+    }
   });
 
   // theme manual toggle

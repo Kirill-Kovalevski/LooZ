@@ -1,33 +1,62 @@
 // /src/pages/profile.js
-// Profile (RTL, iPhone 12+). Live graph (last 7 days) + archives.
-// NEW: Social activity lists (liked/commented posts) without a graph.
+// Profile page with safe output + validated uploads.
 
+import { getUser } from '../services/auth.service.js';
+import { uploadUserImage, assertImageAcceptable } from '../services/storage.service.js';
+import { saveUserProfile } from '../services/firestore.service.js';
+import { escapeHTML, bust, cssUrlSafe } from '../utils/sanitize.js';
 import profileLogo from '../icons/profile-logo.png';
 import {
   _getAllActive, _getAllDone, _getAllRemoved,
   permaDelete, addEvent
 } from '../utils/events.js';
-import { getSocialActivity } from '../pages/social.js';   // <-- social activity
+import { getSocialActivity } from '../pages/social.js';
+import { auth } from '../core/firebase.js'; // needed for upload context
 
 const $ = (s, r = document) => r.querySelector(s);
 
 const K = {
-  AVATAR:     'profile.avatar',
-  COVER:      'profile.cover',
-  NAME:       'firstName',
-  SUR:        'lastName',
-  HANDLE:     'profile.handle',
-  FOLLOWERS:  'profile.followers',
-  FOLLOWING:  'profile.following',
-  IS_FOLLOW:  'profile.is_followed',
+  AVATAR:      'profile.avatar',
+  AVATAR_PATH: 'profile.avatarPath',
+  COVER:       'profile.cover',
+  COVER_PATH:  'profile.coverPath',
+  NAME:        'firstName',
+  SUR:         'lastName',
+  HANDLE:      'profile.handle',
+  FOLLOWERS:   'profile.followers',
+  FOLLOWING:   'profile.following',
+  IS_FOLLOW:   'profile.is_followed',
 };
 
 const EVENTS_CHANGED = 'events-changed';
 const STATS_CHANGED  = 'stats-changed';
 
-const esc  = v => (window.CSS && CSS.escape ? CSS.escape(v) : String(v));
+const escCSS = v => (window.CSS && CSS.escape ? CSS.escape(v) : String(v));
 const pad2 = n => String(n).padStart(2,'0');
 const keyOf = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+
+/* ---------- image helpers ---------- */
+async function downscaleImage(file, max = 1400) {
+  if (!file || !/^image\//.test(file.type)) return file;
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  if (scale === 1) return file;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bmp.width * scale);
+  canvas.height = Math.round(bmp.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
+  return blob || file;
+}
+function fileToDataURL(file){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+}
 
 /* ===================== 7-day stats ===================== */
 function getStats(){
@@ -64,7 +93,7 @@ function pathArea(series, w=296, h=120, pad=18){
   const step = (w - pad*2) / (series.length - 1);
   const y    = n => h - pad - (n / max) * (h - pad*2);
   let d = '';
-  series.forEach((s,i)=>{ d += `${i ? 'L' : 'M'} ${pad + i*step},${y(s.n)} `; });
+  series.forEach((s,i) => { d += `${i ? 'L' : 'M'} ${pad + i*step},${y(s.n)} `; });
   d += `L ${pad + (series.length-1)*step},${h - pad} L ${pad},${h - pad} Z`;
   return d;
 }
@@ -141,16 +170,16 @@ function sparklessCounters(stats){
 }
 
 function liRow(t, kind){
-  const time  = (t.time || '00:00').trim();
-  const title = (t.title || 'ללא כותרת').trim();
+  const time  = escapeHTML((t.time || '00:00').trim());
+  const title = escapeHTML((t.title || 'ללא כותרת').trim());
   const dim   = (kind === 'done') ? ' is-archived' : '';
   return `
     <li class="pp-taskli${dim}" dir="rtl">
       <span class="pp-time" dir="ltr">${time}</span>
       <span class="pp-title">${title}</span>
       <span class="pp-actions" dir="ltr">
-        <button class="pp-repeat"  title="חזור על המשימה" data-repeat data-id="${t.id}" data-kind="${kind}" aria-label="חזור">↻</button>
-        <button class="pp-delperm" title="מחק לצמיתות"    data-delperm data-id="${t.id}" data-kind="${kind}" aria-label="מחק">🗑</button>
+        <button class="pp-repeat"  title="חזור על המשימה" data-repeat data-id="${String(t.id)}" data-kind="${kind}" aria-label="חזור">↻</button>
+        <button class="pp-delperm" title="מחק לצמיתות"    data-delperm data-id="${String(t.id)}" data-kind="${kind}" aria-label="מחק">🗑</button>
       </span>
     </li>
   `;
@@ -173,7 +202,7 @@ function dateSection(dateKey, arr, kind){
   return `
     <details class="pp-dsec" dir="rtl">
       <summary class="pp-dsum">
-        <span class="pp-dlabel" dir="ltr">${nice}</span>
+        <span class="pp-dlabel" dir="ltr">${escapeHTML(nice)}</span>
         <span class="pp-dcount">(${arr.length})</span>
       </summary>
       <ul class="pp-list">
@@ -244,10 +273,10 @@ function socialActivityHTML(){
 
   const row = (entry, isComment=false) => {
     const p = map.get(entry.postId);
-    const title = p?.title || p?.text || 'ללא כותרת';
-    const time  = entry.time || '00:00';
-    const date  = entry.dateKey || '';
-    const extra = isComment ? `<span class="pp-note">“${(entry.text||'').slice(0,60)}”</span>` : '';
+    const title = escapeHTML(p?.title || p?.text || 'ללא כותרת');
+    const time  = escapeHTML(entry.time || '00:00');
+    const date  = escapeHTML(entry.dateKey || '');
+    const extra = isComment ? `<span class="pp-note">“${escapeHTML((entry.text||'').slice(0,60))}”</span>` : '';
     return `<li class="pp-actli"><span class="pp-time" dir="ltr">${time}</span><span class="pp-title">${title}</span>${extra}<span class="pp-date" dir="ltr">${date}</span></li>`;
   };
 
@@ -270,7 +299,6 @@ function socialActivityHTML(){
 
 /* ===================== Page header ===================== */
 function headerHTML(mode='done'){
-  // counters exist
   if (localStorage.getItem(K.FOLLOWERS) == null) localStorage.setItem(K.FOLLOWERS, '0');
   if (localStorage.getItem(K.FOLLOWING) == null) localStorage.setItem(K.FOLLOWING, '0');
 
@@ -279,13 +307,15 @@ function headerHTML(mode='done'){
   const isOn    = (localStorage.getItem(K.IS_FOLLOW) || '0') === '1';
 
   const fullName = () => {
-    const f = localStorage.getItem(K.NAME) || 'אורח';
-    const l = localStorage.getItem(K.SUR)  || '';
+    const f = escapeHTML(localStorage.getItem(K.NAME) || 'אורח');
+    const l = escapeHTML(localStorage.getItem(K.SUR)  || '');
     return l ? `${f} ${l}` : f;
   };
-  const handle = () => localStorage.getItem(K.HANDLE) || '@looz_user';
+  const handle = () => escapeHTML(localStorage.getItem(K.HANDLE) || '@looz_user');
 
   const stats = getStats();
+
+  const coverStyle = cover ? `--cover:url(${cssUrlSafe(bust(cover))})` : '';
 
   return `
   <main class="profile-page o-wrap" dir="rtl">
@@ -297,7 +327,7 @@ function headerHTML(mode='done'){
       </button>
     </header>
 
-    <section class="pp-cover" style="${cover ? `--cover:url(${esc(cover)})` : ''}">
+    <section class="pp-cover" style="${coverStyle}">
       <input id="ppCoverInput" type="file" accept="image/*" hidden>
       <button class="pp-editbtn pp-editbtn--cover" type="button" data-edit="cover" aria-label="החלפת תמונת רקע">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l1-2Zm3 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" fill="currentColor"/></svg>
@@ -306,7 +336,7 @@ function headerHTML(mode='done'){
 
     <section class="pp-card pp-head">
       <div class="pp-avatar">
-        <img class="pp-avatar__img" src="${avatar}" alt="">
+        <img class="pp-avatar__img" src="${bust(avatar || '')}" alt="">
         <input id="ppAvatarInput" type="file" accept="image/*" hidden>
         <button class="pp-editbtn pp-editbtn--avatar" type="button" data-edit="avatar" aria-label="החלפת תמונת פרופיל">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l1-2Zm3 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" fill="currentColor"/></svg>
@@ -338,58 +368,94 @@ function headerHTML(mode='done'){
   `;
 }
 
-/* ===================== wiring ===================== */
-function fileToDataURL(file){
-  return new Promise((res, rej) => {
-    const fr = new FileReader();
-    fr.onload = () => res(fr.result);
-    fr.onerror = rej;
-    fr.readAsDataURL(file);
-  });
-}
-
+// ===================== wiring =====================
 export function mount(root){
   const target = root || document.getElementById('app') || document.body;
   target.innerHTML = headerHTML('done');
-  wire(target, 'done');  // initial graph mode
+  wire(target, 'done');
 }
 export default { mount };
 
 function wire(root, mode='done'){
   document.body.setAttribute('data-view', 'profile');
 
-  // hide global CTA on this page
   document.querySelectorAll('.c-bottom-cta, .c-cta, .btn-create-orb')
     .forEach(el => el.style.display = 'none');
 
-  // nav
   $('[data-act="back"]', root)?.addEventListener('click', () => history.back());
   $('[data-act="home"]', root)?.addEventListener('click', async () => {
     const { mount } = await import('./home.js');
     mount(document.getElementById('app'));
   });
 
-  // uploads
   root.querySelector('[data-edit="cover"]')?.addEventListener('click', () =>
     $('#ppCoverInput', root)?.click()
   );
   root.querySelector('[data-edit="avatar"]')?.addEventListener('click', () =>
     $('#ppAvatarInput', root)?.click()
   );
+
+  // ===================== COVER upload =====================
   $('#ppCoverInput', root)?.addEventListener('change', async e => {
-    const f = e.target.files?.[0]; if (!f) return;
-    const data = await fileToDataURL(f);
-    localStorage.setItem(K.COVER, data);
-    root.querySelector('.pp-cover')?.setAttribute('style', `--cover:url(${esc(data)})`);
-  });
-  $('#ppAvatarInput', root)?.addEventListener('change', async e => {
-    const f = e.target.files?.[0]; if (!f) return;
-    const data = await fileToDataURL(f);
-    localStorage.setItem(K.AVATAR, data);
-    root.querySelector('.pp-avatar__img')?.setAttribute('src', data);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      assertImageAcceptable(file, 'cover');
+      const user = auth.currentUser;
+      const downscaled = await downscaleImage(file, 1600);
+
+      if (user) {
+        const prev = localStorage.getItem('profile.coverPath') || undefined;
+        const { url, path } = await uploadUserImage(user.uid, 'cover', downscaled, prev);
+        localStorage.setItem('profile.cover', url);
+        localStorage.setItem('profile.coverPath', path);
+        await saveUserProfile?.(user.uid, { coverUrl: url, coverPath: path });
+        root.querySelector('.pp-cover')?.setAttribute('style', `--cover:url(${cssUrlSafe(bust(url))})`);
+      } else {
+        // guest fallback
+        const dataUrl = await fileToDataURL(downscaled);
+        localStorage.setItem('profile.cover', dataUrl);
+        root.querySelector('.pp-cover')?.setAttribute('style', `--cover:url(${cssUrlSafe(bust(dataUrl))})`);
+      }
+    } catch (err) {
+      console.error('cover upload failed:', err);
+      alert('שגיאה בהעלאת תמונת רקע');
+    } finally {
+      e.target.value = '';
+    }
   });
 
-  /* ---------- graph ---------- */
+  // ===================== AVATAR upload =====================
+  $('#ppAvatarInput', root)?.addEventListener('change', async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      assertImageAcceptable(file, 'avatar');
+      const user = auth.currentUser;
+      const downscaled = await downscaleImage(file, 800);
+
+      if (user) {
+        const prev = localStorage.getItem('profile.avatarPath') || undefined;
+        const { url, path } = await uploadUserImage(user.uid, 'avatar', downscaled, prev);
+        localStorage.setItem('profile.avatar', url);
+        localStorage.setItem('profile.avatarPath', path);
+        await saveUserProfile?.(user.uid, { avatarUrl: url, avatarPath: path });
+        root.querySelector('.pp-avatar__img')?.setAttribute('src', bust(url));
+      } else {
+        // guest fallback
+        const dataUrl = await fileToDataURL(downscaled);
+        localStorage.setItem('profile.avatar', dataUrl);
+        root.querySelector('.pp-avatar__img')?.setAttribute('src', bust(dataUrl));
+      }
+    } catch (err) {
+      console.error('avatar upload failed:', err);
+      alert('שגיאה בהעלאת תמונת פרופיל');
+    } finally {
+      e.target.value = '';
+    }
+  });
+
+  // graph
   const paintGraph = (m) => {
     const stats = getStats();
     const slot  = root.querySelector('#ppGraphSlot');
@@ -397,7 +463,7 @@ function wire(root, mode='done'){
   };
   paintGraph(mode);
 
-  /* ---------- toggles ---------- */
+  // toggles
   const toggles = [...root.querySelectorAll('.pp-arch-toggle')];
   const panels  = {
     done:    root.querySelector('.pp-arch[data-arch="done"]'),
@@ -405,7 +471,7 @@ function wire(root, mode='done'){
   };
   toggles.forEach(btn => {
     btn.addEventListener('click', () => {
-      const name = btn.getAttribute('data-toggle'); // done|removed
+      const name = btn.getAttribute('data-toggle');
       toggles.forEach(b => b.classList.toggle('is-active', b === btn));
       toggles.forEach(b => b.setAttribute('aria-selected', String(b === btn)));
       Object.entries(panels).forEach(([k, el]) => el?.toggleAttribute('hidden', k !== name));
@@ -413,11 +479,11 @@ function wire(root, mode='done'){
     });
   });
 
-  /* ---------- quick range ---------- */
+  // quick range
   root.querySelectorAll('.pp-range').forEach(chip => {
     chip.addEventListener('click', () => {
       root.querySelectorAll('.pp-range').forEach(c => c.classList.toggle('is-active', c === chip));
-      const range = chip.getAttribute('data-range'); // today|yesterday|7d|30d
+      const range = chip.getAttribute('data-range');
 
       const dayStart = (dt) => new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
       const now = new Date(), t0 = dayStart(now);
@@ -444,15 +510,14 @@ function wire(root, mode='done'){
     });
   });
 
-  /* ---------- archive actions ---------- */
+  // archive actions
   root.addEventListener('click', (e)=>{
     const del = e.target.closest('[data-delperm]');
     const rep = e.target.closest('[data-repeat]');
     if (!del && !rep) return;
 
     const id   = (del||rep).getAttribute('data-id');
-    const kind = (del||rep).getAttribute('data-kind'); // 'done'|'removed'
-    if (!id) return;
+    const kind = (del||rep).getAttribute('data-kind');
 
     if (del) {
       if (!confirm('למחוק לצמיתות? אי אפשר לבטל.')) return;
@@ -476,7 +541,7 @@ function wire(root, mode='done'){
     }
   });
 
-  /* ---------- follow ---------- */
+  // follow
   const $followBtn = root.querySelector('[data-act="follow"]');
   const $followers = root.querySelector('#ppFollowers');
   if ($followBtn && $followers){
@@ -498,7 +563,7 @@ function wire(root, mode='done'){
     });
   }
 
-  /* ---------- live refresh ---------- */
+  // live refresh
   const refreshAll = ()=>{
     const app = document.getElementById('app');
     const modeNow = root.querySelector('.pp-arch-toggle.is-active')?.getAttribute('data-toggle') || 'done';

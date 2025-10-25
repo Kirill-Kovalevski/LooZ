@@ -10,7 +10,8 @@ const ICONS = {
   sport:     '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M13 5a2 2 0 1 1 2 2l-1.3 3.25 3.18 2.2A2 2 0 0 1 18 14.5V19h-2v-3.93l-3.2-2.2-1.3 3.28L9 16l1.7-4.28L9 10V8l3 .5z"/></svg>',
   food:      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 2v11a3 3 0 1 0 2 0V2H7Zm8 0v8h-2v10h2V13h2V2h-2Z"/></svg>',
   culture:   '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M2 10l10-6 10 6-10 6-10-6Zm0 4 10 6 10-6v4l-10 6L2 18v-4Z"/></svg>',
-  learn:     '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3l10 5-10 5L2 8l10-5Zm-7 9v5ל7 4 7-4v-5l-7 4-7-4Z"/></svg>',
+  // FIXED: valid multi-path cap icon (was broken before)
+  learn:     '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 2 8l10 5 10-5-10-5Z"/><path fill="currentColor" d="M4 12v5l8 4 8-4v-5l-8 4-8-4Z"/></svg>',
   relax:     '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 12h16v8H4zM9 4h6l1 6H8z"/></svg>',
   create:    '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm14.71-9.04a1 1 0 0 0 0-1.41l-1.5-1.5a1 1 0 0 0-1.41 0l-1.13 1.13 3.75 3.75 1.29-1.47Z"/></svg>',
   indoor:    '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 10l8-6 8 6v10H4V10Zm10 6h4v-6H6v6h4v-4h4v4Z"/></svg>',

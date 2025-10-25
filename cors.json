@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:5173", "https://looz-11581.web.app", "https://looz-11581.firebaseapp.com"],
+    "method": ["GET", "POST", "PUT", "HEAD", "DELETE"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "x-goog-meta-*", "Authorization"]
+  }
+]

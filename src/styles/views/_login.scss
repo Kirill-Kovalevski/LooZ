@@ -1,0 +1,78 @@
+.p-login{ min-block-size:80vh; display:grid; place-items:center; padding:20px 16px; }
+.p-login__card{
+  inline-size:min(420px,100%); background:var(--chrome-bg); border:1px solid var(--chrome-border);
+  border-radius:24px; padding:22px; box-shadow:var(--chrome-shadow);
+}
+.p-login__hdr{ text-align:center; margin-bottom:10px;
+  h1{ margin:0; font:900 22px/1 'Rubik',system-ui; }
+  .p-login__sub{ margin:.4rem 0 0; color:#64748b; font:600 14px/1.3 'Rubik',system-ui; }
+  :is(html,body).is-dark & .p-login__sub{ color:#b4c5ff; }
+}
+.p-act{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  inline-size:100%; min-block-size:46px; border-radius:999px;
+  border:1px solid #e5edff; background:#fff; color:#0f172a;
+  font:800 15px/1 'Rubik',system-ui; cursor:pointer; box-shadow:var(--btn-shadow-rest);
+}
+.p-act--apple{ background:#111; color:#fff; border-color:#111; opacity:.85; }
+.p-act--apple[disabled]{ cursor:not-allowed; opacity:.55; }
+.p-act--google{ background:#fff; }
+.p-act--primary{
+  background:#2b77ff; color:#fff; border-color:#2b77ff;
+  box-shadow:0 8px 22px rgba(43,119,255,.35);
+}
+
+.p-sep{ display:grid; place-items:center; margin:10px 0;
+  span{ font:700 12px/1 'Rubik'; color:#94a3b8; background:var(--chrome-bg); padding:0 8px; position:relative; z-index:1; }
+  &::before{ content:""; inline-size:100%; block-size:1px; background:#e5edff; position:relative; top:8px; }
+}
+.p-login__form{ display:grid; gap:10px; margin-top:6px; }
+.p-field{ display:grid; gap:6px; }
+.p-lbl{ font:700 13px/1 'Rubik'; color:#475569; }
+.p-field input{
+  inline-size:100%; block-size:44px; border-radius:12px;
+  border:1px solid #e2e8f0; background:#fff; padding-inline:12px; text-align:right;
+  font:600 14px/1 'Rubik'; color:#0f172a;
+}
+:is(html,body).is-dark .p-field input{ background:#0b1222; border-color:#2a3552; color:#e6edff; }
+.p-login__actions{ display:flex; gap:8px; margin-top:4px; }
+.p-dact{ inline-size:40%; background:#fff; border:1px solid #e5edff; font:800 14px/1 'Rubik'; }
+.p-err{ min-block-size:1.2em; color:#d9534f; font:700 13px/1.3 'Rubik'; text-align:center; margin-top:6px; }
+.p-login__ftr{ display:grid; place-items:center; margin-top:6px; }
+.p-link{ background:none; border:0; color:#64748b; font:700 13px/1 'Rubik'; text-decoration:underline; cursor:pointer; }
+/* /src/styles/login.css */
+.auth { min-height: 100dvh; display:grid; place-items:center;
+  background: radial-gradient(1200px 600px at 80% -20%, #e7f2ff 10%, transparent 60%),
+              radial-gradient(1000px 500px at -10% 110%, #ecfdf5 10%, transparent 65%),
+              #f7f9fc;
+  padding: 24px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+.auth-card { width:min(440px, 92vw); background:#fff; border-radius:24px; padding:28px;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, .08); }
+.auth-head { text-align:center; margin-bottom:16px; }
+.auth-logo { width:44px; height:44px; object-fit:contain; margin-bottom:8px; }
+.auth-title { margin:0; font-size:24px; font-weight:800; color:#0f172a; }
+.auth-sub { margin:6px 0 0; color:#64748b; font-size:14px; }
+
+.auth-form { display:grid; gap:12px; margin-top:12px; }
+.fld { display:grid; gap:8px; }
+.lbl { font-size:13px; color:#0f172a; font-weight:600; }
+.fld input { height:46px; border:1px solid #e2e8f0; border-radius:12px; padding:0 14px;
+  background:#f8fafc; outline:none; }
+.fld input:focus { border-color:#60a5fa; background:#fff; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+
+.chk { display:flex; align-items:center; gap:10px; color:#475569; font-size:13px; }
+
+.btn { height:46px; border-radius:12px; padding:0 16px; font-weight:700; border:0; cursor:pointer; }
+.btn-primary { background:#1d9bf0; color:#fff; }
+.btn-primary:hover { filter:brightness(.98); }
+.btn-ghost { background:#fff; border:1px solid #e2e8f0; }
+.btn-ghost:hover { background:#f8fafc; }
+
+.auth-or { display:flex; align-items:center; gap:10px; margin:14px 0; color:#94a3b8; font-size:12px; }
+.auth-or::before, .auth-or::after { content:""; flex:1; height:1px; background:#e2e8f0; }
+.auth-social { display:grid; grid-template-columns:1fr; gap:10px; }
+
+.auth-foot { text-align:center; margin-top:8px; }
+.link { background:none; border:0; color:#0ea5e9; font-weight:700; cursor:pointer; }
