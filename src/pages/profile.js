@@ -1,7 +1,9 @@
 // /src/pages/profile.js
 // Profile page with safe output + validated uploads.
 
-import { db, auth } from '../core/firebase.js';
+// /src/pages/profile.js
+import { auth, authReady, db } from '../core/firebase.js';  // <— bring in authReady too
+// (remove the separate `import { db } from '../core/firebase.js';` at the top)
 import { doc, getDoc } from 'firebase/firestore';
 
 import { getUser } from '../services/auth.service.js';
@@ -32,11 +34,9 @@ const K = {
 
 /* ---------- per-user localStorage helpers ---------- */
 const LS_PREFIX = 'looz';
-const curUid = () => {
-  try { return getUser?.()?.uid || 'guest'; } catch { return 'guest'; }
-};
+// ✅ Prefer the live Firebase user; fall back to your helper; finally 'guest'
+const curUid = () => auth.currentUser?.uid || (getUser?.() && getUser().uid) || 'guest';
 const keyScoped = (k) => `${LS_PREFIX}:${curUid()}:${k}`;
-
 const lsGet = (k) => localStorage.getItem(keyScoped(k));
 const lsSet = (k, v) => localStorage.setItem(keyScoped(k), v ?? '');
 const lsDel = (k) => localStorage.removeItem(keyScoped(k));
@@ -337,79 +337,86 @@ function socialActivityHTML(){
   `;
 }
 
-/* ===================== Page header ===================== */
 function headerHTML(mode='done'){
+  // Pull the latest (possibly hydrated) values *now*
   const cover   = lsGet(K.COVER)  || '';
   const avatar  = lsGet(K.AVATAR) || '';
   const isOn    = (lsGet(K.IS_FOLLOW) || '0') === '1';
 
   const f = escapeHTML(lsGet(K.NAME) || 'אורח');
   const l = escapeHTML(lsGet(K.SUR)  || '');
-  const fullName = () => (f + (l ? ` ${l}` : ''));
   const handle = () => escapeHTML(lsGet(K.HANDLE) || '@looz_user');
+  const fullName = () => [f,l].filter(Boolean).join(' ');
 
   const stats = getStats();
   const coverStyle = cover ? `--cover:url(${cssUrlSafe(bust(cover))})` : '';
 
   return `
-  <main class="profile-page o-wrap" dir="rtl">
-    <header class="topbar">
-      <button class="navbtn" data-act="back" aria-label="חזרה">‹</button>
-      <h1 class="title">פרופיל</h1>
-      <button class="looz-mini-btn" data-act="home" aria-label="עמוד ראשי">
-        <img class="looz-mini" src="${profileLogo}" alt="LooZ" />
-      </button>
-    </header>
+    <main class="profile-page o-wrap" dir="rtl">
+      <header class="topbar">
+        <button class="navbtn" data-act="back" aria-label="חזרה">‹</button>
+        <h1 class="title">פרופיל</h1>
+        <button class="looz-mini-btn" data-act="home" aria-label="עמוד ראשי">
+          <img class="looz-mini" src="${profileLogo}" alt="LooZ" />
+        </button>
+      </header>
 
-    <section class="pp-cover" style="${coverStyle}">
-      <input id="ppCoverInput" type="file" accept="image/*" hidden>
-      <button class="pp-editbtn pp-editbtn--cover" type="button" data-edit="cover" aria-label="החלפת תמונת רקע">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l1-2Zm3 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" fill="currentColor"/></svg>
-      </button>
-    </section>
-
-    <section class="pp-card pp-head">
-      <div class="pp-avatar">
-        <img class="pp-avatar__img" src="${bust(avatar || '')}" alt="">
-        <input id="ppAvatarInput" type="file" accept="image/*" hidden>
-        <button class="pp-editbtn pp-editbtn--avatar" type="button" data-edit="avatar" aria-label="החלפת תמונת פרופיל">
+      <section class="pp-cover" style="${coverStyle}">
+        <input id="ppCoverInput" type="file" accept="image/*" hidden>
+        <button class="pp-editbtn pp-editbtn--cover" type="button" data-edit="cover" aria-label="החלפת תמונת רקע">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l1-2Zm3 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" fill="currentColor"/></svg>
         </button>
-      </div>
+      </section>
 
-      <div class="pp-id">
-        <div class="pp-name">${fullName()}</div>
-        <div class="pp-handle">${handle()}</div>
-      </div>
+      <section class="pp-card pp-head">
+        <div class="pp-avatar">
+          <img class="pp-avatar__img" src="${bust(avatar || '')}" alt="">
+          <input id="ppAvatarInput" type="file" accept="image/*" hidden>
+          <button class="pp-editbtn pp-editbtn--avatar" type="button" data-edit="avatar" aria-label="החלפת תמונת פרופיל">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l1-2Zm3 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" fill="currentColor"/></svg>
+          </button>
+        </div>
 
-      <div class="pp-followrow">
-        <button class="pp-btn pp-btn--follow ${isOn ? 'is-on' : ''}" data-act="follow">${isOn ? 'עוקב ✓' : 'עקוב'}</button>
-      </div>
+        <div class="pp-id">
+          <div class="pp-name">${fullName()}</div>
+          <div class="pp-handle">${handle()}</div>
+        </div>
 
-      <div class="pp-counters" role="group" aria-label="מונה">
-        <div class="pp-count"><b id="ppFollowers">${Number(lsGet(K.FOLLOWERS) || '0')}</b><span>עוקבים</span></div>
-        <div class="pp-count"><b id="ppFollowing">${Number(lsGet(K.FOLLOWING) || '0')}</b><span>נעקבים</span></div>
-        <div class="pp-count"><b>${stats.total}</b><span>משימות</span></div>
-      </div>
-    </section>
+        <div class="pp-followrow">
+          <button class="pp-btn pp-btn--follow ${isOn ? 'is-on' : ''}" data-act="follow">${isOn ? 'עוקב ✓' : 'עקוב'}</button>
+        </div>
 
-    ${sparklessCounters(stats)}
-    ${archivesHTML('today')}
-    ${socialActivityHTML()}
+        <div class="pp-counters" role="group" aria-label="מונה">
+          <div class="pp-count"><b id="ppFollowers">${Number(localStorage.getItem(K.FOLLOWERS) || '0')}</b><span>עוקבים</span></div>
+          <div class="pp-count"><b id="ppFollowing">${Number(localStorage.getItem(K.FOLLOWING) || '0')}</b><span>נעקבים</span></div>
+          <div class="pp-count"><b>${getStats().total}</b><span>משימות</span></div>
+        </div>
+      </section>
 
-    <div class="pp-space"></div>
-  </main>
+      ${sparklessCounters(getStats())}
+      ${archivesHTML('today')}
+      ${socialActivityHTML()}
+
+      <div class="pp-space"></div>
+    </main>
   `;
 }
 
+
 /* ===================== wiring ===================== */
 export async function mount(root){
-  await hydrateProfileFromFirestore();   // <— make sure current user's data fills LS
+  // ✅ wait for the initial Firebase user
+  await authReady;
+
+  // ✅ pull the latest profile for that user into per-user localStorage
+  await hydrateProfileFromFirestore();
+
   const target = root || document.getElementById('app') || document.body;
   target.innerHTML = headerHTML('done');
   wire(target, 'done');
 }
 export default { mount };
+
 
 function wire(root, mode='done'){
   document.body.setAttribute('data-view', 'profile');
