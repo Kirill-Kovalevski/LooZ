@@ -1,1 +1,32 @@
 b, strong { font-weight: 800; }
+/* Global typography (Hebrew-friendly, stylish, readable) */
+
+/* Optional: Google Fonts (Hebrew-optimized). Safe to keep even if offline.
+   You can swap order if you prefer another as primary.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Rubik:wght@400;500;700;800&family=Assistant:wght@400;600;700&display=swap');
+
+:root{
+  --font-ui:
+    "Heebo", "Rubik", "Assistant", "Noto Sans Hebrew",
+    system-ui, -apple-system, "Segoe UI", "Roboto",
+    "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Smooth typography */
+  --tracking-tight: -0.01em;
+}
+
+html, body{
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: var(--tracking-tight);
+}
+
+h1,h2,h3,h4,h5,h6{ font-weight: 800; }
+b,strong{ font-weight: 800; }
+small{ opacity:.8 }
+code,kbd,pre,samp{ font-family: var(--font-mono); }

@@ -27,7 +27,7 @@
 @use './components/category';
 
 /* 5) Views (page-level styles) */
-@use './views/_login.scss';
+@use './views/login';
 
 @use './views/home';
 @use './views/day';

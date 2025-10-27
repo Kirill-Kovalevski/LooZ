@@ -70,24 +70,6 @@ const STATS_CHANGED  = 'stats-changed';
 
 const pad2 = n => String(n).padStart(2,'0');
 const keyOf = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-// Forces the cover to repaint from per-user LS
-function paintCoverFromLS(root) {
-  const url = lsGet(K.COVER) || '';
-  const $cover = root.querySelector('.pp-cover');
-  if (!$cover) return;
-
-  if (url) {
-    const painted = `url(${cssUrlSafe(bust(url))})`;
-    $cover.style.setProperty('--cover', painted);
-    // use explicit background-image to avoid relying on CSS fallback
-    $cover.style.backgroundImage = 'var(--cover)';
-  } else {
-    // clear custom cover and let your CSS fallback (gradient) show
-    $cover.style.removeProperty('--cover');
-    $cover.style.removeProperty('background-image');
-  }
-}
-
 
 /* ---------- image helpers ---------- */
 async function downscaleImage(file, max = 1400) {
@@ -213,7 +195,6 @@ function graphHTML(stats, mode = 'done') {
     </div>
   `;
 }
-
 
 /* ===================== Archive + header ===================== */
 function sparklessCounters(stats){
@@ -358,7 +339,7 @@ function socialActivityHTML(){
 }
 
 /* ===================== Page header ===================== */
-function headerHTML(mode='done'){
+function renderProfile(mode='done'){
   // Pull latest (possibly hydrated) values at render time
   const cover   = lsGet(K.COVER)  || '';
   const avatar  = lsGet(K.AVATAR) || '';
@@ -371,9 +352,8 @@ function headerHTML(mode='done'){
 
   const stats = getStats();
   const coverStyle = cover
-  ? `--cover:url(${cssUrlSafe(bust(cover))});background-image:var(--cover)`
-  : '';
-
+    ? `--cover:url(${cssUrlSafe(bust(cover))});background-image:var(--cover)`
+    : '';
 
   return `
     <main class="profile-page o-wrap" dir="rtl">
@@ -425,12 +405,8 @@ function headerHTML(mode='done'){
     </main>
   `;
 }
-function headerHTML(mode='done'){
-  // ...
-  return `...`;
-} // <-- headerHTML ends here
 
-// ADD THIS EXACTLY HERE ▼
+/* ===== Cover repaint helper (from LS; used on mount + after uploads) ===== */
 function paintCoverFromLS(root) {
   const url = lsGet(K.COVER) || '';
   const $cover = root.querySelector('.pp-cover');
@@ -445,6 +421,7 @@ function paintCoverFromLS(root) {
     $cover.style.removeProperty('background-image');
   }
 }
+
 /* ===================== wiring ===================== */
 export async function mount(root){
   // Wait for the initial Firebase user (fixes “guest” flash on refresh)
@@ -454,7 +431,7 @@ export async function mount(root){
   await hydrateProfileFromFirestore();
 
   const target = root || document.getElementById('app') || document.body;
-  target.innerHTML = headerHTML('done');
+  target.innerHTML = renderProfile('done');
 
   // Ensure the cover is painted immediately from LS
   paintCoverFromLS(target);
@@ -501,7 +478,7 @@ function wire(root, mode = 'done'){
         // Paint from LS (keeps behavior consistent & survives re-mounts)
         paintCoverFromLS(root);
       } else {
-        // guest fallback: store data URL per-user (guest scope) and paint
+        // guest fallback
         const dataUrl = await fileToDataURL(downscaled);
         lsSet(K.COVER, dataUrl);
         paintCoverFromLS(root);
@@ -652,13 +629,13 @@ function wire(root, mode = 'done'){
     });
   }
 
-    // ---------- live refresh ----------
+  // ---------- live refresh ----------
   const refreshAll = () => {
     const app = document.getElementById('app');
     const modeNow =
       root.querySelector('.pp-arch-toggle.is-active')?.getAttribute('data-toggle') || 'done';
 
-    app.innerHTML = headerHTML(modeNow);
+    app.innerHTML = renderProfile(modeNow);
 
     // Re-apply cover on every remount
     paintCoverFromLS(app);
@@ -668,4 +645,4 @@ function wire(root, mode = 'done'){
 
   document.addEventListener(EVENTS_CHANGED, refreshAll);
   document.addEventListener(STATS_CHANGED,  refreshAll);
-} // <-- end wire()
+} // end wire()
