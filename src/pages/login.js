@@ -1,239 +1,335 @@
 // /src/pages/login.js
-// LooZ — RTL login/register with CRISP switch-flip (card collision),
-// logo tilt, Google/Apple auth, and exact #e6edee background tone.
+// Auth screen with flip (login/register), RTL Hebrew, iPhone 12 Pro layout.
+// This version removes the white header pills and the footer gradient block.
 
 import { auth } from '../core/firebase.js';
-let S = null;
-try { S = await import('../services/auth.service.js'); } catch (_) {}
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  OAuthProvider,
+  signInWithPopup
+} from 'firebase/auth';
 
 import loginLogo from '../icons/login-logo.png';
 
 const $ = (s, r = document) => r.querySelector(s);
 
-export function mount(root = document.getElementById('app')) {
-  document.documentElement.setAttribute('dir', 'rtl');
-  document.body.setAttribute('data-view', 'login');
-
-  root.innerHTML = `
-  <section class="login-page">
-
-    <header class="lp-head">
-      <img class="lp-logo" id="loozLogo" src="${loginLogo}" alt="LooZ" />
+function screenHTML() {
+  return `
+  <main class="auth-screen" dir="rtl" data-mode="login" aria-live="polite">
+    <!-- brand -->
+    <header class="auth-header">
+      <button class="brandmark" aria-label="LooZ">
+        <img src="${loginLogo}" alt="LooZ" />
+      </button>
     </header>
 
-    <main class="lp-center">
-      <div class="lp-stage" id="stage" aria-live="polite">
-        <!-- Toggle -->
-        <div class="lp-toggle" role="tablist" aria-label="החלף מצב">
-          <button class="lp-toggle__btn is-on"  id="tglLogin"  role="tab" aria-selected="true">כניסה</button>
-          <button class="lp-toggle__btn"        id="tglSignup" role="tab" aria-selected="false">הרשמה</button>
-          <span class="lp-toggle__pill" aria-hidden="true"></span>
+    <!-- flip-card wrapper -->
+    <div class="auth-card">
+      <!-- LOGIN FACE -->
+      <section class="face face--login" aria-label="התחברות">
+        <div class="face-head">
+          <h1 class="face-title">התחברות</h1>
         </div>
 
-        <!-- Card stack -->
-        <article class="lp-cardstack" id="stack">
-          <!-- LOGIN -->
-          <section class="lp-pane is-active pane--login" id="paneLogin">
-            <h1 class="lp-title">כניסה</h1>
-            <form id="formLogin" autocomplete="on" novalidate>
-              <label class="lp-label" for="loginEmail">אימייל</label>
-              <input id="loginEmail" class="lp-input" type="email" inputmode="email" placeholder="name@email.com" required />
+        <form id="loginForm" class="auth-form" autocomplete="on" novalidate>
+          <!-- email -->
+          <div class="f-block">
+            <label class="f-label">
+              <span>דוא״ל</span>
+            </label>
+            <input
+              class="f-input"
+              type="email"
+              inputmode="email"
+              name="email"
+              placeholder="name@email.com"
+              required
+            />
+          </div>
 
-              <div class="lp-row">
-                <div class="lp-col"><label class="lp-label" for="loginPass">סיסמה</label></div>
-                <div class="lp-col lp-col--end"><button type="button" class="lp-linkbtn" id="btnForgot">שכחת סיסמה?</button></div>
-              </div>
-              <input id="loginPass" class="lp-input" type="password" placeholder="••••••••" minlength="6" required />
+          <!-- password -->
+          <div class="f-block">
+            <label class="f-label">
+              <span>סיסמה</span>
+              <button
+                class="forgot-link"
+                type="button"
+                aria-label="שכחתי סיסמה"
+              >שכחתי סיסמה</button>
+            </label>
+            <input
+              class="f-input"
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-              <button class="lp-cta lp-cta--primary" type="submit">כניסה</button>
+          <!-- buttons -->
+          <div class="btn-stack">
+            <button class="btn btn--main" type="submit">כניסה</button>
+            <button
+              id="btnToRegister"
+              class="btn btn--alt"
+              type="button"
+            >יצירת חשבון חדש</button>
+          </div>
 
-              <div class="lp-or" role="separator" aria-label="או">או</div>
-              <button class="lp-cta lp-cta--google" type="button" id="btnGoogleLogin">${googleSVG()} המשך עם Google</button>
-              <button class="lp-cta lp-cta--apple"  type="button" id="btnAppleLogin">${appleSVG()} המשך עם Apple</button>
-            </form>
-          </section>
+          <!-- social row -->
+          <div class="social-row" aria-label="התחברות עם ספק חיצוני">
+            <button
+              class="social-btn social-btn--google"
+              type="button"
+              aria-label="Google"
+              title="Google"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.66 4.1-5.5 4.1a6.4 6.4 0 1 1 0-12.8 5.7 5.7 0 0 1 4 1.6l2.7-2.7A9.5 9.5 0 1 0 12 21.5c5.5 0 9.2-3.9 9.2-9.4 0-.63-.07-1.1-.16-1.6H12Z"/>
+                <path fill="#4285F4" d="M3.2 7.3l3.2 2.3A6.4 6.4 0 0 1 12 5.4c1.7 0 3.2.6 4.4 1.6l2.6-2.6A9.5 9.5 0 0 0 12 2.5 9.4 9.4 0 0 0 3.2 7.3Z"/>
+                <path fill="#FBBC04" d="M12 21.5c2.6 0 4.9-.86 6.6-2.3l-2.9-2.2c-1 .7-2.3 1.1-3.7 1.1-2.9 0-5.3-2-6.1-4.6l-3.2 2.4A9.5 9.5 0 0 0 12 21.5Z"/>
+                <path fill="#34A853" d="M5.9 13.5a6.1 6.1 0 0 1 0-3l-3.2-2.3a9.5 9.5 0 0 0 0 7.6l3.2-2.3Z"/>
+              </svg>
+            </button>
 
-          <!-- SIGNUP -->
-          <section class="lp-pane pane--signup" id="paneSignup" aria-hidden="true">
-            <h1 class="lp-title">הרשמה</h1>
-            <form id="formSignup" autocomplete="on" novalidate>
-              <label class="lp-label" for="name">שם מלא</label>
-              <input id="name" class="lp-input" type="text" placeholder="שם ושם משפחה" required />
+            <button
+              class="social-btn social-btn--apple"
+              type="button"
+              aria-label="Apple"
+              title="Apple"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path fill="currentColor" d="M17.4 12.9c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.7-1.4 0-2.7.8-3.4 2-.1.1-1.2 2.1-.3 4.4.6 1.7 2.2 3.7 3.9 3.7.8 0 1.3-.6 2.5-.6s1.6.6 2.6.6c1.7 0 3.1-1.7 3.7-3.4-.1 0-2.5-1-2.5-3.5ZM14.8 5.5c.6-.8 1-1.8.9-2.8-1 .1-2 .6-2.7 1.4-.6.8-1 1.7-.9 2.7 1-.1 2-.6 2.7-1.3Z"/>
+              </svg>
+            </button>
 
-              <label class="lp-label" for="signupEmail">אימייל</label>
-              <input id="signupEmail" class="lp-input" type="email" inputmode="email" placeholder="name@email.com" required />
+            <button
+              class="social-btn social-btn--facebook"
+              type="button"
+              aria-label="Facebook"
+              title="Facebook"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path fill="#1877F2" d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.5V12h2.9V9.7c0-2.8 1.7-4.3 4.2-4.3 1.2 0 2.4.2 2.4.2v2.6h-1.3c-1.3 0-1.7.8-1.7 1.6V12h3l-.5 2.9h-2.5v7A10 10 0 0 0 22 12Z"/>
+                <path fill="#fff" d="M16.3 14.9 16.8 12h-3v-2.1c0-.8.4-1.6 1.7-1.6h1.3V5.7s-1.1-.2-2.4-.2c-2.5 0-4.2 1.5-4.2 4.3V12H7.5v2.9h2.9v7c.57.09 1.15.14 1.75.14.6 0 1.18-.05 1.75-.14v-7h2.5Z"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </section>
 
-              <label class="lp-label" for="signupPass">סיסמה</label>
-              <input id="signupPass" class="lp-input" type="password" placeholder="מינימום 6 תווים" minlength="6" required />
+      <!-- REGISTER FACE -->
+      <section class="face face--register" aria-label="יצירת חשבון">
+        <div class="face-head">
+          <h1 class="face-title">יצירת חשבון</h1>
+        </div>
 
-              <button class="lp-cta lp-cta--primary" type="submit">צור חשבון</button>
+        <form id="registerForm" class="auth-form" autocomplete="on" novalidate>
+          <!-- first / last -->
+          <div class="row-2col">
+            <div class="f-block">
+              <label class="f-label"><span>שם פרטי</span></label>
+              <input class="f-input" type="text" name="fname" required />
+            </div>
+            <div class="f-block">
+              <label class="f-label"><span>שם משפחה</span></label>
+              <input class="f-input" type="text" name="lname" required />
+            </div>
+          </div>
 
-              <div class="lp-or" role="separator" aria-label="או">או</div>
-              <button class="lp-cta lp-cta--google" type="button" id="btnGoogleSignup">${googleSVG()} הירשם עם Google</button>
-              <button class="lp-cta lp-cta--apple"  type="button" id="btnAppleSignup">${appleSVG()} הירשם עם Apple</button>
+          <!-- email -->
+          <div class="f-block">
+            <label class="f-label"><span>דוא״ל</span></label>
+            <input
+              class="f-input"
+              type="email"
+              inputmode="email"
+              name="email"
+              placeholder="name@email.com"
+              required
+            />
+          </div>
 
-              <p class="lp-footnote">בהרשמה אתה מאשר את תנאי השימוש ומדיניות הפרטיות.</p>
-            </form>
-          </section>
-        </article>
-      </div>
-    </main>
-  </section>
+          <!-- password -->
+          <div class="f-block">
+            <label class="f-label">
+              <span>סיסמה</span>
+              <span class="hint">מינ׳ 6 תווים</span>
+            </label>
+            <input
+              class="f-input"
+              type="password"
+              name="password"
+              placeholder="מינ׳ 6 תווים"
+              minlength="6"
+              required
+            />
+          </div>
+
+          <!-- confirm password -->
+          <div class="f-block">
+            <label class="f-label"><span>אימות סיסמה</span></label>
+            <input
+              class="f-input"
+              type="password"
+              name="confirm"
+              placeholder="אימות סיסמה"
+              minlength="6"
+              required
+            />
+          </div>
+
+          <!-- buttons -->
+          <div class="btn-stack">
+            <button class="btn btn--main" type="submit">יצירת חשבון</button>
+            <button
+              id="btnToLogin"
+              class="btn btn--alt"
+              type="button"
+            >כבר יש לי חשבון</button>
+          </div>
+
+          <!-- social row (visible on register too) -->
+          <div class="social-row" aria-label="הרשמה עם ספק חיצוני">
+            <button
+              class="social-btn social-btn--facebook"
+              type="button"
+              aria-label="Facebook"
+              title="Facebook"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path fill="#1877F2" d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.5V12h2.9V9.7c0-2.8 1.7-4.3 4.2-4.3 1.2 0 2.4.2 2.4.2v2.6h-1.3c-1.3 0-1.7.8-1.7 1.6V12h3l-.5 2.9h-2.5v7A10 10 0 0 0 22 12Z"/>
+                <path fill="#fff" d="M16.3 14.9 16.8 12h-3v-2.1c0-.8.4-1.6 1.7-1.6h1.3V5.7s-1.1-.2-2.4-.2c-2.5 0-4.2 1.5-4.2 4.3V12H7.5v2.9h2.9v7c.57.09 1.15.14 1.75.14.6 0 1.18-.05 1.75-.14v-7h2.5Z"/>
+              </svg>
+            </button>
+
+            <button
+              class="social-btn social-btn--apple"
+              type="button"
+              aria-label="Apple"
+              title="Apple"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path fill="currentColor" d="M17.4 12.9c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.7-1.4 0-2.7.8-3.4 2-.1.1-1.2 2.1-.3 4.4.6 1.7 2.2 3.7 3.9 3.7.8 0 1.3-.6 2.5-.6s1.6.6 2.6.6c1.7 0 3.1-1.7 3.7-3.4-.1 0-2.5-1-2.5-3.5ZM14.8 5.5c.6-.8 1-1.8.9-2.8-1 .1-2 .6-2.7 1.4-.6.8-1 1.7-.9 2.7 1-.1 2-.6 2.7-1.3Z"/>
+              </svg>
+            </button>
+
+            <button
+              class="social-btn social-btn--google"
+              type="button"
+              aria-label="Google"
+              title="Google"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.66 4.1-5.5 4.1a6.4 6.4 0 1 1 0-12.8 5.7 5.7 0 0 1 4 1.6l2.7-2.7A9.5 9.5 0 1 0 12 21.5c5.5 0 9.2-3.9 9.2-9.4 0-.63-.07-1.1-.16-1.6H12Z"/>
+                <path fill="#4285F4" d="M3.2 7.3l3.2 2.3A6.4 6.4 0 0 1 12 5.4c1.7 0 3.2.6 4.4 1.6l2.6-2.6A9.5 9.5 0 0 0 12 2.5 9.4 9.4 0 0 0 3.2 7.3Z"/>
+                <path fill="#FBBC04" d="M12 21.5c2.6 0 4.9-.86 6.6-2.3l-2.9-2.2c-1 .7-2.3 1.1-3.7 1.1-2.9 0-5.3-2-6.1-4.6l-3.2 2.4A9.5 9.5 0 0 0 12 21.5Z"/>
+                <path fill="#34A853" d="M5.9 13.5a6.1 6.1 0 0 1 0-3l-3.2-2.3a9.5 9.5 0 0 0 0 7.6l3.2-2.3Z"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
   `;
-
-  // Toggle wiring + flip
-  const stage     = $('#stage');
-  const pill      = $('.lp-toggle__pill');
-  const btnLogin  = $('#tglLogin');
-  const btnSignup = $('#tglSignup');
-  const loginPane = $('#paneLogin');
-  const signupPane= $('#paneSignup');
-
-  let flipping = false;
-  function setMode(mode){
-    if (flipping) return;
-    const toSignup = mode === 'signup';
-    const active   = toSignup ? loginPane : signupPane;
-    const incoming = toSignup ? signupPane : loginPane;
-
-    // toggle UI
-    btnLogin.classList.toggle('is-on', !toSignup);
-    btnSignup.classList.toggle('is-on', toSignup);
-    btnLogin.setAttribute('aria-selected', String(!toSignup));
-    btnSignup.setAttribute('aria-selected', String(toSignup));
-    pill.style.transform = toSignup ? 'translateX(-100%)' : 'translateX(0%)';
-    pill.classList.remove('spring'); void pill.offsetWidth; pill.classList.add('spring');
-
-    // prepare incoming
-    incoming.removeAttribute('aria-hidden');
-
-    // trigger CRISP switch-flip (collision in the middle)
-    flipping = true;
-    const dirClass = toSignup ? 'flip-to-signup' : 'flip-to-login';
-    stage.classList.add(dirClass);
-
-    // finish after animation
-    setTimeout(() => {
-      stage.classList.remove(dirClass);
-      active.classList.remove('is-active');
-      active.setAttribute('aria-hidden', 'true');
-      incoming.classList.add('is-active');
-      flipping = false;
-    }, 560); // must match CSS --flipDur
-  }
-
-  btnLogin.addEventListener('click',  () => setMode('login'));
-  btnSignup.addEventListener('click', () => setMode('signup'));
-
-  // Logo tilt (subtle)
-  const logo = $('#loozLogo');
-  let raf = 0;
-  function tiltLogo(x, y){
-    const r = logo.getBoundingClientRect();
-    const cx = r.left + r.width/2, cy = r.top + r.height/2;
-    const dx = (x - cx) / r.width, dy = (y - cy) / r.height;
-    const rx = Math.max(-8, Math.min(8, -dy * 10));
-    const ry = Math.max(-8, Math.min(8,  dx * 10));
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(() => {
-      logo.style.setProperty('--logoTiltX', `${rx}deg`);
-      logo.style.setProperty('--logoTiltY', `${ry}deg`);
-      logo.style.setProperty('--logoMoveX', `${ry * 0.6}px`);
-      logo.style.setProperty('--logoMoveY', `${-rx * 0.6}px`);
-    });
-  }
-  const resetLogo = () => {
-    logo.style.setProperty('--logoTiltX', '0deg');
-    logo.style.setProperty('--logoTiltY', '0deg');
-    logo.style.setProperty('--logoMoveX', '0px');
-    logo.style.setProperty('--logoMoveY', '0px');
-  };
-  logo.addEventListener('pointermove', (e)=>tiltLogo(e.clientX,e.clientY));
-  logo.addEventListener('pointerleave', resetLogo);
-  logo.addEventListener('touchstart', (e)=>{const t=e.touches[0]; if(t) tiltLogo(t.clientX,t.clientY)}, {passive:true});
-  logo.addEventListener('touchmove',  (e)=>{const t=e.touches[0]; if(t) tiltLogo(t.clientX,t.clientY)}, {passive:true});
-  logo.addEventListener('touchend', resetLogo);
-
-  // Auth handlers
-  $('#formLogin')     .addEventListener('submit', onLogin);
-  $('#formSignup')    .addEventListener('submit', onSignup);
-  $('#btnForgot')     ?.addEventListener('click', onForgot);
-  $('#btnGoogleLogin').addEventListener('click', onGoogle);
-  $('#btnGoogleSignup').addEventListener('click', onGoogle);
-  $('#btnAppleLogin') ?.addEventListener('click', onApple);
-  $('#btnAppleSignup')?.addEventListener('click', onApple);
-
-  async function onLogin(e){
-    e.preventDefault();
-    const email = $('#loginEmail').value.trim();
-    const pass  = $('#loginPass').value;
-    if (!email || pass.length < 6) return shake();
-    busy(true);
-    try {
-      if (S?.signInEmailPassword) await S.signInEmailPassword(email, pass);
-      else { const { signInWithEmailAndPassword } = await import('firebase/auth'); await signInWithEmailAndPassword(auth, email, pass); }
-      done();
-    } catch { toast('שגיאה בכניסה.'); shake(); } finally { busy(false); }
-  }
-  async function onSignup(e){
-    e.preventDefault();
-    const name  = $('#name').value.trim();
-    const email = $('#signupEmail').value.trim();
-    const pass  = $('#signupPass').value;
-    if (!name || !email || pass.length < 6) return shake();
-    busy(true);
-    try {
-      if (S?.signUpEmailPassword) await S.signUpEmailPassword({ name, email, password: pass });
-      else {
-        const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        try { await updateProfile(cred.user, { displayName: name }); } catch {}
-      }
-      toast('נרשמת בהצלחה!'); done();
-    } catch { toast('ההרשמה נכשלה.'); shake(); } finally { busy(false); }
-  }
-  async function onGoogle(){
-    busy(true);
-    try {
-      if (S?.signInWithGoogle) await S.signInWithGoogle();
-      else { const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth'); await signInWithPopup(auth, new GoogleAuthProvider()); }
-      done();
-    } catch { toast('הכניסה באמצעות Google נכשלה.'); shake(); } finally { busy(false); }
-  }
-  async function onApple(){
-    busy(true);
-    try {
-      if (S?.signInWithApple) await S.signInWithApple();
-      else {
-        const { OAuthProvider, signInWithPopup } = await import('firebase/auth');
-        const provider = new OAuthProvider('apple.com'); provider.addScope('email'); provider.addScope('name');
-        await signInWithPopup(auth, provider);
-      }
-      done();
-    } catch { toast('הכניסה באמצעות Apple נכשלה.'); shake(); } finally { busy(false); }
-  }
-  async function onForgot(){
-    const email = $('#loginEmail').value.trim();
-    if (!email) { toast('הקלד אימייל לשחזור.'); return; }
-    busy(true);
-    try {
-      if (S?.sendPasswordReset) await S.sendPasswordReset(email);
-      else { const { sendPasswordResetEmail } = await import('firebase/auth'); await sendPasswordResetEmail(auth, email); }
-      toast('קישור לאיפוס נשלח לאימייל.');
-    } catch { toast('לא ניתן לשלוח איפוס.'); } finally { busy(false); }
-  }
-
-  function done(){
-    const redirect = sessionStorage.getItem('looz.postLoginRedirect') || '#/week';
-    try { sessionStorage.removeItem('looz.postLoginRedirect'); } catch {}
-    location.replace(redirect);
-  }
-  function busy(on){ const c=$('#stack'); c.classList.toggle('is-busy', !!on); c.setAttribute('aria-busy', String(!!on)); }
-  function shake(){ const c=$('#stack'); c.classList.remove('do-shake'); void c.offsetWidth; c.classList.add('do-shake'); setTimeout(()=>c.classList.remove('do-shake'),700); }
-  function toast(msg){ let t=document.createElement('div'); t.className='lp-toast'; t.textContent=msg; document.body.appendChild(t); requestAnimationFrame(()=>t.classList.add('is-on')); setTimeout(()=>{ t.classList.remove('is-on'); setTimeout(()=>t.remove(),240); },2000); }
 }
 
-function googleSVG(){ return `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48" class="gicon"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.5 29.4 36 24 36a12 12 0 1 1 0-24c3 0 5.7 1.1 7.8 3l5.6-5.6C34.3 6.3 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 19.3-8.9 19.3-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16.3 18.8 14 24 14c3 0 5.7 1.1 7.8 3l5.6-5.6C34.3 6.3 29.4 4 24 4 16.3 4 9.6 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10.1-2 13.6-5.3l-6.3-5.2c-2 1.4-4.7 2.5-7.3 2.5-5.2 0-9.6-3.4-11.2-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 2.8-3 5-5.6 6.5h.1l6.3 5.2c-.4.3 8.9-5.2 8.9-15.7 0-1.2-.1-2.3-.4-3.5z"/></svg>`; }
-function appleSVG(){ return `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" class="aicon"><path fill="currentColor" d="M16.365 2c-.947.056-2.062.66-2.715 1.434-.593.7-1.1 1.74-.904 2.773 1.034.032 2.09-.59 2.737-1.372.6-.73 1.06-1.77.882-2.835zM21 17.313c-.435.992-.956 1.86-1.563 2.607-.823 1.038-1.487 1.753-2.3 1.753-.783 0-1.26-.512-2.355-.512s-1.43.495-2.342.526c-.945.03-1.668-.84-2.49-1.877-.947-1.217-1.758-3.07-1.758-4.915 0-2.305 1.02-3.52 2.785-3.52.74 0 1.36.267 1.86.8.447.48.756 1.124.9 1.787.87-.174 1.69-.54 2.375-1.084a4.9 4.9 0 0 0 1.2-1.45c-.378-.23-1.075-.86-1.075-1.998 0-1.118.52-1.838 1.12-2.366.63-.544 1.49-.89 2.268-.89.17 0 .33.01 .48.032-.188.584-.497 1.113-.92 1.585-.437.487-1.003.877-1.64 1.13.015.05.03.098.045.146.19.6.52 1.09.98 1.463.378.305.86.523 1.44.65-.14.422-.285.844-.432 1.266-.3.87-.45 1.77-.45 2.69 0 1.016.232 1.93.68 2.72z"/></svg>`; }
+function wire(root) {
+  const screen        = root.querySelector('.auth-screen');
+  const loginForm     = root.querySelector('#loginForm');
+  const registerForm  = root.querySelector('#registerForm');
+
+  // flip
+  root.querySelector('#btnToRegister')?.addEventListener('click', () => {
+    screen.setAttribute('data-mode', 'register');
+  });
+  root.querySelector('#btnToLogin')?.addEventListener('click', () => {
+    screen.setAttribute('data-mode', 'login');
+  });
+
+  // logo animation
+  const brand = root.querySelector('.brandmark');
+  if (brand) {
+    brand.addEventListener('pointerdown', () => {
+      brand.classList.add('is-tilt');
+      setTimeout(() => brand.classList.remove('is-tilt'), 280);
+    });
+  }
+
+  // forgot password link
+  root.querySelector('.forgot-link')?.addEventListener('click', () => {
+    alert('נשלח לינק לאיפוס סיסמה (דמו).');
+    // prod: sendPasswordResetEmail(auth, emailFromField)
+  });
+
+  // providers for login & register
+  const google   = new GoogleAuthProvider();
+  const facebook = new FacebookAuthProvider();
+  const apple    = new OAuthProvider('apple.com');
+
+  function providerHook(sel, prov) {
+    root.querySelectorAll(sel).forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await signInWithPopup(auth, prov);
+          localStorage.setItem('looz_uid', auth.currentUser?.uid || '1');
+          location.replace('#/month');
+        } catch (e) { console.error(e); }
+      });
+    });
+  }
+  providerHook('.social-btn--google', google);
+  providerHook('.social-btn--facebook', facebook);
+  providerHook('.social-btn--apple', apple);
+
+  // email/password login
+  loginForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data  = new FormData(loginForm);
+    const email = String(data.get('email') || '').trim();
+    const pw    = String(data.get('password') || '').trim();
+    if (!email || !pw) return;
+    try {
+      await signInWithEmailAndPassword(auth, email, pw);
+      localStorage.setItem('looz_uid', auth.currentUser?.uid || '1');
+      location.replace('#/month');
+    } catch (err) {
+      console.error(err);
+      alert('שגיאה בהתחברות.');
+    }
+  });
+
+  // registration
+  registerForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data     = new FormData(registerForm);
+    const email    = String(data.get('email') || '').trim();
+    const pw       = String(data.get('password') || '').trim();
+    const confirm  = String(data.get('confirm')  || '').trim();
+    if (!email || !pw || !confirm) return;
+    if (pw !== confirm) {
+      alert('הסיסמאות לא תואמות');
+      return;
+    }
+    try {
+      await createUserWithEmailAndPassword(auth, email, pw);
+      localStorage.setItem('looz_uid', auth.currentUser?.uid || '1');
+      location.replace('#/month');
+    } catch (err) {
+      console.error(err);
+      alert('לא הצלחנו ליצור חשבון.');
+    }
+  });
+}
+
+export function mount(root) {
+  document.body.setAttribute('data-view', 'login');
+  root.innerHTML = screenHTML();
+  wire(root);
+}
 
 export default { mount };

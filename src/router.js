@@ -1,17 +1,25 @@
 // /src/router.js
 import { auth } from './core/firebase.js';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const APP_EL_ID = 'app';
 const DEFAULT_VIEW_KEY = 'defaultView';
+
 const SAFE = new Set([
-  'home', 'day', 'week', 'month',
-  'settings', 'profile', 'categories',
-  'login', 'social'
+  'home','day','week','month',
+  'settings','profile','categories',
+  'login','social'
 ]);
+
 const PROTECTED = new Set([
-  'home', 'day', 'week', 'month',
-  'settings', 'profile', 'categories',
+  'home','day','week','month',
+  'settings','profile','categories',
   'social'
+]);
+
+const IN_SHELL = new Set([
+  // routes that render inside the Home shell
+  'day','week','month','settings','profile','categories','social'
 ]);
 
 const $app = () => document.getElementById(APP_EL_ID) || document.body;
@@ -24,51 +32,69 @@ function normalize(h) {
   return SAFE.has(key) ? `/${key}` : '/home';
 }
 
+// ------- MONTH is the default view everywhere -------
 function getDefaultStartPath() {
-  const d = (localStorage.getItem(DEFAULT_VIEW_KEY) || 'week').toLowerCase();
-  return ['day', 'week', 'month'].includes(d) ? `/${d}` : '/week';
+  const d = (localStorage.getItem(DEFAULT_VIEW_KEY) || 'month').toLowerCase();
+  return ['day','week','month'].includes(d) ? `/${d}` : '/month';
 }
-
 function isAuthed() {
   return !!auth.currentUser || !!localStorage.getItem('looz_uid');
 }
 
+// Mount any module's exported mount()
 async function mountPage(mod) {
-  const m = await mod;
+  const m  = await mod;
   const fn = m?.mount || m?.default?.mount || m?.default;
   if (typeof fn === 'function') fn($app());
   else console.warn('[router] page missing mount()');
 }
 
-async function show(name) {
-  switch (name) {
-    case 'home': return mountPage(import('./pages/home.js'));
-    case 'day': return mountPage(import('./pages/day.js'));
-    case 'week': return mountPage(import('./pages/week.js'));
-    case 'month': return mountPage(import('./pages/month.js'));
-    case 'settings': return mountPage(import('./pages/settings.js'));
-    case 'profile': return mountPage(import('./pages/profile.js'));
+// Ensure the Home shell exists, then mount a child view inside it
+async function showInsideShell(child /* 'day'|'week'|'month'|etc. */) {
+  // 1) mount the shell if missing
+  const hasShell = !!document.querySelector('.o-page');
+  if (!hasShell) await mountPage(import('./pages/home.js'));
+
+  // 2) mount the desired page (which renders into #viewRoot)
+  switch (child) {
+    case 'day':        return mountPage(import('./pages/day.js'));
+    case 'week':       return mountPage(import('./pages/week.js'));
+    case 'month':      return mountPage(import('./pages/month.js'));
+    case 'settings':   return mountPage(import('./pages/settings.js'));
+    case 'profile':    return mountPage(import('./pages/profile.js'));
     case 'categories': return mountPage(import('./pages/categories.js'));
-    case 'login': return mountPage(import('./pages/login.js'));
-    case 'social': return mountPage(import('./pages/social.js'));
-    default: return mountPage(import('./pages/home.js'));
+    case 'social':     return mountPage(import('./pages/social.js'));
+    default:           return mountPage(import('./pages/month.js'));
   }
 }
 
+async function show(name) {
+  if (name === 'login') {
+    return mountPage(import('./pages/login.js'));
+  }
+  if (IN_SHELL.has(name)) {
+    return showInsideShell(name);
+  }
+  // fallback
+  return showInsideShell('month');
+}
+
+/**
+ * Guarded navigation
+ */
 export async function apply(h) {
   const path = normalize(h);
-  const key = path.replace(/^\//, '');
+  const key  = path.replace(/^\//, '');
   const needsAuth = PROTECTED.has(key);
 
-  // Redirect to login if not authenticated
+  // unauthenticated → login
   if (needsAuth && !isAuthed()) {
-    try {
-      sessionStorage.setItem('looz.postLoginRedirect', `#/${key}`);
-    } catch {}
-    return location.replace('#/login');
+    try { sessionStorage.setItem('looz.postLoginRedirect', `#/${key}`); } catch {}
+    if (location.hash !== '#/login') location.replace('#/login');
+    return show('login');
   }
 
-  // Redirect away from login if already authenticated
+  // authenticated on login → redirect back or to default (month)
   if (key === 'login' && isAuthed()) {
     const saved = sessionStorage.getItem('looz.postLoginRedirect');
     if (saved) {
@@ -79,12 +105,43 @@ export async function apply(h) {
     return location.replace(`#${getDefaultStartPath()}`);
   }
 
+  // visiting #/home should actually show the default view in-shell
+  if (key === 'home') {
+    const target = getDefaultStartPath(); // -> /month by default
+    if (location.hash !== `#${target}`) {
+      location.replace(`#${target}`);
+      return;
+    }
+  }
+
   return show(key);
 }
 
+/**
+ * Boot the router
+ */
 export function start() {
-  apply(location.hash || '#/home');
+  const hasHash = !!location.hash;
+  const authed  = isAuthed();
+
+  if (!hasHash) {
+    location.replace(authed ? `#${getDefaultStartPath()}` : '#/login');
+  } else {
+    apply(location.hash);
+  }
+
   window.addEventListener('hashchange', () => apply(location.hash));
+
+  // react to auth changes (e.g., Google/Apple sign-in redirects)
+  let authTick = 0;
+  onAuthStateChanged(auth, () => {
+    authTick++;
+    const t = authTick;
+    setTimeout(() => {
+      if (t !== authTick) return;
+      apply(location.hash || `#${getDefaultStartPath()}`);
+    }, 10);
+  });
 }
 
 export const startRouter = start;

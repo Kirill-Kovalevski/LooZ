@@ -1,23 +1,23 @@
-import './core/firebase.js';  // initializes Firebase once
-import { initAuthWatcher } from './utils/authWatcher.js';
+// /src/main.js
+// Boot the app through the router (no eager Home mount) so login can render cleanly.
 
+import './core/firebase.js';                 // initializes Firebase once
+import { initAuthWatcher } from './utils/authWatcher.js';
 initAuthWatcher();
 
 import './styles/main.scss';
-import { mount as mountHome } from './pages/home.js';
-import { startRouter } from './router.js';   // <- single router
-import { openCreateSheet, closeCreateSheet } from './components/sheet.js';
+
+// Theme – same behavior you had
 import { getTheme, applyTheme, initThemeListeners } from './utils/theme.js';
-
-
-// Ensure the DOM reflects the stored/system theme after Vite mounts
 applyTheme(getTheme());
 initThemeListeners();
 
-const app = document.getElementById('app');
-mountHome(app);         // paint the shell once
-startRouter(app);       // router will swap views INSIDE #viewRoot only
+// Route-driven mounting (lets router decide: login/home/etc.)
+import { startRouter } from './router.js';
+startRouter();
 
+// Global sheet handlers (preserved)
+import { openCreateSheet, closeCreateSheet } from './components/sheet.js';
 document.addEventListener('click', (e) => {
   if (e.target.closest('.btn-create-orb')) openCreateSheet();
   if (e.target.closest('[data-sheet="close"]')) closeCreateSheet();

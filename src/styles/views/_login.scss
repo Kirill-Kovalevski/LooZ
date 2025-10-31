@@ -1,319 +1,294 @@
-/* ────────────────────────────────────────────────────────────────
-   LooZ — Login/Register (RTL, iPhone 12 Pro+, collision flip)
-   - Background: exact #e6edee with ultra-subtle gradient of same hue
-   - Logo: blends with bg (no white square), subtle float + tilt
-   - Card: owns height; inner panes flip with a crisp, pretty collision
-   - Nothing escapes the card; fully responsive
-   ──────────────────────────────────────────────────────────────── */
+/* /src/styles/views/_login.scss
+   iPhone 12 Pro tuned auth screens.
+   Fibonacci-ish rhythm:
+   - gap 8px / 13px / 21px
+   Palette: pastel top fade -> greenish bottom
+*/
 
-body[data-view="login"] {
-  direction: rtl;
+:root {
+  --auth-top-a: #f2f1e0;
+  --auth-top-b: #efefdc;
+  --auth-bg-1:  #e9f0ef;
+  --auth-bg-2:  #f5f1e6;
 
-  /* ===== Page tones (match logo) ===== */
-  --bg-base: #e6edee;
-  --bg-soft1: #e8eff0;  /* slightly lighter */
-  --bg-soft2: #e3eaec;  /* slightly darker */
+  --ink-main:   #0a2e23;
+  --ink-muted:  #6b7a73;
 
-  --ink: #0b111d;
-  --muted: #667085;
-  --line: rgba(15,23,42,.14);
+  --btn-grad-a: #0f7a58;
+  --btn-grad-b: #78a356;
 
-  --wrap-w: clamp(330px, 100vw, 430px);  /* tuned for iPhone 12 Pro (390px) */
-  --radius: 22px;
+  --field-bg:   #f7faf9;
+  --field-br:   #d9e5e2;
+  --focus-ring: #9fd7c7;
 
-  /* CTA accents */
-  --gold-300: #ffe067;
-  --gold-400: #ffd44e;
+  --card-br:    rgba(100,116,139,.16);
+  --card-bg:    rgba(255,255,255,.9);
+  --shadow-card:0 16px 34px rgba(15,23,42,.12);
+}
 
-  /* Flip timing + depth */
-  --flipDur: 460ms;       /* snappy but readable */
-  --persp:   1600px;      /* deeper 3D for a showy collision */
+/* full screen bg */
+.auth-screen {
+  min-block-size: 100dvb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-  min-block-size: 100dvh;
   background:
-    linear-gradient(180deg, var(--bg-soft1) 0%, var(--bg-base) 42%, var(--bg-soft2) 100%);
+    radial-gradient(120% 120% at 0% 0%, var(--auth-bg-1) 0%, transparent 60%),
+    radial-gradient(120% 120% at 100% 0%, var(--auth-bg-2) 0%, transparent 60%),
+    linear-gradient(to bottom, var(--auth-top-a) 0%, var(--auth-bg-1) 320px);
 
-  /* ===== Layout ===== */
-  .login-page {
-    min-block-size: 100dvh;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    justify-items: center;
-    align-items: start;
-    padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
+  padding-inline: 16px;
+  padding-block: 24px 32px;
+  box-sizing: border-box;
+
+  perspective: 1200px;
+}
+
+/* logo */
+.auth-header {
+  display: flex;
+  justify-content: center;
+  margin-block-end: 21px;
+}
+
+.brandmark {
+  inline-size: 210px;
+  block-size: 92px;
+  border-radius: 14px;
+  background: var(--auth-top-a); /* same tone as screen top so it blends */
+  border: 1px solid #000;        /* lock solid black border */
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+  display: grid;
+  place-items: center;
+  transition: transform .22s ease;
+  -webkit-tap-highlight-color: transparent; /* kill gray tap flash on mobile */
+  outline: none;                             /* no default outline */
+}
+
+/* keep border + no outline while interacting */
+.brandmark:focus,
+.brandmark:active,
+.brandmark.is-tilt {
+  border: 1px solid #000;
+  outline: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,.08); /* same shadow, no flicker */
+  background: var(--auth-top-a);          /* don't let it go white */
+}
+
+/* little tilt animation */
+.brandmark.is-tilt {
+  transform: rotate(-4deg) translateY(-2px) scale(1.02);
+}
+
+.brandmark img {
+  max-inline-size: 86%;
+  max-block-size: 86%;
+  object-fit: contain;
+}
+
+/* flip wrapper */
+.auth-card {
+  position: relative;
+  inline-size: 100%;
+  max-inline-size: 360px;
+  transform-style: preserve-3d;
+  transition: transform .7s cubic-bezier(.2,.6,.2,1);
+}
+
+/* both faces share */
+.face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--card-br);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+
+  padding-block: 21px 16px 24px;
+  padding-inline: 16px;
+  box-sizing: border-box;
+
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* header row INSIDE each face
+   No pill container anymore. We'll just center title inside a block
+   by using text-align + margin. */
+.face-head {
+  width: 100%;
+  margin-block-end: 21px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center; /* vertical centering */
+  text-align: center;
+}
+
+.face-title {
+  color: var(--ink-main);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* form layout */
+.auth-form {
+  display: grid;
+  row-gap: 13px;
+}
+
+/* 2-col row for first/last on register */
+.row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+
+.f-block {
+  display: grid;
+  row-gap: 8px;
+}
+
+/* label row:
+   We keep forgot-link INSIDE the password label in login,
+   but now forgot-link will be block-level under the label text.
+*/
+.f-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  line-height: 1.2;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.f-label .hint {
+  color: var(--ink-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* forgot link sits inline but looks like plain text under label */
+.forgot-link {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-main);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* inputs */
+.f-input {
+  inline-size: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  line-height: 1.3;
+  color: var(--ink-main);
+
+  border-radius: 12px;
+  border: 1px solid var(--field-br);
+  background: var(--field-bg);
+  outline: none;
+}
+.f-input:focus {
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus-ring) 35%, transparent);
+}
+
+/* button stack */
+.btn-stack {
+  display: grid;
+  row-gap: 13px;
+  margin-block: 21px 0;
+}
+.btn {
+  inline-size: 100%;
+  border-radius: 14px;
+  border: 0;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+  padding: 13px 14px;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 14px 24px rgba(4,114,77,.18);
+}
+.btn--main {
+  color: #fff;
+  background: linear-gradient(90deg, var(--btn-grad-a), var(--btn-grad-b));
+}
+.btn--alt {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  color: var(--ink-main);
+  box-shadow: 0 10px 20px rgba(15,23,42,.05);
+}
+
+/* social row (still visible on both faces) */
+.social-row {
+  display: flex;
+  justify-content: center;
+  column-gap: 21px;
+  margin-block-start: 21px;
+}
+.social-btn {
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 10px 20px rgba(15,23,42,.06);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #111;
+}
+
+/* We REMOVED .card-foot / .foot-grad entirely. */
+
+/* FLIP LOGIC */
+.face--login   { transform: rotateY(0deg); }
+.face--register{ transform: rotateY(180deg); }
+
+.auth-screen[data-mode="register"] .auth-card {
+  transform: rotateY(180deg);
+}
+
+.auth-screen[data-mode="register"] .face--login {
+  pointer-events: none;
+}
+.auth-screen[data-mode="login"] .face--register {
+  pointer-events: none;
+}
+
+/* responsive tweaks for slightly bigger phones */
+@media (min-width: 430px){
+  .brandmark {
+    inline-size: 220px;
+    block-size: 96px;
   }
-
-  .lp-head {
-    inline-size: var(--wrap-w);
-    display: grid;
-    place-items: center;
-    padding-block: 6px 2px;
+  .auth-card {
+    max-inline-size: 380px;
   }
-
-  /* Logo: look like it’s part of the background (no visible square) */
-  .lp-logo{
-    /* If PNG has a white box, this removes it visually on this bg */
-    mix-blend-mode: darken;    /* whites become background color */
-    isolation: isolate;
-
-    inline-size: min(210px, 60vw);
-    background: transparent;
-    image-rendering: auto;
-    opacity: .98;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,.06));
-
-    /* tilt (driven by JS) */
-    --logoTiltX: 0deg; --logoTiltY: 0deg;
-    --logoMoveX: 0px; --logoMoveY: 0px;
-    transform: translate(var(--logoMoveX), var(--logoMoveY))
-               rotateX(var(--logoTiltX)) rotateY(var(--logoTiltY));
-    transform-style: preserve-3d;
-    transition: transform .12s ease, opacity .2s ease;
-    will-change: transform;
-    animation: logoFloat 4.8s ease-in-out infinite;
+  .face {
+    border-radius: 20px;
+    padding-block-start: 24px;
   }
-  @keyframes logoFloat {
-    0%,100% { transform: translate(var(--logoMoveX), var(--logoMoveY)) rotateX(var(--logoTiltX)) rotateY(var(--logoTiltY)); }
-    50%     { transform: translate(calc(var(--logoMoveX) + 0px), calc(var(--logoMoveY) - 3px)) rotateX(var(--logoTiltX)) rotateY(var(--logoTiltY)); }
+  .face-title {
+    font-size: 21px;
   }
-
-  .lp-center {
-    inline-size: 100%;
-    display: grid;
-    place-items: center;
-    padding-inline: 10px;
-  }
-
-  /* Stage gives perspective for 3D flip */
-  .lp-stage{
-    inline-size: var(--wrap-w);
-    display: grid;
-    gap: 12px;
-    perspective: var(--persp);
-    transform-style: preserve-3d;
-  }
-
-  /* ===== Toggle ===== */
-  .lp-toggle{
-    position: relative;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border-radius: 16px;
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,.94);
-    padding: 2px;
-    box-shadow: 0 6px 16px rgba(15,23,42,.06);
-  }
-  .lp-toggle__btn{
-    inline-size: 100%;
-    padding: 8px 10px;
-    border-radius: 14px;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    z-index: 2;
-    font-weight: 800;
-    color: var(--ink);
-  }
-  .lp-toggle__pill{
-    position: absolute;
-    inset: 2px;
-    inline-size: calc(50% - 2px);
-    border-radius: 14px;
-    background: linear-gradient(180deg, #fff, #fffde8);
-    box-shadow: 0 6px 16px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.7);
-    transform: translateX(0%);
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), background .25s ease;
-  }
-  .lp-toggle__pill.spring{ animation: pillSpring .55s cubic-bezier(.25,1.6,.25,1); }
-  @keyframes pillSpring {
-    0%   { transform: translateX(-2%) scaleX(.98); }
-    60%  { transform: translateX( 2%) scaleX(1.02); }
-    100% { transform: translateX(var(--pillX,0%)) scaleX(1); }
-  }
-
-  /* ===== Card container (owns height) ===== */
-  .lp-cardstack{
-    position: relative;
-    border-radius: var(--radius);
-    border: 1px solid var(--line);
-    background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.72));
-    backdrop-filter: blur(6px) saturate(1.02);
-    box-shadow: 0 22px 44px rgba(15,23,42,.18);
-    min-block-size: 560px;       /* keep forms inside on iPhone 12 Pro+ */
-    padding: 14px;
-    overflow: hidden;
-  }
-
-  /* Mid-collision “impact” flash + subtle shadow pulse */
-  .lp-cardstack::after{
-    content:"";
-    position:absolute; inset:0;
-    background: radial-gradient(120% 120% at 50% 50%, rgba(255,255,255,.35), transparent 60%);
-    opacity: 0; pointer-events: none;
-    transition: opacity 140ms ease;
-  }
-  .lp-cardstack::before{
-    content:"";
-    position:absolute; inset:0;
-    box-shadow: inset 0 0 0 rgba(0,0,0,0);
-    border-radius: inherit;
-    pointer-events:none;
-    transition: box-shadow 200ms ease;
-  }
-
-  /* ===== Panes (two faces) ===== */
-  .lp-pane{
-    position: absolute;
-    inset: 0;                      /* fill the card content box */
-    padding: 14px;
-    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 10px 24px rgba(15,23,42,.10);
-
-    display: grid;
-    grid-template-rows: auto auto 1fr auto auto;
-    gap: 6px;
-    align-content: start;
-
-    /* crisp 3D */
-    transform-origin: center;
-    backface-visibility: hidden;
-    will-change: transform, opacity, filter;
-
-    /* initial hidden state (right face waiting) */
-    opacity: 0;
-    transform: translateX(90px) rotateY(-110deg) translateZ(0.001px);
-    filter: blur(2px);
-    pointer-events: none;
-  }
-  .lp-pane.is-active{
-    opacity: 1;
-    transform: translateX(0) rotateY(0deg) translateZ(0.001px);
-    filter: blur(0);
-    pointer-events: auto;
-    z-index: 5;
-  }
-
-  /* ===== Collision flip choreography =====
-     Stronger angles, quick mid-impact, micro-scale bounce. */
-  .lp-stage.flip-to-signup .lp-cardstack::after,
-  .lp-stage.flip-to-login  .lp-cardstack::after { opacity: .9; }
-
-  .lp-stage.flip-to-signup .lp-cardstack::before,
-  .lp-stage.flip-to-login  .lp-cardstack::before { box-shadow: inset 0 36px 48px rgba(15,23,42,.08); }
-
-  .lp-stage.flip-to-signup .pane--login  { z-index: 4; animation: flipOutLeft  var(--flipDur) cubic-bezier(.2,.65,.2,1)   forwards; }
-  .lp-stage.flip-to-signup .pane--signup { z-index: 6; animation: flipInRight  var(--flipDur) cubic-bezier(.2,.98,.25,1.12) forwards; }
-
-  .lp-stage.flip-to-login  .pane--signup { z-index: 4; animation: flipOutRight var(--flipDur) cubic-bezier(.2,.65,.2,1)   forwards; }
-  .lp-stage.flip-to-login  .pane--login  { z-index: 6; animation: flipInLeft   var(--flipDur) cubic-bezier(.2,.98,.25,1.12) forwards; }
-
-  @keyframes flipOutLeft{
-    0%   { opacity:1;   transform: translateX(0)        rotateY(0deg)     translateZ(0.001px); filter: blur(0); }
-    44%  { opacity:.92; transform: translateX(-28px)    rotateY(18deg)    translateZ(12px);    filter: blur(.4px); }
-    50%  { opacity:.88; transform: translateX(-34px)    rotateY(22deg)    translateZ(16px); }
-    100% { opacity:0;   transform: translateX(-140px)   rotateY(110deg)   translateZ(0);       filter: blur(2px); }
-  }
-  @keyframes flipInRight{
-    0%   { opacity:0;   transform: translateX(140px)    rotateY(-110deg)  translateZ(0);       filter: blur(2px); }
-    50%  { opacity:.98; transform: translateX(0)        rotateY(0deg)     translateZ(18px) scale(1.02); }
-    72%  { opacity:1;   transform: translateX(-6px)     rotateY(0deg)     translateZ(6px)  scale(.998); }
-    100% { opacity:1;   transform: translateX(0)        rotateY(0deg)     translateZ(0.001px) scale(1); filter: blur(0); }
-  }
-  @keyframes flipOutRight{
-    0%   { opacity:1;   transform: translateX(0)        rotateY(0deg)     translateZ(0.001px); filter: blur(0); }
-    44%  { opacity:.92; transform: translateX(28px)     rotateY(-18deg)   translateZ(12px);    filter: blur(.4px); }
-    50%  { opacity:.88; transform: translateX(34px)     rotateY(-22deg)   translateZ(16px); }
-    100% { opacity:0;   transform: translateX(140px)    rotateY(-110deg)  translateZ(0);       filter: blur(2px); }
-  }
-  @keyframes flipInLeft{
-    0%   { opacity:0;   transform: translateX(-140px)   rotateY(110deg)   translateZ(0);       filter: blur(2px); }
-    50%  { opacity:.98; transform: translateX(0)        rotateY(0deg)     translateZ(18px) scale(1.02); }
-    72%  { opacity:1;   transform: translateX(6px)      rotateY(0deg)     translateZ(6px)  scale(.998); }
-    100% { opacity:1;   transform: translateX(0)        rotateY(0deg)     translateZ(0.001px) scale(1); filter: blur(0); }
-  }
-
-  /* ===== Text + inputs + CTA ===== */
-  .lp-title{ margin: 0 0 6px; font-size: 1.22rem; font-weight: 900; letter-spacing: .2px; }
-  .lp-label{ display:block; margin: 8px 0 6px; font-weight: 700; color: var(--ink); }
-
-  .lp-input{
-    inline-size: 100%;
-    padding: 12px 14px;
-    border-radius: 12px;
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,.98);
-    color: var(--ink);
-    outline: none;
-    transition: border-color .2s, box-shadow .2s, background .2s;
-  }
-  .lp-input:focus{ border-color:#b6c3ff; box-shadow: 0 0 0 4px rgba(182,195,255,.26); background:#fff; }
-
-  .lp-row{ display:grid; grid-template-columns: 1fr auto; align-items: end; }
-  .lp-col--end{ justify-self: end; }
-  .lp-linkbtn{ background:none; border:0; padding:0; color:#2b65ff; text-decoration:underline; font-weight:700; cursor:pointer; }
-
-  .lp-cta{
-    inline-size: 100%;
-    margin-block: 12px 6px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    border: 0;
-    font-weight: 800;
-    letter-spacing: .3px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-    box-shadow: 0 14px 28px rgba(15,23,42,.12), inset 0 1px 0 rgba(255,255,255,.6);
-    transition: transform .12s ease, box-shadow .2s ease;
-  }
-  .lp-cta:active{ transform: translateY(1px); }
-  .lp-cta--primary{
-    background: linear-gradient(180deg, var(--gold-300), var(--gold-400));
-    color: #0b111d;
-    box-shadow: 0 14px 28px rgba(255,208,63,.28), inset 0 1px 0 #fff1b3;
-  }
-  .lp-cta--google{ background:#fff; border:1px solid #e5e7eb; color:#1f2937; }
-  .lp-cta--apple { background:#0b111d; color:#fff; border:1px solid #0b111d; }
-  .gicon,.aicon{ display:inline-block; vertical-align:middle; }
-
-  .lp-or{ display:grid; place-items:center; color:var(--muted); font-weight:800; margin-block: 2px 4px; }
-  .lp-footnote{ color:var(--muted); font-size:.88rem; text-align:center; margin:0; }
-
-  /* ===== Busy + shake ===== */
-  .lp-cardstack.is-busy{ opacity: .92; cursor: progress; }
-  .lp-cardstack.do-shake{ animation: shake .7s ease; }
-  @keyframes shake {
-    10%,90%{ transform: translateX(-1px); }
-    20%,80%{ transform: translateX(2px); }
-    30%,50%,70%{ transform: translateX(-3px); }
-    40%,60%{ transform: translateX(3px); }
-  }
-
-  /* ===== Toast ===== */
-  .lp-toast{
-    position: fixed;
-    inset-inline-start: 50%;
-    transform: translateX(-50%) translateY(10px);
-    bottom: calc(14px + env(safe-area-inset-bottom,0px));
-    background: rgba(0,0,0,.82);
-    color: #fff;
-    border-radius: 999px;
-    padding: 10px 14px;
-    font-size: .95rem;
-    opacity: 0;
-    transition: opacity .25s ease, transform .25s ease;
-    z-index: 20;
-  }
-  .lp-toast.is-on{ opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ===== Responsiveness ===== */
-  @media (min-width: 430px){ .lp-center{ padding-inline: 0; } }
-  @media (max-height: 720px){
-    .lp-cardstack{ min-block-size: 520px; }
+  .f-input {
+    font-size: 15px;
   }
 }

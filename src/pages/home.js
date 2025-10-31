@@ -26,7 +26,7 @@ function fromDateKey(key) {
 }
 
 let headerCursor = new Date();
-let currentView  = 'week';
+let currentView  = 'month'; // <<< was 'week' — start the app on Month view
 
 // IMPORTANT: static view map so Vite bundles them for GitHub Pages
 const viewModules = import.meta.glob('./{day,week,month}.js');
@@ -421,7 +421,8 @@ export function mount(root) {
   root.innerHTML = shellHTML();
   wireShell(root);
 
-  const boot = localStorage.getItem('defaultView') || 'week';
+  // <<< default boot is MONTH now
+  const boot = localStorage.getItem('defaultView') || 'month';
   if (!location.hash || location.hash === '#/home') {
     location.hash = `#/${boot}`;
   } else {
