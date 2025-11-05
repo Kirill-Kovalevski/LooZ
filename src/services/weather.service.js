@@ -1,74 +1,87 @@
 // /src/services/weather.service.js
-// Fetch daily weather through Vite proxy and map it to small icon names.
+// tiny client-side helper → calls Open-Meteo directly
 
-const DEFAULT_COORDS = {
-  lat: 32.0853,  // Tel Aviv – change to user city if you want
-  lon: 34.7818,
-};
+// default to Tel Aviv-ish if we can't get geolocation
+const DEFAULT_LAT = 32.0853;
+const DEFAULT_LON = 34.7818;
 
-export async function getDailyWeather({ lat, lon } = DEFAULT_COORDS) {
-  const params =
-    `?latitude=${lat}&longitude=${lon}` +
-    `&daily=weathercode,precipitation_probability_max,temperature_2m_max,temperature_2m_min` +
-    `&timezone=auto`;
+const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast';
 
-  // hits Vite proxy → https://api.open-meteo.com/v1/forecast
-  const res = await fetch(`/api/weather${params}`);
+// map Open-Meteo weathercode to our "kind" strings
+export function weatherCodeToKind(code, rainProb = 0) {
+  // https://open-meteo.com/en/docs
+  if (code === 0) return 'sun';
+  if (code === 1 || code === 2) return 'partly';
+  if (code === 3) return 'cloud';
+  if ([45, 48].includes(code)) return 'cloud';
+  if ([51, 53, 55, 56, 57].includes(code)) return 'rain';
+  if ([61, 63, 65, 66, 67].includes(code)) {
+    return rainProb > 70 ? 'rain-heavy' : 'rain';
+  }
+  if ([71, 73, 75, 77].includes(code)) return 'snow';
+  if ([80, 81, 82].includes(code)) return 'rain-heavy';
+  if ([85, 86].includes(code)) return 'snow';
+  if ([95, 96, 99].includes(code)) return 'thunder';
+  return 'cloud';
+}
+
+// try to get browser geolocation; if fails, return defaults
+function getPositionOrDefault() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve({ latitude: DEFAULT_LAT, longitude: DEFAULT_LON });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+      },
+      () => {
+        resolve({ latitude: DEFAULT_LAT, longitude: DEFAULT_LON });
+      },
+      { enableHighAccuracy: false, timeout: 3000 }
+    );
+  });
+}
+
+// fetch daily weather and return an object keyed by yyyy-mm-dd
+export async function getDailyWeather() {
+  const { latitude, longitude } = await getPositionOrDefault();
+
+  const params = new URLSearchParams({
+    latitude: latitude.toString(),
+    longitude: longitude.toString(),
+    // we need daily codes + temp + precip prob
+    daily: 'weathercode,temperature_2m_max,precipitation_probability_max',
+    timezone: 'auto'
+  });
+
+  const url = `${OPEN_METEO_URL}?${params.toString()}`;
+
+  const res = await fetch(url);
   if (!res.ok) {
-    console.warn('[weather] bad response', res.status, res.statusText);
+    console.warn('[weather] bad response', res.status);
     throw new Error('weather fetch failed');
   }
 
   const data = await res.json();
-  // 👇 this will tell us in the console what dates we actually got
-  console.log('[weather] received daily data:', data?.daily);
+  // data.daily.time = ["2025-11-05", ...]
+  const days = data.daily?.time || [];
+  const codes = data.daily?.weathercode || [];
+  const temps = data.daily?.temperature_2m_max || [];
+  const prob  = data.daily?.precipitation_probability_max || [];
 
-  const dates = data?.daily?.time || [];
-  const codes = data?.daily?.weathercode || [];
-  const rain  = data?.daily?.precipitation_probability_max || [];
-  const tMax  = data?.daily?.temperature_2m_max || [];
-  const tMin  = data?.daily?.temperature_2m_min || [];
-
-  const map = {};
-  for (let i = 0; i < dates.length; i++) {
-    map[dates[i]] = {
+  const byDate = {};
+  for (let i = 0; i < days.length; i++) {
+    byDate[days[i]] = {
       code: codes[i],
-      rainProb: rain[i],
-      tMax: tMax[i],
-      tMin: tMin[i],
+      tMax: temps[i],
+      rainProb: prob[i]
     };
   }
 
-  console.log('[weather] mapped dates → icons:', map);
-  return map;
-}
-
-// map Open-Meteo codes to our icon names used in month.js
-export function weatherCodeToKind(code, rainProb = 0) {
-  if (code === 0) return 'sun';               // clear
-  if (code === 1 || code === 2) return 'partly'; // mostly clear
-  if (code === 3) return 'cloud';             // overcast
-
-  // drizzle / light rain
-  if (code >= 51 && code <= 57) return 'rain';
-
-  // rain
-  if (code >= 61 && code <= 65) {
-    return rainProb > 60 ? 'rain-heavy' : 'rain';
-  }
-
-  // freezing rain / sleet
-  if (code >= 66 && code <= 67) return 'sleet';
-
-  // snow
-  if (code >= 71 && code <= 77) return 'snow';
-
-  // rain showers
-  if (code >= 80 && code <= 82) return 'rain';
-
-  // thunderstorms
-  if (code >= 95) return 'thunder';
-
-  // fallback
-  return 'cloud';
+  return byDate;
 }
