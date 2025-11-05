@@ -1,8 +1,7 @@
-/* HOME SHELL (RTL). Tuned for iPhone 12 Pro (390px) and responsive up. */
+/* ===================== GLOBAL TOKENS / HOME SHELL ===================== */
 html, body { height: 100%; }
 body { min-height: 100vh; }
 
-/* ===================== TOKENS ===================== */
 :root{
   /* chrome + motion */
   --chrome-bg:#fff;
@@ -16,20 +15,22 @@ body { min-height: 100vh; }
 
   --ease: cubic-bezier(.2,.8,.2,1);
 
-  /* seasonal splash defaults (JS overrides per month) */
+  /* seasonal splash defaults (JS overrides per month via setSeasonTheme) */
   --s1: hsl(150 60% 84%);  /* mint */
   --s2: hsl(205 85% 86%);  /* sky   */
   --s3: hsl(265 70% 88%);  /* lilac */
   --s4: hsl(35  95% 87%);  /* peach */
   --s5: hsl(355 70% 86%);  /* coral */
 
-  /* nav accent for header icons (matches view buttons) */
+  /* nav accent for header icons (matches yellow buttons + lemon vibe) */
   --nav-accent:#FFE067;
   --nav-accent-br:#f3c340;
   --nav-accent-ink:#0f172a;
   --nav-glow: 0 10px 26px rgba(255,224,103,.55), 0 0 0 1px rgba(243,195,64,.55) inset;
   --nav-ambient: radial-gradient(40% 40% at 50% 50%, rgba(255,224,103,.65), transparent 60%);
 }
+
+/* dark-mode tokens */
 :is(html,body).is-dark{
   --chrome-bg:#0f172a;
   --chrome-fg:#e6edff;
@@ -47,13 +48,13 @@ body { min-height: 100vh; }
   --nav-glow: 0 14px 36px rgba(255,224,103,.70), 0 0 0 1px rgba(255,239,170,.35) inset;
 }
 
-/* ============== APP BACKGROUND (pastel, seasonal) ============== */
+/* ===================== APP BACKGROUND (pastel, seasonal) ===================== */
 .o-page{
   position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
-  /* clean top; seasonal splashes mid/bottom */
+
   background:
     linear-gradient(180deg, #f8fafc 0%, #eef2f9 32%, #eef2f9 100%) padding-box,
     radial-gradient(26vmax 20vmax at 12% 55%, color-mix(in oklab, var(--s4) 36%, transparent) 0%, color-mix(in oklab, var(--s4) 16%, transparent) 45%, transparent 70%),
@@ -62,10 +63,12 @@ body { min-height: 100vh; }
     radial-gradient(22vmax 18vmax at 22% 92%, color-mix(in oklab, var(--s1) 28%, transparent) 0%, color-mix(in oklab, var(--s1) 12%, transparent) 52%, transparent 76%),
     radial-gradient(22vmax 18vmax at 78% 94%, color-mix(in oklab, var(--s5) 28%, transparent) 0%, color-mix(in oklab, var(--s5) 12%, transparent) 52%, transparent 76%);
   background-repeat: no-repeat;
+
   overflow: hidden;
   isolation: isolate;
   transition: background 240ms ease;
 }
+
 :is(html,body).is-dark .o-page{
   background:
     linear-gradient(180deg, #0f1422 0%, #0b111d 32%, #0b111d 100%) padding-box,
@@ -76,7 +79,7 @@ body { min-height: 100vh; }
     radial-gradient(22vmax 18vmax at 78% 94%, color-mix(in oklab, var(--s5) 14%, transparent) 0%, transparent 76%);
 }
 
-/* gentle drifting highlight (non-essential motion) */
+/* drifting ambiance */
 .o-page::after{
   content:"";
   position: fixed;
@@ -90,48 +93,77 @@ body { min-height: 100vh; }
   opacity: .55;
   animation: splash-drift 32s ease-in-out infinite alternate;
 }
-@media (prefers-reduced-motion: reduce){ .o-page::after{ animation: none; } }
+@media (prefers-reduced-motion: reduce){
+  .o-page::after{ animation: none; }
+}
 @keyframes splash-drift{
   0%   { transform: translate3d(0,2%,0) scale(1.00); }
   50%  { transform: translate3d(1%,0,0)  scale(1.01); }
   100% { transform: translate3d(-1%,1%,0) scale(1.01); }
 }
 
-/* ===================== PHONE SHELL ===================== */
+/* ===================== PHONE SHELL GRID ===================== */
 .o-phone{
   inline-size: clamp(320px, 100vw, 390px); /* iPhone 12 Pro logical width = 390 */
   margin-inline: auto;
+
   min-height: 100vh;
+
   display: grid;
-  grid-template-rows: auto auto auto auto auto 1fr auto;
+  grid-template-rows:
+    auto   /* header */
+    auto   /* lemon/dock */
+    auto   /* date/greet */
+    auto   /* view switch */
+    auto   /* mini period nav */
+    1fr    /* #viewRoot / .o-viewroot scroll container */
+    auto;  /* orb spacer + floating orb */
+
   gap: .75rem;
   padding: .75rem .75rem 1rem;
   direction: rtl;
 }
 
 /* ===================== HEADER ===================== */
-.o-header{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; }
-.looz-logo{ display:grid; place-items:center; inline-size:120px; margin-inline:auto; }
-.brand-logo{ inline-size:100%; height:auto; display:none; }
+.o-header{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+}
+
+.looz-logo{
+  display:grid;
+  place-items:center;
+  inline-size:120px;
+  margin-inline:auto;
+}
+.brand-logo{
+  inline-size:100%;
+  height:auto;
+  display:none;
+}
 .brand-logo--light{ display:block; }
 :is(html,body).is-dark .brand-logo--light{ display:none; }
 :is(html,body).is-dark .brand-logo--dark{ display:block; }
 
-/* ===== HEADER ICON BUTTONS (yellow glow, matches view buttons) ===== */
+/* ===== HEADER ICON BUTTONS (accent yellow) ===== */
 .c-topbtn{
-  inline-size:44px; block-size:44px; border-radius:50%;
-  display:grid; place-items:center;
+  inline-size:44px;
+  block-size:44px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
   border:1px solid var(--chrome-border);
-  background:var(--chrome-bg); color:var(--chrome-fg);
+  background:var(--chrome-bg);
+  color:var(--chrome-fg);
   box-shadow: var(--chrome-shadow);
 }
-.c-topbtn--profile{ justify-self:start; }
-.c-topbtn--settings{ justify-self:end; }
 
-/* upgrade just these two to the yellow accent look */
+/* we elevate profile & settings with lemon-golden accent */
 .c-topbtn--profile,
 .c-topbtn--settings{
-  position:relative; isolation:isolate;
+  position:relative;
+  isolation:isolate;
   background: var(--nav-accent);
   border-color: var(--nav-accent-br);
   color: var(--nav-accent-ink);
@@ -139,9 +171,17 @@ body { min-height: 100vh; }
 }
 .c-topbtn--profile::after,
 .c-topbtn--settings::after{
-  content:""; position:absolute; inset:-18px; z-index:-1; pointer-events:none;
-  background: var(--nav-ambient); filter: blur(10px); opacity:.85;
+  content:"";
+  position:absolute;
+  inset:-18px;
+  z-index:-1;
+  pointer-events:none;
+  background: var(--nav-ambient);
+  filter: blur(10px);
+  opacity:.85;
 }
+.c-topbtn--profile{ justify-self:start; }
+.c-topbtn--settings{ justify-self:end; }
 .c-topbtn svg{ width:20px; height:20px; fill: currentColor; }
 
 /* ===================== UNIVERSAL BUTTON MOTION ===================== */
@@ -155,36 +195,63 @@ body { min-height: 100vh; }
   box-shadow: var(--btn-shadow-rest);
   will-change: transform;
 }
-:where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):hover{ box-shadow: var(--btn-shadow-hover); transform: translateY(-1px); }
-:where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):active{ box-shadow: var(--btn-shadow-active); transform: translateY(1px) scale(.98); }
-:where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):focus-visible{ outline:2px solid color-mix(in oklab, #60a5fa 70%, transparent); outline-offset:2px; }
+:where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):hover{
+  box-shadow: var(--btn-shadow-hover);
+  transform: translateY(-1px);
+}
+:where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):active{
+  box-shadow: var(--btn-shadow-active);
+  transform: translateY(1px) scale(.98);
+}
+:where(button,.c-topbtn,.c-headbtn,.c-pillnav,.c-cta,.p-act,.p-dact):focus-visible{
+  outline:2px solid color-mix(in oklab, #60a5fa 70%, transparent);
+  outline-offset:2px;
+}
 
 /* ===================== LEMON + DOCK ===================== */
 .c-lemon-area{
   position: relative;
   inline-size: 100%;
-  display: grid; place-items: center;
+  display: grid;
+  place-items: center;
 }
+
 .c-lemonbtn{
-  inline-size:48px; block-size:48px; border-radius:999px;
-  background:#fff0bc; border:1px solid #ffd97a;
-  display:grid; place-items:center; padding:0; cursor:pointer;
-  box-shadow: 0 1px 0 rgba(255,255,255,.7), 0 14px 30px rgba(250,186,60,.30);
+  inline-size:48px;
+  block-size:48px;
+  border-radius:999px;
+  background:#fff0bc;
+  border:1px solid #ffd97a;
+  display:grid;
+  place-items:center;
+  padding:0;
+  cursor:pointer;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.7),
+    0 14px 30px rgba(250,186,60,.30);
   z-index: 21; /* above dock */
 }
 .c-lemonbtn.is-on{
   transform: translateY(-1px);
-  box-shadow: 0 1px 0 rgba(255,255,255,.7), 0 18px 38px rgba(250,186,60,.36);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.7),
+    0 18px 38px rgba(250,186,60,.36);
 }
 .c-lemonbtn__svg{
-  inline-size:40px; block-size:40px; display:block;
-  filter: drop-shadow(0 1px 0 rgba(255,255,255,.6)) drop-shadow(0 2px 6px rgba(250,186,60,.25));
+  inline-size:40px;
+  block-size:40px;
+  display:block;
+  filter:
+    drop-shadow(0 1px 0 rgba(255,255,255,.6))
+    drop-shadow(0 2px 6px rgba(250,186,60,.25));
 }
 :is(html,body).is-dark .c-lemonbtn__svg{
-  filter: drop-shadow(0 1px 0 rgba(0,0,0,.25)) drop-shadow(0 4px 10px rgba(0,0,0,.45));
+  filter:
+    drop-shadow(0 1px 0 rgba(0,0,0,.25))
+    drop-shadow(0 4px 10px rgba(0,0,0,.45));
 }
 
-/* Centered dock (works RTL/LTR) */
+/* Centered dock (RTL/LTR safe) */
 .c-dock{
   position: absolute;
   inset-block-start: calc(100% + 10px);
@@ -196,174 +263,111 @@ body { min-height: 100vh; }
 
   display:grid;
   grid-template-columns: 56px 1fr 56px;
-  align-items:center; gap:.5rem; padding:.5rem;
+  align-items:center;
+  gap:.5rem;
+  padding:.5rem;
 
   border-radius: 999px;
   background: linear-gradient(180deg,#ffffff,#f7f9ff);
   border:1px solid #e7edff;
   box-shadow: 0 16px 40px rgba(15,23,42,.14);
 
-  opacity:0; pointer-events:none; transform: translateY(-6px);
+  opacity:0;
+  pointer-events:none;
+  transform: translateY(-6px);
   transition: opacity .18s var(--ease), transform .18s var(--ease);
 }
-.c-dock.is-open{ opacity:1; pointer-events:auto; transform: translateY(0); }
+.c-dock.is-open{
+  opacity:1;
+  pointer-events:auto;
+  transform: translateY(0);
+}
 
 .c-dock__side{
-  inline-size:56px; block-size:44px;
-  display:grid; place-items:center;
-  border-radius:999px; background:#fff; border:1px solid #e8eefc;
+  inline-size:56px;
+  block-size:44px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid #e8eefc;
   box-shadow: 0 4px 12px rgba(15,23,42,.08);
 }
+
 .c-dock__search{
-  block-size:44px; border-radius:999px; display:grid; align-items:center;
-  background:#f5f8ff; border:1px solid #e2eaff; box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
+  block-size:44px;
+  border-radius:999px;
+  display:grid;
+  align-items:center;
+  background:#f5f8ff;
+  border:1px solid #e2eaff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
   padding-inline:.9rem;
 }
 .c-dock__search input{
-  inline-size:100%; block-size:100%; border:0; outline:0; background:transparent;
-  text-align:right; font:600 14px/1 'Rubik', system-ui, sans-serif; color:#0f172a;
+  inline-size:100%;
+  block-size:100%;
+  border:0;
+  outline:0;
+  background:transparent;
+  text-align:right;
+  font:600 14px/1 'Rubik', system-ui, sans-serif;
+  color:#0f172a;
 }
-.c-dock__search input::placeholder{ color:#8aa0c6; }
+.c-dock__search input::placeholder{
+  color:#8aa0c6;
+}
 
+/* dark dock */
 :is(html,body).is-dark .c-dock{
   background: linear-gradient(180deg,#121826,#0f1422);
   border-color:#35446b;
   box-shadow: 0 22px 48px rgba(0,0,0,.50);
 }
 :is(html,body).is-dark .c-dock__side{
-  background:#111827; border-color:#334155; color:#e6edff; box-shadow: 0 10px 18px rgba(0,0,0,.5);
+  background:#111827;
+  border-color:#334155;
+  color:#e6edff;
+  box-shadow: 0 10px 18px rgba(0,0,0,.5);
 }
 :is(html,body).is-dark .c-dock__search{
-  background:#0b1222; border-color:#2a3552;
+  background:#0b1222;
+  border-color:#2a3552;
 }
 :is(html,body).is-dark .c-dock__search input{
   color:#e6edff;
 }
-:is(html,body).is-dark .c-dock__search input::placeholder{ color:#8596c2; }
+:is(html,body).is-dark .c-dock__search input::placeholder{
+  color:#8596c2;
+}
 
-/* ===================== META ===================== */
-.c-meta-block{ text-align:center; }
-.c-date{  font: 800 15px/1.2 'Rubik', system-ui, sans-serif; color:#0f172a; }
-.c-greet{ margin-top:.25rem; font:700 16px/1.4 'Rubik', system-ui, sans-serif; color:#334155; }
+/* ===================== META (date + greeting) ===================== */
+.c-meta-block{
+  text-align:center;
+}
+.c-date{
+  text-align:center;
+  font: 800 15px/1.2 'Rubik', system-ui, sans-serif;
+  color:#0f172a;
+}
+.c-greet{
+  margin-top:.25rem;
+  font:700 16px/1.4 'Rubik', system-ui, sans-serif;
+  color:#334155;
+}
 .c-greet b{ color:#0f172a; }
+
 :is(html,body).is-dark .c-date{ color:#e6edff; }
 :is(html,body).is-dark .c-greet{ color:#b4c5ff; }
 :is(html,body).is-dark .c-greet b{ color:#fff; }
 
-/* ===================== VIEW SWITCH + PERIOD NAV ===================== */
-.c-view-switch{ display:flex; gap:.75rem; justify-content:center; margin:.5rem auto 0; }
-.c-headbtn{
-  min-width:84px; height:44px; padding:0 18px; border-radius:999px;
-  border:1px solid #e5edff; background:#fff; color:#0f172a;
-  display:grid; place-items:center; font:800 15px/1 'Rubik', system-ui, sans-serif;
-}
-.c-headbtn.is-active{
-  background:#FFE067; border-color:#f8d24c;
-  box-shadow: 0 6px 18px rgba(248,210,76,.35), inset 0 1px 0 rgba(255,255,255,.55);
-}
-
-.c-period-mini{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:.75rem; margin:.35rem auto .25rem; max-inline-size: 390px;
-}
-.c-pillnav{
-  inline-size:52px; block-size:36px; border-radius:999px;
-  display:grid; place-items:center; border:1px solid #e5e7eb;
-  background:#fff; color:#0f172a; font:800 14px/1 'Rubik', system-ui;
-}
-
-/* ===================== CONTENT + ORB ===================== */
-.o-viewroot{ min-block-size:420px; display:block; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-.o-viewroot::-webkit-scrollbar{ width:0; height:0; }
-
-.c-orb-spacer{ block-size:120px; }
-.c-bottom-cta{
-  position:fixed; left:50%; transform:translateX(-50%) translateY(12px);
-  bottom:max(16px, env(safe-area-inset-bottom)); z-index:100;
-  opacity:0; pointer-events:none; transition: opacity .18s var(--ease), transform .18s var(--ease);
-}
-.c-bottom-cta.is-visible{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
-
-/* ===================== RESPONSIVE ===================== */
-@media (min-width: 390px){
-  .c-dock{ inline-size: min(380px, calc(100% - 24px)); }
-}
-@media (min-width: 430px){
-  .c-dock{ inline-size: 400px; }
-}
-/* Real Hebrew calendar line (under the Hebrew locale date) */
-.c-datebox__hebcal{
-  margin-top: 2px;
-  font: 800 13px/1.15 'Rubik', system-ui, sans-serif;
-  color:#475569;          /* soft slate to differentiate from the line above */
-  letter-spacing: .2px;
-}
-
-:is(html,body).is-dark .c-datebox__hebcal{
-  color:#b9c9ef;          /* cozy blue-white in dark mode */
-  opacity:.95;
-}
-/* One-line header date (under the lemon) */
-/* Light: Venta-Black, Dark: app golden-white */
-.c-date--singleline{
-  /* force one line */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  /* type */
-  font-family: 'Venta-Black', 'Rubik', system-ui, -apple-system, Segoe UI, Arial, sans-serif;
-  font-weight: 900;
-
-  /* size that avoids wrapping on phones but looks strong on larger screens */
-  font-size: clamp(18px, 4.6vw, 22px);
-  line-height: 1.15;
-  letter-spacing: .2px;
-
-  /* layout */
-  text-align: center;
-  margin-inline: auto;
-
-  /* light color (same ink you use elsewhere) */
-  color: #0f172a; /* or var(--chrome-fg) if you prefer the token */
-}
-
-/* dark mode — your golden-white hue + a soft lift */
-:is(html,body).is-dark .c-date--singleline{
-  color: var(--ink, #f4ecd7);
-  text-shadow: 0 1px 0 rgba(0,0,0,.35);
-}
-/* One-line Hebrew date (Venta-Black light / golden-white dark) */
-.c-date--singleline{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-family: 'Venta-Black', 'Rubik', system-ui, -apple-system, Segoe UI, Arial, sans-serif;
-  font-weight: 900;
-  font-size: clamp(18px, 4.6vw, 22px);
-  line-height: 1.15;
-  letter-spacing: .2px;
-  text-align: center;
-  margin-inline: auto;
-  color: #0f172a; /* Venta black tone */
-}
-
-:is(html,body).is-dark .c-date--singleline{
-  color: var(--ink, #f4ecd7); /* your golden-white hue */
-  text-shadow: 0 1px 0 rgba(0,0,0,.35);
-}
-/* Header date two-line layout */
-.c-date { text-align: center; }
+/* date block (two-line layout already set in JS) */
 .c-datewrap { display: inline-grid; gap: 2px; }
-
-/* First line: slightly smaller than before but larger than Hebrew line */
 .c-date__primary{
   font-weight: 800;
   font-size: clamp(18px, 2.7vw, 19px);
   line-height: 1.15;
 }
-
-/* Second line: a bit smaller and under the first */
 .c-date__hebrew{
   font-weight: 700;
   font-size: clamp(14px, 2.2vw, 16px);
@@ -371,4 +375,118 @@ body { min-height: 100vh; }
   opacity: .95;
 }
 
-/* Dark mode keeps the same sizes; colors inherit your --fg */
+/* ===================== VIEW SWITCH + PERIOD NAV ===================== */
+.c-view-switch{
+  display:flex;
+  gap:.75rem;
+  justify-content:center;
+  margin:.5rem auto 0;
+}
+.c-headbtn{
+  min-width:84px;
+  height:44px;
+  padding:0 18px;
+  border-radius:999px;
+  border:1px solid #e5edff;
+  background:#fff;
+  color:#0f172a;
+  display:grid;
+  place-items:center;
+  font:800 15px/1 'Rubik', system-ui, sans-serif;
+}
+.c-headbtn.is-active{
+  background:#FFE067;
+  border-color:#f8d24c;
+  box-shadow:
+    0 6px 18px rgba(248,210,76,.35),
+    inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+.c-period-mini{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.75rem;
+  margin:.35rem auto .25rem;
+  max-inline-size: 390px;
+}
+.c-pillnav{
+  inline-size:52px;
+  block-size:36px;
+  border-radius:999px;
+  display:grid;
+  place-items:center;
+  border:1px solid #e5e7eb;
+  background:#fff;
+  color:#0f172a;
+  font:800 14px/1 'Rubik', system-ui;
+}
+
+/* ===================== SCROLL CONTAINER / VIEW ROOT ===================== */
+/* both #viewRoot and .o-viewroot must get this styling */
+.o-viewroot,
+#viewRoot {
+  position: relative;
+  display: block;
+
+  /* width discipline (iPhone 12 Pro first) */
+  inline-size: 100%;
+  max-inline-size: 390px;
+  margin-inline: auto;
+
+  /* scrolling */
+  min-block-size: 0;      /* allows it to shrink inside grid row */
+  max-block-size: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  /* padding so bottom content never hides behind iOS home bar
+     and doesn't collide with the floating lemon/dock CTA zone */
+  padding-inline: clamp(8px, 2vw, 12px);
+  padding-block-end: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+.o-viewroot::-webkit-scrollbar,
+#viewRoot::-webkit-scrollbar {
+  width:0;
+  height:0;
+}
+
+/* ===================== ORB ===================== */
+.c-orb-spacer{
+  block-size:120px;
+}
+.c-bottom-cta{
+  position:fixed;
+  left:50%;
+  bottom:max(16px, env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(12px);
+  z-index:100;
+
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .18s var(--ease), transform .18s var(--ease);
+}
+.c-bottom-cta.is-visible{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+  pointer-events:auto;
+}
+
+/* ===================== RESPONSIVE BUMPS ===================== */
+@media (min-width: 390px){
+  .c-dock{ inline-size: min(380px, calc(100% - 24px)); }
+}
+@media (min-width: 430px){
+  .c-dock{ inline-size: 400px; }
+}
+/* Shell base (keep your existing file; just these safe tweaks) */
+
+/* Make view root provide bottom breathing room + snap target */
+.o-viewroot{
+  /* lets the very last content “lock” just above the iOS home bar */
+  scroll-padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Box-size guards so internal padding never increases visual width */
+.o-phone{ box-sizing: border-box; }

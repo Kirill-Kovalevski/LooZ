@@ -4,6 +4,7 @@
 import { auth } from '../core/firebase.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import { apply } from '../router.js';
+import { resubscribeEventsForUid } from '../utils/events.js'; // <-- you added this
 
 let _booted = false;
 
@@ -13,6 +14,10 @@ export function initAuthWatcher() {
 
   onAuthStateChanged(auth, (user) => {
     console.log('[AuthWatcher] user =', user?.email || 'none');
+
+    // whenever auth changes, re-sync events
+    resubscribeEventsForUid().catch(console.warn);
+
     if (user) {
       localStorage.setItem('looz_uid', user.uid);
       const redirect = sessionStorage.getItem('looz.postLoginRedirect');

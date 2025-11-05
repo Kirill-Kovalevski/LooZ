@@ -1,6 +1,8 @@
 // src/pages/categories.js
 // Categories page: mounts into #viewRoot (same as day/week/month pages)
 
+import { subscribeCategories } from '../services/categories.service.js';
+
 const ICONS = {
   solo:      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.97 0-9 2.239-9 5v2h18v-2c0-2.761-4.03-5-9-5Z"/></svg>',
   couple:    '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 10a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm10 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM2 19v2h10v-2c0-2.21-3.134-4-7-4s-7 1.79-7 4Zm12 0v2h8v-2c0-2-2.686-3.5-6-3.5S14 17 14 19Z" transform="translate(2 -1)"/></svg>',
@@ -10,7 +12,6 @@ const ICONS = {
   sport:     '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M13 5a2 2 0 1 1 2 2l-1.3 3.25 3.18 2.2A2 2 0 0 1 18 14.5V19h-2v-3.93l-3.2-2.2-1.3 3.28L9 16l1.7-4.28L9 10V8l3 .5z"/></svg>',
   food:      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 2v11a3 3 0 1 0 2 0V2H7Zm8 0v8h-2v10h2V13h2V2h-2Z"/></svg>',
   culture:   '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M2 10l10-6 10 6-10 6-10-6Zm0 4 10 6 10-6v4l-10 6L2 18v-4Z"/></svg>',
-  // FIXED: valid multi-path cap icon (was broken before)
   learn:     '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 2 8l10 5 10-5-10-5Z"/><path fill="currentColor" d="M4 12v5l8 4 8-4v-5l-8 4-8-4Z"/></svg>',
   relax:     '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 12h16v8H4zM9 4h6l1 6H8z"/></svg>',
   create:    '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm14.71-9.04a1 1 0 0 0 0-1.41l-1.5-1.5a1 1 0 0 0-1.41 0l-1.13 1.13 3.75 3.75 1.29-1.47Z"/></svg>',
@@ -99,6 +100,9 @@ export function mount(app){
         <h1>קטגוריות</h1>
         <p class="sub">בחרו קטגוריות — נקפיץ רעיונות שמתאימים לכם עכשיו</p>
       </header>
+
+      <div class="cat-user" data-user-cats hidden></div>
+
       <div class="cat-filters" dir="rtl"></div>
       <div class="cat-actions">
         <button class="cat-clear" type="button" aria-label="איפוס">איפוס</button>
@@ -127,7 +131,35 @@ export function mount(app){
     renderResults(state, viewRoot);
   });
 
+  // fire once
   renderResults(state, viewRoot);
+
+  // hook to Firestore/LS for the user's own categories
+  subscribeCategories((list) => {
+    renderUserCategories(viewRoot, list);
+  });
+}
+
+function renderUserCategories(root, list) {
+  const box = root.querySelector('[data-user-cats]');
+  if (!box) return;
+  if (!list || !list.length) {
+    box.hidden = true;
+    box.innerHTML = '';
+    return;
+  }
+  box.hidden = false;
+  box.innerHTML = `
+    <h2 class="sec-title">הקטגוריות שלי</h2>
+    <div class="chip-grid" role="group">
+      ${list.map((c) => `
+        <span class="chip chip--user" style="${c.color ? `--chip-color:${c.color};` : ''}">
+          ${c.icon ? `<span class="chip-ic">${c.icon}</span>` : ''}
+          <span class="chip-tx">${c.name || 'ללא שם'}</span>
+        </span>
+      `).join('')}
+    </div>
+  `;
 }
 
 function buildFilters(host){
@@ -181,3 +213,5 @@ function labelFor(id){
   }
   return id;
 }
+
+export default { mount };

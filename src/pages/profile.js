@@ -24,10 +24,13 @@ const K = {
   COVER_PATH:  'profile.coverPath',
   NAME:        'firstName',
   SUR:         'lastName',
+  DISPLAY:     'displayName',
   HANDLE:      'profile.handle',
   FOLLOWERS:   'profile.followers',
   FOLLOWING:   'profile.following',
   IS_FOLLOW:   'profile.is_followed',
+  THEME:       'profile.theme',
+  DEF_VIEW:    'profile.defaultView',
 };
 
 /* ---------- per-user localStorage helpers ---------- */
@@ -55,11 +58,20 @@ async function hydrateProfileFromFirestore() {
     if (d.avatarPath) lsSet(K.AVATAR_PATH, d.avatarPath);
     if (d.coverUrl)   lsSet(K.COVER, d.coverUrl);
     if (d.coverPath)  lsSet(K.COVER_PATH, d.coverPath);
-    if (d.firstName)  lsSet(K.NAME, d.firstName);
-    if (d.lastName)   lsSet(K.SUR, d.lastName);
+
+    // names
+    if (d.displayName) lsSet(K.DISPLAY, d.displayName);
+    if (d.firstName)   lsSet(K.NAME, d.firstName);
+    if (d.lastName)    lsSet(K.SUR, d.lastName);
     if (d.profile?.handle) lsSet(K.HANDLE, d.profile.handle);
+
+    // social counters
     if (Number.isFinite(d.followers)) lsSet(K.FOLLOWERS, String(d.followers));
     if (Number.isFinite(d.following)) lsSet(K.FOLLOWING, String(d.following));
+
+    // prefs
+    if (d.theme)       lsSet(K.THEME, d.theme);
+    if (d.defaultView) lsSet(K.DEF_VIEW, d.defaultView);
   } catch (e) {
     console.warn('[profile] hydrateProfileFromFirestore failed', e);
   }
@@ -340,15 +352,17 @@ function socialActivityHTML(){
 
 /* ===================== Page header ===================== */
 function renderProfile(mode='done'){
-  // Pull latest (possibly hydrated) values at render time
   const cover   = lsGet(K.COVER)  || '';
   const avatar  = lsGet(K.AVATAR) || '';
   const isOn    = (lsGet(K.IS_FOLLOW) || '0') === '1';
 
+  const display = lsGet(K.DISPLAY);
   const f = escapeHTML(lsGet(K.NAME) || 'אורח');
   const l = escapeHTML(lsGet(K.SUR)  || '');
   const handle = () => escapeHTML(lsGet(K.HANDLE) || '@looz_user');
-  const fullName = () => [f,l].filter(Boolean).join(' ');
+  const fullName = () => display
+    ? escapeHTML(display)
+    : [f,l].filter(Boolean).join(' ');
 
   const stats = getStats();
   const coverStyle = cover
@@ -475,10 +489,8 @@ function wire(root, mode = 'done'){
         lsSet(K.COVER_PATH, path);
         await saveUserProfile?.(user.uid, { coverUrl: url, coverPath: path });
 
-        // Paint from LS (keeps behavior consistent & survives re-mounts)
         paintCoverFromLS(root);
       } else {
-        // guest fallback
         const dataUrl = await fileToDataURL(downscaled);
         lsSet(K.COVER, dataUrl);
         paintCoverFromLS(root);

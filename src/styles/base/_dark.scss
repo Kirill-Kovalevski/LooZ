@@ -160,3 +160,91 @@ body.dark, [data-theme="dark"]{
   --cat-card-bg:#0b1220; --cat-card-fg:#e6edf6; --cat-card-line:rgba(148,163,184,.16);
   --cat-card-glow:rgba(39,198,74,.20);
 }
+
+/* month-view */
+/* ========== MONTH (dark) ========== */
+/* parent already has .is-dark on html/body in your setup */
+:is(html,body).is-dark body[data-view='month'] {
+
+  /* the card itself */
+  .p-monthcard {
+    position: relative;
+    width: min(100%, 390px);
+    margin-inline: auto;
+    padding: 10px 0 10px;
+    border-radius: 22px;
+    box-sizing: border-box;
+    isolation: isolate;
+
+    /* base dark wash (blue / greenish / midnight) */
+    background:
+      linear-gradient(180deg,
+        #0b1722 0%,
+        #0b1f2a 45%,
+        #08121a 100%);
+    border: 1px solid rgba(136, 178, 214, .12);
+    box-shadow: 0 12px 28px rgba(0,0,0,.65);
+  }
+
+  /* STROKES: under the cells, low opacity */
+  .p-monthcard::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0; /* <-- stays under everything inside */
+    /* three soft swipes in night colors */
+    background:
+      linear-gradient(125deg,
+        rgba(0,159,183,.25) 0 18%, transparent 18% 38%,
+        rgba(240,191,70,.16) 38% 54%, transparent 54% 78%),
+      linear-gradient(195deg,
+        rgba(69,111,167,.22) 0 30%, transparent 30% 65%);
+    opacity: .85; /* tweak here if you want even softer */
+  }
+
+  /* every child sits ABOVE the strokes */
+  .p-monthcard > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* weekday bar stays readable */
+  .p-weekbar {
+    background: rgba(5,10,16,.55);
+    border: 1px solid rgba(165,194,220,.10);
+    backdrop-filter: blur(6px);
+    .p-wday { color: #b6cae4; }
+  }
+
+  /* cells: dark glass, above strokes */
+  .p-cell {
+    background: rgba(6, 11, 17, .9);
+    border: 1px solid rgba(156,193,222,.16);
+    box-shadow: 0 3px 12px rgba(0,0,0,.4);
+  }
+
+  .p-cell--dim {
+    background: rgba(6, 11, 17, .35);
+    border-style: dashed;
+  }
+
+  /* counter still bright gold */
+  .p-count {
+    background: #FFE067;
+    border: 1px solid #f3c340;
+    color: #0f172a;
+    box-shadow:
+      0 0 0 3px rgba(6, 11, 17, 1),
+      0 5px 14px rgba(0,0,0,.5);
+  }
+
+  .p-cell--today::after {
+    box-shadow: 0 0 0 3px #56c5ff inset;
+  }
+
+  .p-monthtitle {
+    color: #f7f2de;
+  }
+}

@@ -5,7 +5,9 @@ import {
   setPersistence,
   browserLocalPersistence,
   GoogleAuthProvider,
-  onAuthStateChanged,        // <-- add this
+  FacebookAuthProvider,
+  OAuthProvider,
+  onAuthStateChanged,
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -40,5 +42,18 @@ export const authReady = new Promise(resolve => {
 export const db      = getFirestore(app);
 export const storage = getStorage(app);
 
+// Google (you had this already)
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+// Facebook — added
+export const facebookProvider = new FacebookAuthProvider();
+// facebookProvider.addScope('email'); // optional
+
+// Apple — added
+export const appleProvider = new OAuthProvider('apple.com');
+appleProvider.addScope('email');
+appleProvider.addScope('name');
+
+// re-export so other modules can use it from here
+export { onAuthStateChanged };

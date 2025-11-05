@@ -26,7 +26,7 @@ function fromDateKey(key) {
 }
 
 let headerCursor = new Date();
-let currentView  = 'month'; // <<< was 'week' — start the app on Month view
+let currentView  = 'month'; // default boot view is 'month'
 
 // IMPORTANT: static view map so Vite bundles them for GitHub Pages
 const viewModules = import.meta.glob('./{day,week,month}.js');
@@ -177,6 +177,8 @@ function shellHTML() {
       <path d="M4 5h16v2.5c0 3-2.2 5.5-5 5.5h-1l-2 3-2-3H9C6.2 13 4 10.5 4 7.5V5Zm0 13h16v2H4v-2Z" fill="currentColor"/>
     </svg>`;
 
+  // NOTE: we assign id="viewRoot" AND class="o-viewroot"
+  // so our shared CSS can control scroll + safe bottom padding.
   return `
     <main class="o-page">
       <section class="o-phone o-inner">
@@ -269,8 +271,11 @@ function shellHTML() {
           <button class="c-pillnav" data-next  aria-label="הבא">›</button>
         </div>
 
+        <!-- CONTENT SLOT:
+             viewRoot is our scroll container for day/week/month -->
         <section id="viewRoot" class="o-viewroot" aria-live="polite"></section>
 
+        <!-- sentinel for showing the floating orb CTA when near bottom -->
         <div id="orb-sentinel" class="c-orb-spacer" aria-hidden="true"></div>
 
         <div class="c-bottom-cta">
@@ -283,7 +288,7 @@ function shellHTML() {
 
 // ---- wire ----
 function wireShell(root) {
-  /* view switch (route via hash so router mounts into #viewRoot) */
+  /* view switch (we route via hash so router mounts into #viewRoot) */
   root.querySelector('[data-viewbtn="day"]')  ?.addEventListener('click', () => { location.hash = '#/day';  });
   root.querySelector('[data-viewbtn="week"]') ?.addEventListener('click', () => { location.hash = '#/week'; });
   root.querySelector('[data-viewbtn="month"]')?.addEventListener('click', () => { location.hash = '#/month';});
@@ -347,7 +352,7 @@ function wireShell(root) {
 
   /* CREATE EVENT orb — only on non-social pages */
   root.addEventListener('click', (e) => {
-    if (document.body.getAttribute('data-view') === 'social') return; // guard: FAB is for posts only
+    if (document.body.getAttribute('data-view') === 'social') return;
     const btn = e.target.closest('.btn-create-orb');
     if (!btn) return;
     const dk = localStorage.getItem('selectedDate') || undefined; // "YYYY-MM-DD"
@@ -385,7 +390,8 @@ async function openProfile() {
   } catch (err) { console.error('Failed to open profile:', err); }
 }
 
-/* Ensure the home shell exists before mounting a lazy page (prevents "missing header" on back/forward or theme toggle) */
+/* Ensure the home shell exists before mounting a lazy page
+   (prevents "missing header" on back/forward or theme toggle) */
 function ensureHomeShell() {
   const hasShell = document.querySelector('.o-page');
   if (!hasShell) {
@@ -405,7 +411,7 @@ window.addEventListener('popstate', async () => {
     const mod = await pageModules['./profile.js']();
     (mod.default?.mount || mod.mount || mod.default)?.();
   } else if (location.hash === '#/social') {
-    ensureHomeShell(); // make sure header + shell exist
+    ensureHomeShell();
     const mod = await pageModules['./social.js']();
     (mod.default?.mount || mod.mount || mod.default)?.(document.getElementById('app'));
     window.scrollTo(0, 0);
@@ -421,7 +427,7 @@ export function mount(root) {
   root.innerHTML = shellHTML();
   wireShell(root);
 
-  // <<< default boot is MONTH now
+  // default boot is MONTH now
   const boot = localStorage.getItem('defaultView') || 'month';
   if (!location.hash || location.hash === '#/home') {
     location.hash = `#/${boot}`;
@@ -433,7 +439,7 @@ export function mount(root) {
   setHeaderDate(sel ? fromDateKey(sel) : new Date());
   startTodayTicker();
 
-  // Show orb only near the bottom
+  // Show orb only near the bottom of scroll
   const orb = document.querySelector('.c-bottom-cta');
   const sentinel = document.getElementById('orb-sentinel');
   if (orb && sentinel && 'IntersectionObserver' in window) {

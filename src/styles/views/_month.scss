@@ -1,164 +1,266 @@
-/* ===== Month view (clean, centered, mobile-tuned) ===== */
+/* MONTH (light) – watercolor with month strokes under cells */
 
-:root{
-  /* defaults (overridable by Settings) */
+:root {
   --task-pill-bg:     #FFE067;
   --task-pill-border: #f3c340;
 
-  /* sizing tokens (safe for iPhone 12 Pro and above) */
-  --month-cell-radius: 16px;
-  --month-ring-thickness: 3px;
-  --month-gap-x: clamp(6px, 1.6vw, 10px);
-  --month-gap-y: clamp(10px, 2.6vw, 14px);
-  --month-pill-size: clamp(22px, 5.5vw, 26px);
-  --month-pill-clear: 6px;
-  --month-num-size: clamp(16px, 4.2vw, 18px);
+  --month-cell-size:  34px;
+  --month-num-size:   15px;
+  --month-pill-size:  14px;
 
-  /* light cell bg (dark overrides in _dark.scss) */
-  --month-cell-bg: rgba(255,255,255,.88);
+  --month-gap-x:      10px;
+  --month-gap-y:      14px;
+  --month-pill-clear: 8px;
+  --month-gutter-start: 10px;
+  --month-gutter-end:   14px;
+  --month-cell-radius: 12px;
+
+  --m-top:     #f4f4f4;
+  --m-mid:     #f0f0f0;
+  --m-bot:     #ffffff;
+  --m-accent:  #009fb7;
+  --m-stroke1: rgba(0,0,0,.0);
+  --m-stroke2: rgba(0,0,0,.0);
+  --m-stroke3: rgba(0,0,0,.0);
+
+  --month-empty-cell: rgba(255,255,255,.4);
 }
 
 body[data-view='month'] {
 
-  /* Wrapper card (glass + pastel blobs, no overflow) */
-  .p-monthview{
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-
-    max-inline-size: var(--phone-w, 390px);
+  .p-monthwrap {
+    width: 100%;
+    max-width: 100%;
     margin-inline: auto;
-    margin-block: .25rem 1rem;
-    padding: .75rem .75rem 1rem;
-    border-radius: 16px;
+    padding-bottom: 12px;
+  }
 
-    background: rgba(255,255,255,.86);
-    border: 1px solid rgba(100,116,139,.14);
-    box-shadow: 0 10px 26px rgba(15,23,42,.08);
+  .p-monthcard {
+    position: relative;
+    width: min(100%, 390px);
+    margin-inline: auto;
+    padding: 10px 0 10px;
+    border-radius: 22px;
+    box-sizing: border-box;
+    isolation: isolate;
+    background:
+      linear-gradient(180deg, var(--m-top) 0%, var(--m-mid) 46%, var(--m-bot) 100%);
+  }
 
-    &::before{
-      content:"";
-      position:absolute; inset:-12%;
-      z-index:-1;
-      filter: blur(.5px);
-      pointer-events:none;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.10), rgba(245,248,255,.08)),
-        radial-gradient(38% 38% at 10% 8%,  rgba(255,208,160,.55) 0%, rgba(255,208,160,.20) 40%, rgba(255,208,160,0) 62%),
-        radial-gradient(42% 42% at 92% 6%,  rgba(176,206,255,.45) 0%, rgba(176,206,255,.18) 45%, rgba(176,206,255,0) 62%),
-        radial-gradient(55% 55% at 100% 55%, rgba(205,180,255,.35) 0%, rgba(205,180,255,.12) 44%, rgba(205,180,255,0) 64%),
-        radial-gradient(60% 60% at 0% 100%,  rgba(255,206,170,.36) 0%, rgba(255,206,170,.14) 45%, rgba(255,206,170,0) 70%);
-    }
+  .p-monthcard::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    opacity: .38;
+    background:
+      linear-gradient(125deg, var(--m-stroke1) 0 18%, transparent 18% 38%, var(--m-stroke2) 38% 52%, transparent 52% 70%),
+      linear-gradient(190deg, var(--m-stroke3) 0 24%, transparent 24% 55%);
+  }
 
-    &::after{
-      content:"";
-      position:absolute; inset:-20%;
-      z-index:-1;
-      filter: blur(28px);
-      opacity:.85;
-      pointer-events:none;
-      background:
-        radial-gradient(22% 22% at 18% 25%,  #ffe7b8 0%,  rgba(255,231,184,0) 70%),
-        radial-gradient(18% 18% at 78% 22%,  #d6e2ff 0%,  rgba(214,226,255,0) 70%),
-        radial-gradient(24% 24% at 78% 78%,  #e2ccff 0%,  rgba(226,204,255,0) 70%),
-        radial-gradient(20% 20% at 22% 82%,  #ffd9c0 0%,  rgba(255,217,192,0) 70%);
-      animation: pastel-drift 26s ease-in-out infinite alternate;
-      will-change: transform, opacity;
+  .p-monthcard > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .p-monthhead {
+    display: grid;
+    place-items: center;
+    margin-bottom: .45rem;
+
+    .p-monthtitle {
+      font: 800 15px/1.2 'Rubik', system-ui;
+      color: #0f172a;
+      letter-spacing: .25px;
+      text-align: center;
     }
   }
 
-  /* Title row (centered) */
-  .p-monthhead{
-    display: grid; place-items: center;
-    margin-block: .35rem .5rem;
-    .p-monthtitle{
-      text-align:center;
-      font: 800 16px/1.2 'Rubik', system-ui, sans-serif;
-      color:#0f172a; letter-spacing:.3px;
-    }
-  }
-
-  /* Weekday bar */
-  .p-weekbar{
-    display:grid; grid-template-columns:repeat(7, minmax(0,1fr));
+  .p-weekbar,
+  .p-monthgrid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(32px, 1fr));
     column-gap: var(--month-gap-x);
-    row-gap: calc(var(--month-gap-y) * .6);
-    margin-bottom:.6rem; direction: rtl;
-    background: rgba(255,255,255,.82);
-    border: 1px solid #e6eeff; border-radius: 14px; padding: .5rem .35rem;
-
-    .p-wday{ text-align:center; font:700 11px/1.1 system-ui, sans-serif; color:#64748b; }
-  }
-
-  /* Grid of dates */
-  .p-monthgrid{
-    display:grid; grid-template-columns:repeat(7, 1fr);
-    column-gap: var(--month-gap-x);
-    row-gap: calc(var(--month-gap-y) + (var(--month-pill-size) / 2) + var(--month-pill-clear));
     direction: rtl;
+    padding-inline-start: var(--month-gutter-start);
+    padding-inline-end:   var(--month-gutter-end);
+    box-sizing: border-box;
   }
 
-  /* Date cell = touch-safe square (≥44px) */
-  .p-cell{
-    position:relative; display:grid; place-items:center; aspect-ratio:1 / 1;
-    min-inline-size: 44px; min-block-size: 44px;
+  .p-weekbar {
+    margin-bottom: .4rem;
+    padding-block: .35rem;
+    background: rgba(255,255,255,.78);
+    backdrop-filter: blur(5px);
+    border-radius: 999px;
+
+    .p-wday {
+      text-align: center;
+      font: 700 11px/1.1 system-ui;
+      color: #5a6a85;
+    }
+  }
+
+  .p-monthgrid {
+    row-gap: calc(
+      var(--month-gap-y) + (var(--month-pill-size) / 2) + var(--month-pill-clear)
+    );
+    padding-bottom: 4px;
+  }
+
+  .p-cell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1 / 1;
+    min-width: var(--month-cell-size);
+    min-height: var(--month-cell-size);
     border-radius: var(--month-cell-radius);
-    border:1px solid #dbe6ff;
-    background: var(--month-cell-bg);
-    box-shadow:0 3px 10px rgba(15,23,42,.06);
-    transition: box-shadow .12s ease, transform .08s ease, border-color .12s ease;
-    &:focus-visible{ outline:2px solid #93c5fd; outline-offset:2px; }
+    background: rgba(255,255,255,.97);
+    border: 1px solid rgba(219,230,255,.45);
+    overflow: visible;
   }
 
-  .p-cell__num{
-    font: 800 var(--month-num-size)/1 'Rubik', system-ui, sans-serif;
-    color:#0f172a; translate:0 2px;
+  /* TODAY = actual square border */
+  .p-cell.p-cell--today {
+    border: 2.5px solid #ff5a3c;
   }
 
-  /* Task counter pill — sits on the top edge, halo separates from rings */
-  .p-count{
-    position:absolute; top:0; left:50%; translate:-50% -50%;
-    inline-size: var(--month-pill-size); block-size: var(--month-pill-size); border-radius:999px;
-    display:grid; place-items:center;
-    font:800 12px/1 'Rubik', system-ui, sans-serif;
-    background: var(--task-pill-bg, #FFE067);
-    border: 1px solid var(--task-pill-border, #f3c340);
-    color:#0f172a;
-    box-shadow:
-      0 0 0 3px var(--month-cell-bg), /* halo to “erase” overlaps */
-      0 3px 8px rgba(15,23,42,.08);
-    pointer-events:none; opacity:.92; z-index: 2;
-  }
-  .p-count:not(.has){
-    opacity:1;
-    background:#fff; border-color:#cbd5e1; color:#475569; font-weight:800;
+  /* temp — top-left */
+  .p-cell .p-temp {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 9px;
+    line-height: 1;
+    color: #0f172a;
+    z-index: 3;
   }
 
-  /* TODAY ring = exactly the cell’s size */
-  .p-cell--today::after{
-    content:"";
-    position:absolute; inset:0;
-    border-radius: var(--month-cell-radius);
-    box-shadow: 0 0 0 var(--month-ring-thickness) #ff5a3c inset;
-    pointer-events:none; z-index: 1;
+  /* weather — top-right, same line, same visual height */
+  .p-cell .p-weather {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 16px;
+    height: 16px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .p-cell .p-weather svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    animation: loozWeather 4s ease-in-out infinite;
   }
 
-  /* Dim filler days */
-  .p-cell--dim{ opacity:.45; }
+  @keyframes loozWeather {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-0.4px); }
+    100% { transform: translateY(0); }
+  }
 
-  @media (min-width: 430px){
-    .p-monthview{ max-inline-size: 430px; }
-    .p-cell__num{ font-size: clamp(18px, 4vw, 20px); }
-    :root{ --month-pill-size: 28px; }
+  /* date center */
+  .p-cell__num {
+    font: 800 var(--month-num-size)/1 'Rubik', system-ui;
+    color: #0f172a;
+    translate: 0 1px;
+    position: relative;
+    z-index: 3;
+  }
+
+  /* task pill */
+  .p-count {
+    position: absolute;
+    bottom: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: var(--month-pill-size);
+    height: var(--month-pill-size);
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    font: 700 8.5px/1 'Rubik', system-ui;
+    background: var(--task-pill-bg);
+    border: 1px solid var(--task-pill-border);
+    color: #0f172a;
+    box-shadow: 0 2px 6px rgba(15,23,42,.12);
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  .p-count:not(.has) {
+    background: #fff;
+    border-color: #d3dbe5;
+    color: #475569;
+  }
+
+  .p-cell--dim {
+    background: var(--month-empty-cell);
+    border: 1px dashed rgba(209,213,219,.75);
+  }
+
+  .p-bottompad {
+    height: 10px;
   }
 }
-
-/* ---- Motion for blobs (disabled for reduced motion) ---- */
-@keyframes pastel-drift{
-  0%{transform: translate3d(0,0,0) scale(1.00);}
-  50%{transform: translate3d(2%, -1%, 0) scale(1.03);}
-  100%{transform: translate3d(-2%, 1.5%, 0) scale(1.02);}
+/* temp — top-left */
+.p-cell .p-temp {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 9px;
+  line-height: 1;
+  color: #0f172a;
+  z-index: 3; /* above icon */
 }
-@media (prefers-reduced-motion: reduce){
-  body[data-view='month'] .p-monthview::after{ animation: none; }
+
+/* weather — top-right, same row, but slightly higher so it stays clear of the number */
+.p-cell .p-weather {
+  position: absolute;
+  top: 2px;       /* was 4px → move up */
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  z-index: 2;     /* below date number so it never sits on top of it */
+  pointer-events: none;
+}
+
+.p-cell .p-weather svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+  animation: loozWeather 4s ease-in-out infinite;
+}
+/* put the wrappers on the same row */
+.p-cell .p-temp {
+  top: 4px;
+  left: 4px;
+}
+
+.p-cell .p-weather {
+  top: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+}
+
+/* lift the actual drawing up a bit so it matches the text row */
+.p-cell .p-weather svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+  /* start slightly up, then do a tiny float */
+  animation: loozWeatherFloat 4s ease-in-out infinite;
+}
+
+@keyframes loozWeatherFloat {
+  0%   { transform: translateY(-2px); }
+  50%  { transform: translateY(-3px); }
+  100% { transform: translateY(-2px); }
 }
