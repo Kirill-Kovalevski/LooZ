@@ -1,0 +1,12 @@
+{
+  "name": "looz-functions",
+  "type": "module",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-functions": "^4.9.0",
+    "firebase-admin": "^11.10.1",
+    "node-fetch": "^3.3.2"
+  }
+}

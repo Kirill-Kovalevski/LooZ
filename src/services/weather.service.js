@@ -1,15 +1,10 @@
 // /src/services/weather.service.js
-// tiny client-side helper → calls Open-Meteo directly
 
-// default to Tel Aviv-ish if we can't get geolocation
 const DEFAULT_LAT = 32.0853;
 const DEFAULT_LON = 34.7818;
 
-const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast';
-
 // map Open-Meteo weathercode to our "kind" strings
 export function weatherCodeToKind(code, rainProb = 0) {
-  // https://open-meteo.com/en/docs
   if (code === 0) return 'sun';
   if (code === 1 || code === 2) return 'partly';
   if (code === 3) return 'cloud';
@@ -47,28 +42,25 @@ function getPositionOrDefault() {
   });
 }
 
-// fetch daily weather and return an object keyed by yyyy-mm-dd
+// fetch daily weather (from OUR origin → /api/weather) and return object keyed by yyyy-mm-dd
 export async function getDailyWeather() {
   const { latitude, longitude } = await getPositionOrDefault();
 
   const params = new URLSearchParams({
     latitude: latitude.toString(),
     longitude: longitude.toString(),
-    // we need daily codes + temp + precip prob
-    daily: 'weathercode,temperature_2m_max,precipitation_probability_max',
     timezone: 'auto'
   });
 
-  const url = `${OPEN_METEO_URL}?${params.toString()}`;
-
-  const res = await fetch(url);
+  // IMPORTANT: this is same-origin, so your CSP allows it
+  const res = await fetch(`/api/weather?${params.toString()}`);
   if (!res.ok) {
     console.warn('[weather] bad response', res.status);
     throw new Error('weather fetch failed');
   }
 
   const data = await res.json();
-  // data.daily.time = ["2025-11-05", ...]
+
   const days = data.daily?.time || [];
   const codes = data.daily?.weathercode || [];
   const temps = data.daily?.temperature_2m_max || [];
