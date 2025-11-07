@@ -47,6 +47,7 @@ body[data-view='month'] {
       linear-gradient(180deg, var(--m-top) 0%, var(--m-mid) 46%, var(--m-bot) 100%);
   }
 
+  /* strokes under */
   .p-monthcard::before {
     content: "";
     position: absolute;
@@ -123,56 +124,62 @@ body[data-view='month'] {
     overflow: visible;
   }
 
-  /* TODAY = actual square border */
+  /* TODAY = real square border */
   .p-cell.p-cell--today {
     border: 2.5px solid #ff5a3c;
   }
 
-  /* temp — top-left */
-  .p-cell .p-temp {
+  /* ===== top line: temp left, icon right ===== */
+  .p-cell .p-temp,
+  .p-cell .p-weather {
     position: absolute;
-    top: 4px;
+    top: 2px;             /* one shared line */
+    line-height: 1;
+  }
+
+  /* temp: top-left */
+  .p-cell .p-temp {
     left: 4px;
     font-size: 9px;
-    line-height: 1;
     color: #0f172a;
     z-index: 3;
   }
 
-  /* weather — top-right, same line, same visual height */
+  /* weather: top-right, pulled to corner */
   .p-cell .p-weather {
-    position: absolute;
-    top: 4px;
-    right: 4px;
+    right: 3px;           /* tight to the corner */
     width: 16px;
     height: 16px;
-    z-index: 2;
+    z-index: 2;           /* under number so they never mash */
     pointer-events: none;
   }
+
   .p-cell .p-weather svg {
     display: block;
     width: 100%;
     height: 100%;
+    /* tiny lift so it visually matches text baseline */
+    transform: translateY(-1px);
     transform-origin: 50% 50%;
-    animation: loozWeather 4s ease-in-out infinite;
+    animation: loozWeatherFloat 4s ease-in-out infinite;
   }
 
-  @keyframes loozWeather {
-    0%   { transform: translateY(0); }
-    50%  { transform: translateY(-0.4px); }
-    100% { transform: translateY(0); }
+  @keyframes loozWeatherFloat {
+    0%   { transform: translateY(-1px); }
+    50%  { transform: translateY(-2px); }
+    100% { transform: translateY(-1px); }
   }
 
-  /* date center */
+  /* central date number — moved a hair down so top row is clear */
   .p-cell__num {
     font: 800 var(--month-num-size)/1 'Rubik', system-ui;
     color: #0f172a;
-    translate: 0 1px;
+    translate: 0 4px;  /* <— give room for the row above */
     position: relative;
     z-index: 3;
   }
 
-  /* task pill */
+  /* bottom task pill */
   .p-count {
     position: absolute;
     bottom: -9px;
@@ -207,60 +214,12 @@ body[data-view='month'] {
     height: 10px;
   }
 }
-/* temp — top-left */
-.p-cell .p-temp {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  font-size: 9px;
-  line-height: 1;
-  color: #0f172a;
-  z-index: 3; /* above icon */
-}
 
-/* weather — top-right, same row, but slightly higher so it stays clear of the number */
-.p-cell .p-weather {
-  position: absolute;
-  top: 2px;       /* was 4px → move up */
-  right: 4px;
-  width: 16px;
-  height: 16px;
-  z-index: 2;     /* below date number so it never sits on top of it */
-  pointer-events: none;
+/* dark-mode tweak so temp/icon stay visible */
+:is(html,body).is-dark body[data-view='month'] .p-cell .p-temp {
+  color: #FFD86B;
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
 }
-
-.p-cell .p-weather svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  transform-origin: 50% 50%;
-  animation: loozWeather 4s ease-in-out infinite;
-}
-/* put the wrappers on the same row */
-.p-cell .p-temp {
-  top: 4px;
-  left: 4px;
-}
-
-.p-cell .p-weather {
-  top: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
-}
-
-/* lift the actual drawing up a bit so it matches the text row */
-.p-cell .p-weather svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  transform-origin: 50% 50%;
-  /* start slightly up, then do a tiny float */
-  animation: loozWeatherFloat 4s ease-in-out infinite;
-}
-
-@keyframes loozWeatherFloat {
-  0%   { transform: translateY(-2px); }
-  50%  { transform: translateY(-3px); }
-  100% { transform: translateY(-2px); }
+:is(html,body).is-dark body[data-view='month'] .p-cell .p-weather svg {
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.6));
 }
