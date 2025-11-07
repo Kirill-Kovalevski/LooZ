@@ -18,27 +18,33 @@
       rel="stylesheet"
     >
 
-    <!-- CSP that allows Firebase + optional Google Fonts -->
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com;
-      style-src  'self' 'unsafe-inline' https://fonts.googleapis.com;
-      img-src    'self' data: blob: https:;
-      font-src   'self' https://fonts.gstatic.com data:;
-      connect-src 'self'
-        https://firestore.googleapis.com
-        https://identitytoolkit.googleapis.com
-        https://securetoken.googleapis.com
-        https://firebasestorage.googleapis.com
-        https://www.googleapis.com
-        https://apis.google.com
-        https://accounts.google.com
-        https://*.googleapis.com;
-      frame-src 'self' https://accounts.google.com https://*.gstatic.com https://*.google.com https://looz-11581.firebaseapp.com https://looz-11581.web.app;
-      media-src  'self' https:;
-      object-src 'none';
-      base-uri   'self';
-    ">
+    <!-- CSP that allows Firebase + Google Fonts + your weather function + Vite dev ws -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com;
+        style-src  'self' 'unsafe-inline' https://fonts.googleapis.com;
+        img-src    'self' data: blob: https:;
+        font-src   'self' https://fonts.gstatic.com data:;
+        connect-src 'self'
+          ws://localhost:5173
+          wss://localhost:5173
+          https://firestore.googleapis.com
+          https://identitytoolkit.googleapis.com
+          https://securetoken.googleapis.com
+          https://firebasestorage.googleapis.com
+          https://www.googleapis.com
+          https://apis.google.com
+          https://accounts.google.com
+          https://*.googleapis.com
+          https://us-central1-looz-11581.cloudfunctions.net;
+        frame-src 'self' https://accounts.google.com https://*.gstatic.com https://*.google.com https://looz-11581.firebaseapp.com https://looz-11581.web.app;
+        media-src  'self' https:;
+        object-src 'none';
+        base-uri   'self';
+      "
+    >
 
     <!-- Apply theme early to avoid flash -->
     <script>

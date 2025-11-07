@@ -1,5 +1,9 @@
 // /src/services/weather.service.js
 
+// if you ever rename the project / region, update this:
+const WEATHER_FN_URL = 'https://us-central1-looz-11581.cloudfunctions.net/weatherProxy';
+
+// default to Tel Aviv-ish if we can't get geolocation
 const DEFAULT_LAT = 32.0853;
 const DEFAULT_LON = 34.7818;
 
@@ -42,7 +46,7 @@ function getPositionOrDefault() {
   });
 }
 
-// fetch daily weather (from OUR origin → /api/weather) and return object keyed by yyyy-mm-dd
+// fetch daily weather and return an object keyed by yyyy-mm-dd
 export async function getDailyWeather() {
   const { latitude, longitude } = await getPositionOrDefault();
 
@@ -52,15 +56,14 @@ export async function getDailyWeather() {
     timezone: 'auto'
   });
 
-  // IMPORTANT: this is same-origin, so your CSP allows it
-  const res = await fetch(`/api/weather?${params.toString()}`);
+  // NOTE: we call the firebase function directly because we're on GitHub Pages
+  const res = await fetch(`${WEATHER_FN_URL}?${params.toString()}`);
   if (!res.ok) {
     console.warn('[weather] bad response', res.status);
     throw new Error('weather fetch failed');
   }
 
   const data = await res.json();
-
   const days = data.daily?.time || [];
   const codes = data.daily?.weathercode || [];
   const temps = data.daily?.temperature_2m_max || [];
