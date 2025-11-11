@@ -25,6 +25,17 @@ const TODAY_KEY = eventKeyOf(new Date());
 let anchor = new Date();
 let counts = new Map();
 let weatherByDate = {}; // yyyy-mm-dd -> {code, rainProb, tMax, tMin}
+let weatherOn = false;  // current UI preference
+
+/* ---------- weather pref helpers ---------- */
+function readWeatherPref() {
+  const on =
+    localStorage.getItem('weatherEnabled') === '1' ||
+    localStorage.getItem('weatherOn')      === '1' ||
+    localStorage.getItem('showWeather')    === '1' ||
+    localStorage.getItem('monthWeather')   === '1';
+  return on;
+}
 
 /* palettes per month */
 function themeForMonth(m) {
@@ -110,8 +121,7 @@ function ensureHost(root) {
   return host;
 }
 
-/* ---------- weather SVGs (no temp in here now) ---------- */
-
+/* ---------- weather SVGs ---------- */
 function weatherSVG(kind) {
   const baseCloud = `
     <path
@@ -212,17 +222,28 @@ function renderCell(d) {
   const dk = keyOf(d);
   const isToday = dk === TODAY_KEY;
   const cnt = counts.get(dk) || 0;
+
   const w = weatherByDate[dk];
   const kind = w ? weatherCodeToKind(w.code, w.rainProb) : null;
   const tMax = w?.tMax;
 
+  const weatherBlock = weatherOn
+    ? (kind
+        ? weatherSVG(kind)
+        : `<div class="p-weather p-weather--empty" aria-hidden="true"></div>`)
+    : '';
+
+  const tempBlock = weatherOn && typeof tMax === 'number'
+    ? `<span class="p-temp">${Math.round(tMax)}°</span>`
+    : '';
+
   return `
-    <button class="p-cell${isToday ? ' p-cell--today' : ''}"
+    <button class="p-cell${isToday ? ' p-cell--today' : ''}${weatherOn ? ' p-cell--weather' : ''}"
             data-date="${dk}"
             role="gridcell"
             aria-label="יום ${d.getDate()} - ${cnt} משימות">
-      ${kind ? weatherSVG(kind) : ''}
-      ${typeof tMax === 'number' ? `<span class="p-temp">${Math.round(tMax)}°</span>` : ''}
+      ${weatherBlock}
+      ${tempBlock}
       <span class="p-cell__num">${d.getDate()}</span>
       <span class="p-count${cnt > 0 ? ' has' : ''}">${cnt}</span>
     </button>
@@ -257,6 +278,7 @@ function render(host) {
     if (!btn) return;
     const dk = btn.getAttribute('data-date');
     if (!dk) return;
+    // this goes to home.js → day view, and day view shows that date
     localStorage.setItem('selectedDate', dk);
     document.dispatchEvent(new CustomEvent('go-day', { detail: dk }));
   });
@@ -269,6 +291,7 @@ async function fetchWeatherAndRender(host) {
     render(host);
   } catch (err) {
     console.warn('weather fetch failed', err);
+    render(host);
   }
 }
 
@@ -278,8 +301,16 @@ export function mount(root) {
   const host = ensureHost(root);
 
   setMonthCSSVars(anchor);
-  render(host);
-  fetchWeatherAndRender(host);
+
+  weatherOn = readWeatherPref();
+
+  if (weatherOn) {
+    render(host);
+    fetchWeatherAndRender(host);
+  } else {
+    weatherByDate = {};
+    render(host);
+  }
 
   const onPeriod = (e) => {
     const dir = e.detail;
@@ -289,18 +320,37 @@ export function mount(root) {
     if (dir === 'next')  anchor = new Date(y, m + 1, 1);
     if (dir === 'today') anchor = new Date();
     setMonthCSSVars(anchor);
-    render(host);
-    fetchWeatherAndRender(host);
+
+    if (weatherOn) {
+      render(host);
+      fetchWeatherAndRender(host);
+    } else {
+      render(host);
+    }
   };
 
   const onEvents = () => render(host);
 
+  const onWeatherPref = (e) => {
+    weatherOn = !!e.detail?.enabled;
+    if (weatherOn) {
+      render(host);
+      fetchWeatherAndRender(host);
+    } else {
+      weatherByDate = {};
+      render(host);
+    }
+  };
+
   mount._cleanup?.();
   document.addEventListener('period-nav', onPeriod);
   document.addEventListener(EVENTS_CHANGED, onEvents);
+  document.addEventListener('weather-pref-changed', onWeatherPref);
+
   mount._cleanup = () => {
     document.removeEventListener('period-nav', onPeriod);
     document.removeEventListener(EVENTS_CHANGED, onEvents);
+    document.removeEventListener('weather-pref-changed', onWeatherPref);
   };
 }
 

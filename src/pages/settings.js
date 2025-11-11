@@ -1,62 +1,89 @@
 // src/pages/settings.js
-// Settings: modern RTL, Hebrew palettes, centered demo. Hooks: theme, auto-dark,
-// reminders, language, pill colors, default view, logout.
+// Settings: RTL, collapsable styling section, working save-only default-view,
+// and weather toggle that persists + broadcasts.
 
-import { getSmallLogo } from '../utils/logo.js';
 import { setTheme, getTheme } from '../utils/theme.js';
 import { getUser, signOutUser } from '../services/auth.service.js';
+import { auth } from '../core/firebase.js';
 
-import logoLight from '../icons/main-logo.png';
+import logoLight from '../icons/profile-logo.png';
 import logoDark  from '../icons/dark-logo.png';
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
 const K = {
-  THEME_AUTO: "themeAuto",     // '1' | '0'
-  LANG: "lang",                // 'he' | 'en'
+  THEME_AUTO: "themeAuto",
+  LANG: "lang",
   PILL_BG: "pillBg",
   PILL_BR: "pillBorder",
-  DEFAULT_VIEW: "defaultView", // 'day' | 'week' | 'month'
-  REMIND: "reminders",         // '1' | '0'
+  DEFAULT_VIEW: "defaultView",
+  REMIND: "reminders",
+
+  WEATHER: "weatherEnabled",
+  WEATHER_LAT: "weatherLat",
+  WEATHER_LNG: "weatherLng",
 };
 
-// maker defaults
 const DEV_DEFAULTS = { bg: "#FFE067", br: "#f3c340" };
 
-/* Hebrew, connected, pastel-forward palettes */
 const PALETTES = [
   { name: "לימון בהיר",   bg:"#FFE067", br:"#F3C340" },
   { name: "אפרסק עדין",   bg:"#FFE3C4", br:"#FDBA74" },
   { name: "חמאת תכלת",   bg:"#FFF6C2", br:"#FACC15" },
-
   { name: "עלה מנטה",    bg:"#DBFCE5", br:"#34D399" },
   { name: "עשב אביב",    bg:"#E9FCE8", br:"#86EFAC" },
   { name: "מרווה ים",    bg:"#DFFAF5", br:"#14B8A6" },
-
   { name: "שמיים רכים",  bg:"#E7F2FF", br:"#9CC6FF" },
   { name: "תכלת קרירה",  bg:"#E6F0FF", br:"#60A5FA" },
   { name: "ים עמוק",     bg:"#E0F2FE", br:"#38BDF8" },
-
   { name: "לילך זוהר",   bg:"#F5E8FF", br:"#D0A3FF" },
   { name: "לבנדר חלומי", bg:"#EEE5FF", br:"#C4B5FD" },
   { name: "לילך קריר",   bg:"#F0F1FF", br:"#A5B4FC" },
-
   { name: "רוז גולד",    bg:"#FFE6EC", br:"#F39FB6" },
   { name: "שקיעה רכה",   bg:"#FFE4E6", br:"#FB7185" },
   { name: "קורל פופ",    bg:"#FEE2E2", br:"#F87171" },
-
   { name: "ירח חלב",     bg:"#F7F7F7", br:"#CBD5E1" },
   { name: "אבן חוף",     bg:"#F2F4F7", br:"#94A3B8" },
   { name: "קרם עדין",    bg:"#FFF7ED", br:"#FED7AA" },
-
   { name: "לילה אינדיגו", bg:"#E0E7FF", br:"#818CF8" },
   { name: "אבן מרווה",    bg:"#ECFDF5", br:"#2DD4BF" },
   { name: "אפור כחלחל",   bg:"#EEF2FF", br:"#93C5FD" }
 ];
 
-let autoTimer = null;
-let reminderTimer = null;
+/* ---------- per-user name (for "מחובר כעת") ---------- */
+const LS_PREFIX = 'looz';
+const curUid = () =>
+  auth.currentUser?.uid ||
+  (getUser?.() && getUser().uid) ||
+  'guest';
+const scopedKey = (k) => `${LS_PREFIX}:${curUid()}:${k}`;
+const lsScopedGet = (k) => localStorage.getItem(scopedKey(k));
+
+function getSettingsUserName() {
+  const f1 = lsScopedGet('firstName');
+  const l1 = lsScopedGet('lastName');
+  const f2 = localStorage.getItem('firstName');
+  const l2 = localStorage.getItem('lastName');
+
+  let first = f1 || f2 || '';
+  let last  = l1 || l2 || '';
+
+  if (!first) {
+    const u = getUser?.() || auth.currentUser;
+    if (u?.displayName) {
+      const parts = u.displayName.split(' ').filter(Boolean);
+      first = parts[0] || '';
+      last  = parts[1] || '';
+    } else if (u?.email) {
+      first = u.email.split('@')[0];
+    }
+  }
+
+  if (!first) return 'משתמש';
+  const lastInitial = last ? `${last[0]}.` : '';
+  return [first, lastInitial].filter(Boolean).join(' ');
+}
 
 /* ---------- helpers ---------- */
 const setLang = (lang) => {
@@ -75,6 +102,9 @@ const persistPillVars = (bg, br) => {
   try { localStorage.setItem(K.PILL_BG, bg); localStorage.setItem(K.PILL_BR, br); } catch {}
 };
 
+let autoTimer = null;
+let reminderTimer = null;
+
 const hourThreshold = (d=new Date()) => (d.getMonth() >= 3 && d.getMonth() <= 9) ? 18 : 17;
 
 function startAutoDark(){
@@ -84,7 +114,7 @@ function startAutoDark(){
     const h = new Date().getHours();
     const mode = h >= hourThreshold() ? "dark" : "light";
     const pinned = sessionStorage.getItem("themePinned");
-    if (!pinned) setTheme(mode); // use utils/theme.js
+    if (!pinned) setTheme(mode);
   };
   tick();
   autoTimer = setInterval(tick, 60*1000);
@@ -142,13 +172,13 @@ const I = {
   stroke:`<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="3" ry="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
   view:  `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>`,
   reset: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 5V2L7 7l5 5V9c3.3 0 6 2.7 6 6a6 6 0 0 1-9.7 4.7l-1.3 1.5A8 8 0 0 0 12 7z"/></svg>`,
-  logout:`<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M10 3h6a3 3 0 0 1 3 3v3h-2V6a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3h2v3a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z"/><path fill="currentColor" d="M14 12H4v-2h10l-2-2 1.4-1.4L18.8 11l-5.4 4.4L12 14l2-2Z"/></svg>`
+  logout:`<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M10 3h6a3 3 0 0 1 3 3v3h-2V6a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3h2v3a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z"/><path fill="currentColor" d="M14 12H4v-2h10l-2-2 1.4-1.4L18.8 11l-5.4 4.4L12 14l2-2Z"/></svg>` ,
+  weather:`<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M6 14a4 4 0 0 1 2.7-3.8A5 5 0 0 1 18 9.5 3.5 3.5 0 0 1 17.5 16H7a3 3 0 0 1-1-2Z"/><path fill="currentColor" d="m9 18-1 3h2l1-3H9Zm4 0-1 3h2l1-3h-2Z"/></svg>`
 };
 
-/* --------------------------------------------------------------------------------
-   PUBLIC MOUNT (named export, accepts root)
----------------------------------------------------------------------------------*/
 export function mount(root){
+  document.body.setAttribute('data-view', 'settings');
+
   const target = root || $("#app") || document.body;
   target.innerHTML = template();
   wire(target);
@@ -157,8 +187,9 @@ export function mount(root){
   if (localStorage.getItem(K.REMIND) === "1") startReminders();
 }
 
-/* ---------- view template ---------- */
 function template(){
+  const userLabel = getSettingsUserName();
+
   return `
   <main class="set o-wrap" dir="rtl">
     <header class="topbar">
@@ -169,7 +200,6 @@ function template(){
       </button>
     </header>
 
-    <!-- APP SETTINGS -->
     <section class="group">
       <div class="group__title">הגדרות אפליקציה</div>
 
@@ -201,6 +231,15 @@ function template(){
       </div>
 
       <div class="row">
+        <div class="row__icon">${I.weather}</div>
+        <div class="row__title">תחזית שבועית <span style="opacity:.6;font-size:.75rem;">(תצוגת חודש)</span></div>
+        <label class="switch">
+          <input id="weatherToggle" type="checkbox" />
+          <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+        </label>
+      </div>
+
+      <div class="row">
         <div class="row__icon">${I.lang}</div>
         <div class="row__title">שפה</div>
         <div class="seg">
@@ -210,36 +249,40 @@ function template(){
       </div>
     </section>
 
-    <!-- STYLE MY APP -->
-    <section class="group">
-      <div class="group__title">עצבו את האפליקציה שלכם</div>
-
-      <div class="row">
+    <section class="group group--style" data-open="false">
+      <button class="row row--head" type="button" id="styleHead" style="width:100%;background:none;border:0;display:flex;align-items:center;gap:.6rem;cursor:pointer;">
         <div class="row__icon">${I.fill}</div>
-        <div class="row__title">רקע מונה</div>
-        <input id="pillBg" class="color" type="color" />
-      </div>
+        <div class="row__title">עצבו את האפליקציה שלכם</div>
+        <span class="chev" aria-hidden="true" style="margin-inline-start:auto;transition:transform .15s ease;">▾</span>
+      </button>
 
-      <div class="row">
-        <div class="row__icon">${I.stroke}</div>
-        <div class="row__title">מסגרת מונה</div>
-        <input id="pillBorder" class="color" type="color" />
-      </div>
+      <div class="style-body" id="styleBody" style="display:none;gap:.5rem;flex-direction:column;">
+        <div class="row">
+          <div class="row__icon">${I.fill}</div>
+          <div class="row__title">רקע מונה</div>
+          <input id="pillBg" class="color" type="color" />
+        </div>
 
-      <div class="palettes">
-        <div class="palette-grid" id="paletteGrid"></div>
-      </div>
+        <div class="row">
+          <div class="row__icon">${I.stroke}</div>
+          <div class="row__title">מסגרת מונה</div>
+          <input id="pillBorder" class="color" type="color" />
+        </div>
 
-      <div class="maker-row">
-        <button class="maker-btn" id="makerBtn">${I.reset}&nbsp;בחירת המפתח</button>
-      </div>
+        <div class="palettes">
+          <div class="palette-grid" id="paletteGrid"></div>
+        </div>
 
-      <div class="pill-demo">
-        <span class="pill">8</span>
+        <div class="maker-row">
+          <button class="maker-btn" id="makerBtn">${I.reset}&nbsp;בחירת המפתח</button>
+        </div>
+
+        <div class="pill-demo">
+          <span class="pill">8</span>
+        </div>
       </div>
     </section>
 
-    <!-- DEFAULT OPENING VIEW -->
     <section class="group">
       <div class="group__title">מסך פתיחה</div>
       <div class="row row--stack">
@@ -253,18 +296,15 @@ function template(){
       </div>
     </section>
 
-    <!-- LOGOUT -->
-    <section class="group group--footer">
-      <div class="row row--stack">
-        <div class="row__title" style="font-weight:800">
-          ${(() => {
-            const u = getUser?.();
-            const name = u?.displayName || u?.email || 'משתמש';
-            return `מחובר כעת: <span style="opacity:.8">${name}</span>`;
-          })()}
+    <section class="group group--footer" style="display:flex;flex-direction:column;align-items:center;gap:.6rem;">
+      <div class="row" style="display:flex;justify-content:center;align-items:center;width:100%;text-align:center;">
+        <div class="row__title" style="font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          מחובר כעת: <span style="opacity:.8;direction:ltr;display:inline-block;">${userLabel}</span>
         </div>
-        <button class="logout" data-act="logout" aria-label="התנתקות">
-          ${I.logout} &nbsp; התנתקות מהחשבון
+      </div>
+      <div class="row row--stack" style="display:flex;justify-content:center;width:100%;">
+        <button class="logout" data-act="logout" aria-label="התנתקות" style="gap:.25rem;inline-size:fit-content;">
+          ${I.logout}
         </button>
       </div>
     </section>
@@ -315,50 +355,92 @@ function renderPalettes(root){
   selectFromStorage();
 }
 
-/* ---------- wire interactions ---------- */
+/* ---------- wire ---------- */
 function wire(root){
-  // back & home
-  $("[data-act='back']", root)?.addEventListener("click", ()=> history.back());
+  // BACK — changed: mount home and force default view
+  $("[data-act='back']", root)?.addEventListener("click", async ()=> {
+    const { mount } = await import('./home.js');
+    const app = document.getElementById('app');
+    mount(app);
+    const def = localStorage.getItem(K.DEFAULT_VIEW) || 'month';
+    location.hash = '#/' + def;
+  });
+
+  // logo to home
   $("[data-act='home']", root)?.addEventListener("click", async ()=>{
     const { mount } = await import('./home.js');
     const app = document.getElementById('app');
     mount(app);
   });
 
-  // logout (Firebase)
+  // logout
   $("[data-act='logout']", root)?.addEventListener("click", async ()=>{
     try {
-      await signOutUser();                                 // real Firebase sign-out
-      sessionStorage.removeItem('looz.postLoginRedirect'); // cleanup
-      location.hash = '#/login';                           // go to login screen
+      await signOutUser();
+      sessionStorage.removeItem('looz.postLoginRedirect');
+      location.hash = '#/login';
     } catch (e) {
       alert(e?.message || 'שגיאה בהתנתקות');
     }
   });
 
-  // theme manual toggle
   $("#themeToggle", root)?.addEventListener("change", (e)=>{
     const on = e.currentTarget.checked;
     sessionStorage.setItem("themePinned", "1");
     setTimeout(()=> sessionStorage.removeItem("themePinned"), 60*1000);
-    setTheme(on ? "dark" : "light"); // from utils/theme.js
+    setTheme(on ? "dark" : "light");
   });
 
-  // theme auto
   $("#autoToggle", root)?.addEventListener("change", (e)=>{
     const on = e.currentTarget.checked;
     try { localStorage.setItem(K.THEME_AUTO, on ? "1" : "0"); } catch {}
     if (on) startAutoDark(); else stopAutoDark();
   });
 
-  // reminders
   $("#remToggle", root)?.addEventListener("change", async (e)=>{
     const on = e.currentTarget.checked;
     try { localStorage.setItem(K.REMIND, on ? "1" : "0"); } catch {}
     if (on) startReminders(); else stopReminders();
   });
 
-  // language segmented
+  $("#weatherToggle", root)?.addEventListener("change", (e)=>{
+    const on = e.currentTarget.checked;
+
+    const weatherKeys = [
+      K.WEATHER,
+      'weatherEnabled',
+      'weatherOn',
+      'showWeather',
+      'monthWeather'
+    ];
+    weatherKeys.forEach(k => localStorage.setItem(k, on ? '1' : '0'));
+
+    localStorage.setItem('monthWeatherLayout', on ? 'weather' : 'plain');
+
+    if (on) {
+      document.dispatchEvent(new CustomEvent('weather-pref-changed', {
+        detail: { enabled: true, layout: 'weather' }
+      }));
+
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition((pos)=>{
+          const { latitude, longitude } = pos.coords;
+          localStorage.setItem(K.WEATHER_LAT, String(latitude));
+          localStorage.setItem(K.WEATHER_LNG, String(longitude));
+          document.dispatchEvent(new CustomEvent('weather-pref-changed', {
+            detail: { enabled: true, layout: 'weather', lat: latitude, lng: longitude }
+          }));
+        }, ()=>{ /* still enabled */ });
+      }
+    } else {
+      localStorage.removeItem(K.WEATHER_LAT);
+      localStorage.removeItem(K.WEATHER_LNG);
+      document.dispatchEvent(new CustomEvent('weather-pref-changed', {
+        detail: { enabled: false, layout: 'plain' }
+      }));
+    }
+  });
+
   $$(".seg__btn[data-lang]", root).forEach(b=>{
     b.addEventListener("click", ()=>{
       setLang(b.dataset.lang);
@@ -366,15 +448,18 @@ function wire(root){
     });
   });
 
-  // default view segmented
+  // DEFAULT VIEW — save only, no redirect here
   $$(".seg__btn[data-view]", root).forEach(b=>{
     b.addEventListener("click", ()=>{
-      try { localStorage.setItem(K.DEFAULT_VIEW, b.dataset.view); } catch {}
+      const view = b.dataset.view;
+      try { localStorage.setItem(K.DEFAULT_VIEW, view); } catch {}
       reflect(root);
+      document.dispatchEvent(new CustomEvent('default-view-changed', {
+        detail: { view }
+      }));
     });
   });
 
-  // color inputs + live demo
   const bg = $("#pillBg", root), br = $("#pillBorder", root);
   const paint = () => {
     const bgv = bg?.value || DEV_DEFAULTS.bg;
@@ -389,7 +474,6 @@ function wire(root){
   bg?.addEventListener("input", paint);
   br?.addEventListener("input", paint);
 
-  // maker's choice
   $("#makerBtn", root)?.addEventListener("click", ()=>{
     applyPillVars(DEV_DEFAULTS.bg, DEV_DEFAULTS.br);
     persistPillVars(DEV_DEFAULTS.bg, DEV_DEFAULTS.br);
@@ -402,13 +486,20 @@ function wire(root){
     document.dispatchEvent(new Event('events-changed'));
   });
 
+  const styleHead = $("#styleHead", root);
+  const styleBody = $("#styleBody", root);
+  styleHead?.addEventListener('click', ()=>{
+    const open = styleBody.style.display === 'block';
+    styleBody.style.display = open ? 'none' : 'block';
+    styleHead.querySelector('.chev')?.style.setProperty('transform', open ? 'rotate(0deg)' : 'rotate(180deg)');
+  });
+
   renderPalettes(root);
 }
 
-/* ---------- restore current settings into UI ---------- */
+/* ---------- restore ---------- */
 function restore(root){
   try{
-    // theme (from utils)
     const mode = getTheme();
     $("#themeToggle") && ($("#themeToggle").checked = mode === "dark");
 
@@ -420,6 +511,25 @@ function restore(root){
     const r = localStorage.getItem(K.REMIND) === "1";
     $("#remToggle") && ($("#remToggle").checked = r);
 
+    const weatherOn =
+      localStorage.getItem(K.WEATHER) === '1' ||
+      localStorage.getItem('weatherOn') === '1' ||
+      localStorage.getItem('showWeather') === '1' ||
+      localStorage.getItem('monthWeather') === '1';
+    $("#weatherToggle") && ($("#weatherToggle").checked = weatherOn);
+
+    localStorage.setItem('monthWeatherLayout', weatherOn ? 'weather' : 'plain');
+    const savedLat = localStorage.getItem(K.WEATHER_LAT);
+    const savedLng = localStorage.getItem(K.WEATHER_LNG);
+    document.dispatchEvent(new CustomEvent('weather-pref-changed', {
+      detail: {
+        enabled: weatherOn,
+        layout: weatherOn ? 'weather' : 'plain',
+        ...(savedLat ? { lat: Number(savedLat) } : {}),
+        ...(savedLng ? { lng: Number(savedLng) } : {})
+      }
+    }));
+
     setLang(localStorage.getItem(K.LANG) || "he");
 
     const bgv = localStorage.getItem(K.PILL_BG) || DEV_DEFAULTS.bg;
@@ -429,12 +539,26 @@ function restore(root){
     $("#pillBorder") && ($("#pillBorder").value = brv);
 
     reflect(root);
+
+    const curV = localStorage.getItem(K.DEFAULT_VIEW) || "month";
+    document.dispatchEvent(new CustomEvent('default-view-changed', {
+      detail: { view: curV }
+    }));
   }catch{}
 }
 
 function reflect(root){
   const curL = localStorage.getItem(K.LANG) || "he";
-  $$(".seg__btn[data-lang]", root).forEach(b=> b.classList.toggle("is-on", b.dataset.lang === curL));
-  const curV = localStorage.getItem(K.DEFAULT_VIEW) || "week";
-  $$(".seg__btn[data-view]", root).forEach(b=> b.classList.toggle("is-on", b.dataset.view === curV));
+  $$(".seg__btn[data-lang]", root).forEach(b=>{
+    const on = b.dataset.lang === curL;
+    b.classList.toggle("is-on", on);
+    b.classList.toggle("is-active", on);
+  });
+
+  const curV = localStorage.getItem(K.DEFAULT_VIEW) || "month";
+  $$(".seg__btn[data-view]", root).forEach(b=>{
+    const on = b.dataset.view === curV;
+    b.classList.toggle("is-on", on);
+    b.classList.toggle("is-active", on);
+  });
 }
