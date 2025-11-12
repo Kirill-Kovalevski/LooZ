@@ -308,3 +308,50 @@ body[data-view="social"] .c-bottom-cta{ display:none !important; }
 .soc-prev img{ display:block; width:100%; height:100px; object-fit:cover; }
 
 @media (min-width:430px){ .p-social{ padding-inline:16px; } }
+.pp-graphcard {
+  background: #fff;
+  border-radius: 18px;
+  padding: 1rem 1rem 0.5rem;
+  box-shadow: 0 12px 24px rgba(14, 27, 62, 0.06);
+  max-width: 100%;
+}
+.pp-svg {
+  display: block;
+}
+.pp-grid {
+  stroke: rgba(14,27,62,0.04);
+  stroke-width: 1;
+}
+.pp-bar--done {
+  fill: #8f7bf6;
+}
+.pp-bar--removed {
+  fill: #f4b5cf;
+}
+.pp-xlbl {
+  font-size: 10px;
+  fill: rgba(14,27,62,0.55);
+}
+.pp-legendrow {
+  display: flex;
+  gap: 1rem;
+  padding: .5rem .1rem .7rem;
+  font-size: .75rem;
+}
+.pp-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-left: .35rem;
+}
+.pp-dot--done { background: #8f7bf6; }
+.pp-dot--removed { background: #f4b5cf; }
+@media (max-width: 420px) {
+  .pp-graphcard { border-radius: 16px; }
+  .pp-svg { width: 100%; }
+}
+.soc-card.is-highlighted {
+  outline: 2px solid #8f7bf6;
+  outline-offset: 3px;
+}

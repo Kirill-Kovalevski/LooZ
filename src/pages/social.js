@@ -1,7 +1,7 @@
 // /src/pages/social.js
 // Social feed hooked to Firestore social.service.js
-// Now pulls avatar/name from YOUR app profile in Firestore (users/{uid})
-// before using Google photo.
+// Now also logs likes/comments into localStorage so the profile page
+// can show a history, and supports focusing a post from the profile.
 
 import '../styles/views/_social.scss';
 import {
@@ -22,9 +22,10 @@ const LIMITS = {
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const nowISO = () => new Date().toISOString();
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+const pad2 = (n) => String(n).padStart(2, '0');
 
 // we keep latest posts here so profile page can read them
 let _latestPosts = [];
@@ -34,6 +35,18 @@ let _profile = {
   name: 'אורח',
   avatar: '',
 };
+
+/* -----------------------------------------------
+   Activity storage – so profile can show history
+----------------------------------------------- */
+const SOCIAL_ACTIVITY_KEY = 'social.activity';
+
+function loadSocialActivity() {
+  return JSON.parse(localStorage.getItem(SOCIAL_ACTIVITY_KEY) || '{"likes":[],"comments":[]}');
+}
+function saveSocialActivity(obj) {
+  localStorage.setItem(SOCIAL_ACTIVITY_KEY, JSON.stringify(obj));
+}
 
 /* -------------------------------------------------------------
    1. get profile from localStorage (your original keys)
@@ -87,18 +100,6 @@ async function readProfileFromFirestore() {
     console.warn('[social] failed to fetch profile doc', err);
     return null;
   }
-}
-
-/* -------------------------------------------------------------
-   3. fallback to auth user only if both LS and Firestore missing
-------------------------------------------------------------- */
-function readProfileFromAuth() {
-  const u = auth.currentUser;
-  if (!u) return { name: 'אורח', avatar: '' };
-  return {
-    name: u.displayName || u.email || 'אורח',
-    avatar: u.photoURL || '',
-  };
 }
 
 /* ------------------------------------------------------------- */
@@ -270,24 +271,6 @@ function renderList(root, posts, tab = 'feed', profile = _profile) {
     : `<div class="soc-empty">עוד אין פרסומים. הקליקו על העיפרון כדי לפרסם!</div>`;
 }
 
-function renderCommentsInto(card, p) {
-  const ul = card.querySelector('.soc-comm .soc-c__list');
-  ul.innerHTML = (p.comments || [])
-    .map((c) => {
-      const ts = c.createdAt?.seconds ? c.createdAt.seconds * 1000 : c.createdAt || Date.now();
-      return `
-        <li class="soc-c__item">
-          <div class="soc-c__head">
-            <img class="soc-c__ava" src="${c.avatar || ''}" alt="">
-            <b class="soc-c__name">${esc(c.author || '')}</b>
-            <time class="soc-c__when">${fmtFullDate(new Date(ts))}</time>
-          </div>
-          <p class="soc-c__text">${esc(c.text)}</p>
-        </li>`;
-    })
-    .join('');
-}
-
 /* ------------------------------------------------------------- */
 function hydrateMini(root, profile) {
   const ava = root.querySelector('.soc-mini__ava');
@@ -386,8 +369,30 @@ function wireActions(root) {
     const id = card.getAttribute('data-id');
     const action = act.getAttribute('data-act');
 
+    const cardTitle =
+      card.querySelector('.soc-titleline')?.textContent ||
+      card.querySelector('.soc-body')?.textContent ||
+      'ללא כותרת';
+
     if (action === 'cheer') {
       await toggleCheerOnPost(id);
+
+      // log like in localStorage (with basic dedupe to avoid 4 equal rows)
+      const state = loadSocialActivity();
+      const now = new Date();
+      const time = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const dateKey = `${pad2(now.getDate())}.${pad2(now.getMonth() + 1)}.${now.getFullYear()}`;
+      const last = state.likes[0];
+      if (!last || last.postId !== id || last.time !== time) {
+        state.likes.unshift({
+          postId: id,
+          title: cardTitle,
+          time,
+          dateKey,
+        });
+        state.likes = state.likes.slice(0, 40);
+        saveSocialActivity(state);
+      }
       return;
     }
 
@@ -425,10 +430,28 @@ function wireActions(root) {
         avatar: _profile.avatar,
       });
       ta.value = '';
+
+      // log comment too
+      const state = loadSocialActivity();
+      const now = new Date();
+      const time = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const dateKey = `${pad2(now.getDate())}.${pad2(now.getMonth() + 1)}.${now.getFullYear()}`;
+      state.comments.unshift({
+        postId: id,
+        title: cardTitle,
+        text: txt,
+        time,
+        dateKey,
+      });
+      state.comments = state.comments.slice(0, 40);
+      saveSocialActivity(state);
+
+      return;
     }
   });
 }
 
+/* ------------------------------------------------------------- */
 function wireTabs(root, postsRef) {
   $$('.soc-tab', root).forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -455,7 +478,11 @@ export function mount(appOrRoot) {
 
   // initial profile from LS / auth
   const lsProf = readProfileFromLS();
-  _profile = lsProf.avatar || lsProf.name !== 'אורח' ? lsProf : readProfileFromAuth();
+  _profile = lsProf.avatar || lsProf.name !== 'אורח'
+    ? lsProf
+    : (auth.currentUser
+        ? { name: auth.currentUser.displayName || auth.currentUser.email || 'אורח', avatar: auth.currentUser.photoURL || '' }
+        : lsProf);
   hydrateMini(viewRoot, _profile);
 
   // then try to override with Firestore profile (this is where your uploaded pic lives)
@@ -467,8 +494,12 @@ export function mount(appOrRoot) {
         avatar: fsProf.avatar || _profile.avatar,
       };
       hydrateMini(viewRoot, _profile);
-      // also re-render cards so they show the new avatar
-      renderList(viewRoot, _latestPosts, viewRoot.querySelector('.soc-tab.is-on')?.dataset.tab || 'feed', _profile);
+      renderList(
+        viewRoot,
+        _latestPosts,
+        viewRoot.querySelector('.soc-tab.is-on')?.dataset.tab || 'feed',
+        _profile
+      );
     }
   })();
 
@@ -477,8 +508,26 @@ export function mount(appOrRoot) {
   subscribeSocialPosts((list) => {
     _latestPosts = Array.isArray(list) ? list : [];
     postsRef.current = _latestPosts;
+
+    // keep old behaviour for profile page that read localStorage
+    try {
+      localStorage.setItem('social.posts', JSON.stringify(_latestPosts));
+    } catch {}
+
     const tab = viewRoot.querySelector('.soc-tab.is-on')?.dataset.tab || 'feed';
     renderList(viewRoot, postsRef.current, tab, _profile);
+
+    // if profile asked to focus a specific post
+    const focusId = localStorage.getItem('social.focusPostId');
+    if (focusId) {
+      const card = viewRoot.querySelector(`.soc-card[data-id="${focusId}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        card.classList.add('is-highlighted');
+        setTimeout(() => card.classList.remove('is-highlighted'), 1400);
+      }
+      localStorage.removeItem('social.focusPostId');
+    }
   });
 
   wireTabs(viewRoot, postsRef);
@@ -488,9 +537,11 @@ export function mount(appOrRoot) {
 
 /* exported for the profile page */
 export function getSocialActivity() {
+  const activity = loadSocialActivity();
+  // keep posts too, for compatibility
   return {
-    likes: [],
-    comments: [],
+    likes: activity.likes || [],
+    comments: activity.comments || [],
     posts: _latestPosts,
   };
 }

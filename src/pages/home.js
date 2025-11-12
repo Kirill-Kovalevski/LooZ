@@ -1,4 +1,4 @@
-// /src/pages/home.js
+// src/pages/home.js
 // NOTE: make sure vite.config.js has:  export default defineConfig({ base: '/LooZ/' })
 import logoLight from '../icons/main-logo.png';
 import logoDark  from '../icons/dark-logo.png';
@@ -17,7 +17,10 @@ if (!window.__taskFxInit) {
   }
 }
 
-// ---- per-user helpers ----
+// app background: user asked for whitesmoke
+const APP_BG = '#F5F5F5';
+
+// per-user LS helpers
 const LS_PREFIX = 'looz';
 const curUid = () =>
   auth.currentUser?.uid ||
@@ -26,24 +29,21 @@ const curUid = () =>
 const scopedKey = (k) => `${LS_PREFIX}:${curUid()}:${k}`;
 const lsScopedGet = (k) => localStorage.getItem(scopedKey(k));
 
-function fromDateKey(key) {
-  if (!key || typeof key !== 'string') return new Date();
-  const [y, m, d] = key.split('-').map(v => parseInt(v, 10));
-  if (!y || !m || !d) return new Date();
-  return new Date(y, m - 1, d);
-}
-
 let headerCursor = new Date();
 let currentView  = 'month';
 
-// IMPORTANT: static view map so Vite bundles them for GitHub Pages
+// views to be bundled
 const viewModules = import.meta.glob('./{day,week,month}.js');
-// lazy pages (full-page routes)
+// lazy pages
 const pageModules = import.meta.glob('./{settings,profile,social}.js');
 
-/* -----------------------------------------------------------
-   NAME helper
------------------------------------------------------------ */
+/* ─────────────────────────────────────────
+   NAME helpers
+────────────────────────────────────────── */
+function getRuntimeUser() {
+  return auth.currentUser || getUser?.() || null;
+}
+
 function getUserNamePieces() {
   const fLS = lsScopedGet('firstName');
   const lLS = lsScopedGet('lastName');
@@ -51,32 +51,79 @@ function getUserNamePieces() {
   const fGlobal = localStorage.getItem('firstName');
   const lGlobal = localStorage.getItem('lastName');
 
-  let first = fLS || fGlobal || '';
-  let last  = lLS || lGlobal || '';
+  const runtime = getRuntimeUser();
+  let rtFirst = '';
+  let rtLast  = '';
 
-  // fallback to Firebase user
-  if (!first) {
-    const u = auth.currentUser || getUser?.();
-    if (u?.displayName) {
-      const parts = u.displayName.split(' ').filter(Boolean);
-      first = parts[0] || '';
-      last  = parts[1] || '';
-    } else if (u?.email) {
-      first = u.email.split('@')[0];
-    }
+  if (runtime?.displayName) {
+    const parts = runtime.displayName.split(' ').filter(Boolean);
+    rtFirst = parts[0] || '';
+    rtLast  = parts[1] || '';
+  } else if (runtime?.email) {
+    rtFirst = runtime.email.split('@')[0];
   }
+
+  const first = fLS || fGlobal || rtFirst || '';
+  const last  = lLS || lGlobal || rtLast  || '';
 
   return { first, last };
 }
 
-function getUserName() {
+// build display name (no "אורח" here)
+function buildDisplayNameHTMLOrEmpty() {
   const { first, last } = getUserNamePieces();
-  if (!first) return 'אורח';
-  const lastInitial = last ? `${last[0]}.` : '';
-  return [first, lastInitial].filter(Boolean).join(' ');
+
+  if (!first && !last) return '';
+
+  if (first && !last) {
+    return `<span class="fname" dir="ltr" style="color:#226F54;">${first}</span>`;
+  }
+
+  const initial = last ? last[0] : '';
+  const initialHTML = initial
+    ? `<span class="lname-initial" dir="ltr" style="color:#226F54;">${initial}.</span>`
+    : '';
+
+  return `
+    <span class="fname" dir="ltr" style="color:#226F54;">${first}</span>
+    ${initialHTML}
+  `;
 }
 
-// tick the header date shortly after local midnight
+// boom animation trigger
+function runNameBoom() {
+  const el = document.querySelector('.c-greet-name');
+  if (!el) return;
+  el.classList.remove('is-boom');
+  void el.offsetWidth;
+  el.classList.add('is-boom');
+}
+
+/**
+ * apply name into greeting
+ * @param {boolean} initial - if true: do NOT show guest
+ */
+function applyGreetingName(initial = false) {
+  const nameWrap = document.querySelector('.c-greet-name');
+  if (!nameWrap) return;
+
+  const html = buildDisplayNameHTMLOrEmpty();
+
+  if (html) {
+    nameWrap.innerHTML = html;
+    runNameBoom();
+  } else {
+    if (!initial) {
+      nameWrap.innerHTML = `<span dir="rtl">אורח</span>`;
+    } else {
+      nameWrap.innerHTML = '';
+    }
+  }
+}
+
+/* ─────────────────────────────────────────
+   DATE header
+────────────────────────────────────────── */
 function startTodayTicker() {
   const now  = new Date();
   const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
@@ -87,9 +134,6 @@ function startTodayTicker() {
   }, ms);
 }
 
-/* =========================
-   Two-line header date
-   ========================= */
 function setHeaderDate(d) {
   headerCursor = new Date(d);
 
@@ -121,7 +165,6 @@ function setHeaderDate(d) {
   `;
 }
 
-// 1..31 → א׳ … ל״א
 function toHebrewNumerals(num) {
   const table = [
     '', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט',
@@ -131,7 +174,6 @@ function toHebrewNumerals(num) {
   const raw = table[num] || String(num);
   return insertGershayim(raw);
 }
-// 5786 → התשפ״ו
 function toHebrewYear(yearNumber) {
   let result = '';
   let y = Number(yearNumber) || 0;
@@ -155,20 +197,34 @@ function insertGershayim(letters) {
   return arr.join('');
 }
 
-// ---- view mounting ----
-async function renderView(view /* 'day' | 'week' | 'month' */) {
+/* ─────────────────────────────────────────
+   VIEWS
+────────────────────────────────────────── */
+function mountFromModule(mod, root, viewName) {
+  let fn = null;
+  if (mod && typeof mod.mount === 'function') fn = mod.mount;
+  else if (mod?.default && typeof mod.default.mount === 'function') fn = mod.default.mount;
+  else if (typeof mod?.default === 'function') fn = mod.default;
+  else if (typeof mod?.render === 'function') fn = mod.render;
+  else if (typeof mod === 'function') fn = mod;
+  if (typeof fn === 'function') {
+    fn(root);
+  } else {
+    console.warn('LooZ: no mountable export for', viewName);
+  }
+}
+
+async function renderView(view) {
   currentView = view;
   const loader = viewModules[`./${view}.js`];
-  if (!loader) return;
+  if (!loader) {
+    console.warn('LooZ: no module for view', view);
+    return;
+  }
   const mod = await loader();
   const viewRoot = document.getElementById('viewRoot') || document.getElementById('app');
   if (!viewRoot) return;
-
-  // make it resilient to different exports
-  const mountFn = mod.mount || mod.default?.mount || mod.default;
-  if (typeof mountFn === 'function') {
-    mountFn(viewRoot);
-  }
+  mountFromModule(mod, viewRoot, view);
   setActive(view);
 }
 
@@ -186,7 +242,7 @@ function setActive(view) {
   });
 }
 
-function navPeriod(dir /* 'prev' | 'next' | 'today' */) {
+function navPeriod(dir) {
   if (location.hash === '#/categories') return;
   document.dispatchEvent(new CustomEvent('period-nav', { detail: dir }));
   if (currentView !== 'day') return;
@@ -196,34 +252,10 @@ function navPeriod(dir /* 'prev' | 'next' | 'today' */) {
   setHeaderDate(d);
 }
 
-/* ---------------------------
-   hash router
-   --------------------------- */
-function routeFromHash() {
-  const h = location.hash.replace(/^#\//, '');
-  if (h === 'day' || h === 'week' || h === 'month') {
-    renderView(h);
-    return;
-  }
-  // other hashes handled elsewhere
-}
-
-// we'll attach this to window at the end too
-function goView(view) {
-  location.hash = '#/' + view;
-  routeFromHash();
-}
-
-// ---- shell ----
+/* ─────────────────────────────────────────
+   SHELL
+────────────────────────────────────────── */
 function shellHTML() {
-  const { first, last } = getUserNamePieces();
-  const lastInitial = last ? `${last[0]}.` : '';
-
-  const greetingLine1 = `
-    <span class="greet-label">ברוכים השבים,</span>
-    <span class="c-greet-name">${first} ${lastInitial}</span>
-  `.trim();
-
   return `
     <main class="o-page">
       <section class="o-phone o-inner">
@@ -254,7 +286,11 @@ function shellHTML() {
                   type="button"
                   aria-label="סרגל מהיר"
                   aria-expanded="false">
-            <img src="${lemonIcon}" alt="" class="c-lemonbtn__img" />
+            <span class="c-lemonbtn__mask">
+              <span class="c-lemonbtn__inner">
+                <img src="${lemonIcon}" alt="" class="c-lemonbtn__img" />
+              </span>
+            </span>
           </button>
 
           <div id="quickDock" class="c-dock" data-role="searchbar" hidden aria-hidden="true">
@@ -278,7 +314,8 @@ function shellHTML() {
         <div class="c-meta-block" style="font-family:'Rubik','Segoe UI',system-ui,sans-serif;text-align:center;">
           <div class="c-date"></div>
           <p class="c-greet">
-            ${greetingLine1}
+            <span class="greet-label">ברוכים השבים,</span>
+            <span class="c-greet-name"></span>
           </p>
           <p class="c-subgreet">
             לו״ז מושלם מחכה לך
@@ -287,9 +324,9 @@ function shellHTML() {
 
         <!-- view switch -->
         <nav class="c-view-switch" aria-label="תצוגה">
-          <button class="c-headbtn" data-viewbtn="day"   aria-pressed="false" onclick="window.__loozGoView && window.__loozGoView('day')">יום</button>
-          <button class="c-headbtn" data-viewbtn="week"  aria-pressed="false" onclick="window.__loozGoView && window.__loozGoView('week')">שבוע</button>
-          <button class="c-headbtn" data-viewbtn="month" aria-pressed="false" onclick="window.__loozGoView && window.__loozGoView('month')">חודש</button>
+          <button class="c-headbtn" data-viewbtn="day"   aria-pressed="false">יום</button>
+          <button class="c-headbtn" data-viewbtn="week"  aria-pressed="false">שבוע</button>
+          <button class="c-headbtn" data-viewbtn="month" aria-pressed="false">חודש</button>
         </nav>
 
         <div class="c-period-mini">
@@ -310,14 +347,77 @@ function shellHTML() {
   `;
 }
 
-// ---- wire ----
+/* ─────────────────────────────────────────
+   Aggressive recolor of lemon PNG
+────────────────────────────────────────── */
+async function recolorLemonPNG(imgEl) {
+  if (!imgEl) return;
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = lemonIcon;
+    await img.decode();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+
+    // target = #f5f5f5
+    const targetR = 0xF5;
+    const targetG = 0xF5;
+    const targetB = 0xF5;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+
+      // repaint very light pixels to exact bg
+      if (r > 232 && g > 232 && b > 232 && a > 10) {
+        data[i]     = targetR;
+        data[i + 1] = targetG;
+        data[i + 2] = targetB;
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+    imgEl.src = canvas.toDataURL('image/png');
+  } catch (err) {
+    console.warn('lemon recolor failed', err);
+  }
+}
+
+/* ─────────────────────────────────────────
+   disable weather → remove meteorological cards
+────────────────────────────────────────── */
+function disableWeatherEverywhere() {
+  const weatherKeys = [
+    'weatherEnabled',
+    'weatherOn',
+    'showWeather',
+    'monthWeather',
+    'monthWeatherLayout'
+  ];
+  weatherKeys.forEach(k => localStorage.setItem(k, '0'));
+  localStorage.setItem('monthWeatherLayout', 'plain');
+  document.dispatchEvent(new CustomEvent('weather-pref-changed', {
+    detail: { enabled: false, layout: 'plain' }
+  }));
+}
+
+/* ─────────────────────────────────────────
+   wire shell
+────────────────────────────────────────── */
 function wireShell(root) {
   const setHashView = (view) => {
-    const target = `#/${view}`;
-    if (location.hash !== target) {
-      location.hash = target;
-    }
-    routeFromHash();
+    localStorage.setItem('defaultView', view);
+    renderView(view);
   };
 
   root.querySelector('[data-viewbtn="day"]')  ?.addEventListener('click', () => setHashView('day'));
@@ -328,20 +428,22 @@ function wireShell(root) {
   root.querySelector('[data-next]') ?.addEventListener('click', () => navPeriod('next'));
   root.querySelector('[data-today]')?.addEventListener('click', () => navPeriod('today'));
 
-  // dock buttons
   const leftBtn  = root.querySelector('.c-dock__left');
   const rightBtn = root.querySelector('.c-dock__right');
   leftBtn ?.addEventListener('click',  (e) => { e.stopPropagation(); location.hash = '#/categories'; });
   rightBtn?.addEventListener('click', (e) => { e.stopPropagation(); location.hash = '#/social'; });
 
-  // Lemon toggle
-  const lemonBtn = root.querySelector('#lemonToggle');
-  const dock     = root.querySelector('#quickDock');
-  const search   = root.querySelector('#lemonSearch');
+  const lemonBtn   = root.querySelector('#lemonToggle');
+  const dock       = root.querySelector('#quickDock');
+  const search     = root.querySelector('#lemonSearch');
+  const lemonImg   = root.querySelector('.c-lemonbtn__img');
+  const profileBtn = root.querySelector('.c-topbtn--profile');
+
+  recolorLemonPNG(lemonImg);
+
   if (lemonBtn && dock) {
     const openDock  = () => {
       lemonBtn.setAttribute('aria-expanded', 'true');
-      lemonBtn.classList.add('is-on');
       dock.hidden = false;
       requestAnimationFrame(() => {
         dock.classList.add('is-open');
@@ -351,20 +453,33 @@ function wireShell(root) {
     };
     const closeDock = () => {
       lemonBtn.setAttribute('aria-expanded', 'false');
-      lemonBtn.classList.remove('is-on');
       dock.classList.remove('is-open');
       dock.setAttribute('aria-hidden', 'true');
       setTimeout(() => { dock.hidden = true; }, 180);
     };
 
+    // small tilt on load
+    lemonBtn.classList.add('is-stretch');
+
+    lemonBtn.addEventListener('animationend', (ev) => {
+      if (ev.animationName === 'lemonStretch') {
+        lemonBtn.classList.remove('is-stretch');
+      }
+      if (ev.animationName === 'lemonFlip') {
+        lemonBtn.classList.remove('is-flip');
+      }
+    });
+
     lemonBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      lemonBtn.classList.remove('is-flip');
+      void lemonBtn.offsetWidth;
+      lemonBtn.classList.add('is-flip');
       const open = lemonBtn.getAttribute('aria-expanded') === 'true';
       open ? closeDock() : openDock();
     });
 
     dock.addEventListener('click', (e) => e.stopPropagation());
-
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && lemonBtn.getAttribute('aria-expanded') === 'true') closeDock();
     });
@@ -374,11 +489,46 @@ function wireShell(root) {
     });
   }
 
-  // top buttons
+  // make lemon same size as profile/settings, but inner is smaller+transparent
+  if (profileBtn && lemonBtn) {
+    requestAnimationFrame(() => {
+      const w = profileBtn.offsetWidth;
+      const h = profileBtn.offsetHeight;
+      if (w && h) {
+        lemonBtn.style.width  = w + 'px';
+        lemonBtn.style.height = h + 'px';
+        lemonBtn.style.borderRadius =
+          getComputedStyle(profileBtn).borderRadius || '9999px';
+
+        const mask  = root.querySelector('.c-lemonbtn__mask');
+        const inner = root.querySelector('.c-lemonbtn__inner');
+        const img   = root.querySelector('.c-lemonbtn__img');
+
+        if (mask) {
+          mask.style.width  = '100%';
+          mask.style.height = '100%';
+        }
+        if (inner) {
+          // here's your change: smaller + transparent
+          inner.style.width  = '70%';
+          inner.style.height = '70%';
+          inner.style.background = 'transparent';
+          inner.style.display = 'flex';
+          inner.style.alignItems = 'center';
+          inner.style.justifyContent = 'center';
+        }
+        if (img) {
+          img.style.width = '100%';
+          img.style.height = 'auto';
+          img.style.display = 'block';
+        }
+      }
+    });
+  }
+
   root.querySelector('.c-topbtn--profile') ?.addEventListener('click', openProfile);
   root.querySelector('.c-topbtn--settings')?.addEventListener('click', openSettings);
 
-  // create orb
   root.addEventListener('click', (e) => {
     if (document.body.getAttribute('data-view') === 'social') return;
     const btn = e.target.closest('.btn-create-orb');
@@ -387,15 +537,33 @@ function wireShell(root) {
     openCreateModal(dk);
   });
 
-  // run the greeting shine once
   const nameEl = root.querySelector('.c-greet-name');
   if (nameEl) {
-    nameEl.classList.add('greet-flash');
-    setTimeout(() => nameEl.classList.remove('greet-flash'), 2800);
+    nameEl.addEventListener('animationend', (ev) => {
+      if (
+        ev.animationName === 'namePop_2025' ||
+        ev.animationName === 'nameGlow_2025' ||
+        ev.animationName === 'nameBurst_2025'
+      ) {
+        nameEl.classList.remove('is-boom');
+      }
+    });
+  }
+
+  // first fill — no guest
+  applyGreetingName(true);
+
+  // fill again when auth resolves
+  if (typeof auth?.onAuthStateChanged === 'function') {
+    auth.onAuthStateChanged(() => applyGreetingName(false));
+  } else {
+    setTimeout(() => applyGreetingName(false), 1200);
   }
 }
 
-// settings navigation
+/* ─────────────────────────────────────────
+   settings / profile
+────────────────────────────────────────── */
 async function openSettings() {
   try {
     if (location.hash !== '#/settings') {
@@ -409,7 +577,6 @@ async function openSettings() {
   } catch (err) { console.error('Failed to open settings:', err); }
 }
 
-// profile navigation
 async function openProfile() {
   try {
     if (location.hash !== '#/profile') {
@@ -431,7 +598,6 @@ function ensureHomeShell() {
   }
 }
 
-// restore on Back/Forward
 window.addEventListener('popstate', async () => {
   if (location.hash === '#/settings') {
     ensureHomeShell();
@@ -452,81 +618,150 @@ window.addEventListener('popstate', async () => {
   }
 });
 
-// ---- public mount ----
+/* ─────────────────────────────────────────
+   public mount
+────────────────────────────────────────── */
 export function mount(root) {
   document.body.setAttribute('data-view', 'home');
   root.innerHTML = shellHTML();
 
-  // inline styles for home tweaks
+  // inject style once
   const styleId = 'home-inline-style';
   if (!document.getElementById(styleId)) {
     const st = document.createElement('style');
     st.id = styleId;
     st.textContent = `
+      :root,
+      body,
+      .o-page,
+      .o-phone,
+      .o-inner,
+      .o-header,
+      .c-lemon-area,
+      .looz-logo {
+        background-color: ${APP_BG};
+      }
       .c-lemonbtn {
-        width: 74px;
-        height: 74px;
-        background: #F5F6F5;
+        border:0;
+        outline:0;
+        background:inherit;
+        border-radius:9999px;
         display:flex;
         align-items:center;
         justify-content:center;
-        box-shadow: 0 10px 25px rgba(249,200,71,.0);
-        border: 0 !important;
-        outline: 0 !important;
-        border-radius: 9999px;
-        overflow: hidden; /* hide the yellow ring from the image */
+        transform-origin:center;
       }
-      .c-lemonbtn::before,
-      .c-lemonbtn::after {
-        border: 0 !important;
+      .c-lemonbtn__mask {
+        width:100%;
+        height:100%;
+        background:transparent;
+        border-radius:9999px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
       }
-      .c-lemonbtn__img {
-        width: 54px;
-        height: 54px;
-        object-fit: contain;
-        border: 0 !important;
-        outline: 0 !important;
-        background: transparent;
+      .c-lemonbtn__inner {
+        background:transparent;
+        display:flex;
+        align-items:center;
+        justify-content:center;
       }
+      .c-lemonbtn.is-stretch {
+        animation: lemonStretch 0.7s ease-out;
+      }
+      .c-lemonbtn.is-flip {
+        animation: lemonFlip 0.55s ease-out;
+      }
+      @keyframes lemonStretch {
+        0% { transform: rotateZ(0deg); }
+        40% { transform: rotateZ(-11deg) scale(1.02, 0.99); }
+        100% { transform: rotateZ(0deg) scale(1,1); }
+      }
+      @keyframes lemonFlip {
+        0% { transform: rotateY(0deg); }
+        100% { transform: rotateY(180deg); }
+      }
+
       .c-meta-block .c-date {
-        margin-bottom: 1.05rem; /* space ABOVE greetings */
+        margin-bottom: 1rem;
       }
       .c-greet {
-        margin: 0;
-        font-weight: 800;
-        font-size: .92rem;
-        line-height: 1.15;
-        color: #568EA3;
-        display: inline-flex;
-        gap: .4rem;
-        justify-content: center;
-        align-items: center;
-      }
-      .greet-label {
-        color: #568EA3;
+        margin:0;
+        font-weight:800;
+        font-size:.92rem;
+        line-height:1.1;
+        color:#568EA3;
+        display:inline-flex;
+        gap:.35rem;
+        align-items:center;
+        justify-content:center;
       }
       .c-greet-name {
-        background-image: linear-gradient(125deg,#e5e4e2 0%,#f7d159 45%,#d4af37 85%);
-        background-size: 200% 100%;
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        font-weight: 800;
+        position:relative;
+        display:inline-flex;
+        gap:.3rem;
+        align-items:center;
+        color:#226F54;
+        font-weight:800;
       }
-      .greet-flash {
-        animation: nameFlash 1.8s ease-out 0s 1;
+      .c-greet-name.is-boom {
+        animation: namePop_2025 0.22s ease-out;
       }
-      @keyframes nameFlash {
-        0%   { background-position: 180% 0; opacity: .3; }
-        40%  { opacity: 1; }
-        100% { background-position: 0% 0; opacity: 1; }
+      .c-greet-name.is-boom::after {
+        content: "";
+        position: absolute;
+        inset: -10px -20px;
+        border-radius: 9999px;
+        background: radial-gradient(circle,
+          rgba(247, 209, 89, 0.7) 0%,
+          rgba(247, 209, 89, 0.25) 40%,
+          rgba(247, 209, 89, 0) 70%);
+        animation: nameGlow_2025 0.38s ease-out forwards;
+        pointer-events: none;
+        filter: drop-shadow(0 4px 10px rgba(247, 209, 89, 0.25));
+      }
+      .c-greet-name.is-boom::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 46px;
+        height: 46px;
+        border-radius: 9999px;
+        border-top: 2px solid rgba(247, 209, 89, .8);
+        border-right: 2px solid rgba(247, 209, 89, 0);
+        border-left: 2px solid rgba(247, 209, 89, 0);
+        border-bottom: 2px solid rgba(247, 209, 89, 0);
+        transform: translate(-50%, -50%) scale(.35);
+        animation: nameBurst_2025 0.42s ease-out forwards;
+        pointer-events: none;
+      }
+      @keyframes namePop_2025 {
+        0%   { transform: scale(1); }
+        35%  { transform: scale(1.04); }
+        100% { transform: scale(1); }
+      }
+      @keyframes nameGlow_2025 {
+        0%   { opacity: 1; transform: scale(1); }
+        100% { opacity: 0; transform: scale(1.06); }
+      }
+      @keyframes nameBurst_2025 {
+        0%   { opacity: 1; transform: translate(-50%, -50%) scale(.35); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.05); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .c-greet-name.is-boom,
+        .c-greet-name.is-boom::after,
+        .c-greet-name.is-boom::before {
+          animation: none !important;
+        }
       }
       .c-subgreet {
-        margin-top: .25rem; /* small space BETWEEN line 1 and 2 */
-        margin-bottom: 0;
-        font-weight: 800;
-        font-size: .9rem;
-        color: #568EA3;
+        margin-top:.28rem;
+        margin-bottom:0;
+        font-weight:800;
+        font-size:.9rem;
+        color:#568EA3;
       }
     `;
     document.head.appendChild(st);
@@ -534,9 +769,11 @@ export function mount(root) {
 
   wireShell(root);
 
+  // remove meteorological data
+  disableWeatherEverywhere();
+
   const boot = localStorage.getItem('defaultView') || 'month';
-  location.hash = `#/${boot}`;
-  routeFromHash();
+  renderView(boot);
 
   setHeaderDate(new Date());
   startTodayTicker();
@@ -564,38 +801,30 @@ document.addEventListener('go-day', async (e) => {
   const mod = await loadDay();
   const viewRoot = document.getElementById('viewRoot') || document.getElementById('app');
   if (!viewRoot) return;
-
-  const mountFn = mod.mount || mod.default?.mount || mod.default;
-  if (typeof mountFn === 'function') mountFn(viewRoot);
-
+  mountFromModule(mod, viewRoot, 'day');
   currentView = 'day';
   setActive('day');
 });
 
+// listen to default-view changes from settings
 document.addEventListener('default-view-changed', (e) => {
   const view = e.detail?.view;
   if (!view) return;
+  renderView(view);
+});
 
-  localStorage.setItem('defaultView', view);
-
-  const isHome =
-    document.body.getAttribute('data-view') === 'home' &&
-    (!location.hash || location.hash === '#/home' ||
-     location.hash === '#/day' || location.hash === '#/week' || location.hash === '#/month');
-
-  if (isHome) {
-    location.hash = '#/' + view;
-    typeof routeFromHash === 'function' && routeFromHash();
+// hash router
+window.addEventListener('hashchange', () => {
+  const h = location.hash.replace(/^#\//, '');
+  if (h === 'day' || h === 'week' || h === 'month') {
+    renderView(h);
   }
 });
 
-// listen to hash changes globally
-window.addEventListener('hashchange', routeFromHash);
+// make global helper available
+window.__loozGoView = (v) => renderView(v);
 
-// make the global helper available for inline onclick
-window.__loozGoView = goView;
-
-// Apply stored pill colors ASAP on load
+// restore pill colors
 (() => {
   try {
     const bg = localStorage.getItem('pillBg');
