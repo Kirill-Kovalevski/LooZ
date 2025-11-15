@@ -25,8 +25,16 @@ body[data-view="profile"] {
     border-radius: 22px;
     border: 1px solid var(--line);
     overflow: hidden;
-    background: var(--cover,
-      radial-gradient(60% 80% at 20% 0%, #fff6c2 0%, #ffe067 35%, #f0f9ff 60%, #dce6ff 100%));
+    background: var(
+      --cover,
+      radial-gradient(
+        60% 80% at 20% 0%,
+        #fff6c2 0%,
+        #ffe067 35%,
+        #f0f9ff 60%,
+        #dce6ff 100%
+      )
+    );
     background-size: cover;
     background-position: center;
     box-shadow: 0 16px 34px rgba(15, 23, 42, .12);
@@ -76,9 +84,13 @@ body[data-view="profile"] {
     display: block;
   }
 
-  .pp-id { text-align: center; }
+  .pp-id {
+    text-align: center;
+  }
 
-  .pp-name { font: 900 20px/1.2 'Rubik', system-ui; }
+  .pp-name {
+    font: 900 20px/1.2 'Rubik', system-ui;
+  }
 
   .pp-handle {
     font: 800 13px/1 'Rubik', system-ui;
@@ -120,6 +132,7 @@ body[data-view="profile"] {
   }
 
   .pp-count {
+    position: relative;
     display: grid;
     justify-items: center;
     min-inline-size: 98px;
@@ -129,6 +142,22 @@ body[data-view="profile"] {
     border: 1px solid var(--line);
     background: linear-gradient(180deg, #ffffff, #f8fafc);
     box-shadow: 0 6px 14px rgba(15, 23, 42, .06);
+  }
+
+  /* tiny "new followers" badge */
+  #ppFollowersBadge {
+    position: absolute;
+    top: 4px;
+    inset-inline-end: 10px;
+    inline-size: 8px;
+    block-size: 8px;
+    border-radius: 999px;
+    background: #facc15;
+    box-shadow: 0 0 0 3px rgba(255, 250, 235, 0.9);
+  }
+
+  :is(html, body).is-dark #ppFollowersBadge {
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.9);
   }
 
   .pp-count b {
@@ -148,11 +177,20 @@ body[data-view="profile"] {
     margin: .2rem 0 .4rem;
   }
 
-  .pp-stat { display: grid; justify-items: center; row-gap: 2px; }
+  .pp-stat {
+    display: grid;
+    justify-items: center;
+    row-gap: 2px;
+  }
 
-  .pp-num { font: 900 20px/1 'Rubik', system-ui; }
+  .pp-num {
+    font: 900 20px/1 'Rubik', system-ui;
+  }
 
-  .pp-lbl { font: 800 12px/1 'Rubik', system-ui; color: #6b7280; }
+  .pp-lbl {
+    font: 800 12px/1 'Rubik', system-ui;
+    color: #6b7280;
+  }
 
   /* graph card (our bar style) */
   .pp-graphcard {
@@ -162,7 +200,10 @@ body[data-view="profile"] {
     box-shadow: 0 10px 24px rgba(14, 27, 62, .04);
   }
 
-  .pp-xlbl { font-size: 10px; fill: rgba(14, 27, 62, .55); }
+  .pp-xlbl {
+    font-size: 10px;
+    fill: rgba(14, 27, 62, .55);
+  }
 
   .pp-legendrow {
     display: flex;
@@ -183,23 +224,27 @@ body[data-view="profile"] {
     margin: .6rem 1rem 1rem;
     display: none;
   }
+
   .pp-barinfo-line {
     display: flex;
     align-items: center;
     gap: .5rem;
   }
+
   .pp-barinfo-line--ltr {
     background: #f5f3ff; /* soft lilac, no blues */
     border: 1px solid rgba(112, 96, 255, .15);
     border-radius: 9999px;
     padding: .4rem .9rem;
   }
+
   .pp-barinfo-date {
     font-weight: 700;
     color: #1f2a3c;
     min-width: 3.5rem;
     text-align: center;
   }
+
   .pp-barinfo-chip {
     border-radius: 9999px;
     padding: .25rem .7rem .28rem;
@@ -207,10 +252,14 @@ body[data-view="profile"] {
     color: #fff;
     font-size: .72rem;
   }
-  .pp-barinfo-chip--done { background: #7060ff; }
-  .pp-barinfo-chip--removed { background: #e46d5c; }
 
-  /* (REMOVED) .pp-barinfo-mark — killed to remove the azure square */
+  .pp-barinfo-chip--done {
+    background: #7060ff;
+  }
+
+  .pp-barinfo-chip--removed {
+    background: #e46d5c;
+  }
 
   /* archive tabs */
   .pp-arch-head {
@@ -254,7 +303,10 @@ body[data-view="profile"] {
     line-height: 1;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
-    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    transition:
+      transform .12s ease,
+      box-shadow .12s ease,
+      background .12s ease;
   }
 
   .pp-range.is-active {
@@ -278,7 +330,10 @@ body[data-view="profile"] {
     gap: .5rem;
     align-items: center;
   }
-  .pp-dsum::-webkit-details-marker { display: none; }
+
+  .pp-dsum::-webkit-details-marker {
+    display: none;
+  }
 
   .pp-list {
     padding: .3rem .9rem .7rem;
@@ -291,7 +346,12 @@ body[data-view="profile"] {
     gap: .6rem;
     padding: .35rem .25rem;
     direction: rtl;
-    transition: transform .25s ease, opacity .25s ease, height .25s ease, margin .25s ease, filter .25s ease;
+    transition:
+      transform .25s ease,
+      opacity .25s ease,
+      height .25s ease,
+      margin .25s ease,
+      filter .25s ease;
     transform-origin: top;
   }
 
@@ -329,90 +389,63 @@ body[data-view="profile"] {
     line-height: 28px;
   }
 
-  .pp-taskli .pp-repeat { background: #E9F7E9; }
-  .pp-taskli .pp-delperm { background: #FCEAEA; }
+  .pp-taskli .pp-repeat {
+    background: #E9F7E9;
+  }
+
+  .pp-taskli .pp-delperm {
+    background: #FCEAEA;
+  }
 
   /* animated delete / recover */
-  .pp-taskli--vanish { animation: ppVanish .34s ease forwards; }
+  .pp-taskli--vanish {
+    animation: ppVanish .34s ease forwards;
+  }
+
   @keyframes ppVanish {
-    0%   { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); height: var(--h, 32px); }
-    40%  { opacity: .25; transform: translateX(10px) scale(.98); filter: blur(0.6px); }
-    100% { opacity: 0; transform: translateX(30px) scale(.96); filter: blur(1px); height: 0; margin: 0; padding-top: 0; padding-bottom: 0; }
+    0% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      filter: blur(0);
+      height: var(--h, 32px);
+    }
+    40% {
+      opacity: .25;
+      transform: translateX(10px) scale(.98);
+      filter: blur(0.6px);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(30px) scale(.96);
+      filter: blur(1px);
+      height: 0;
+      margin: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
   }
 
-  .pp-taskli--recovered { animation: ppRecoverGlow .7s ease; }
+  .pp-taskli--recovered {
+    animation: ppRecoverGlow .7s ease;
+  }
+
   @keyframes ppRecoverGlow {
-    0%   { background: rgba(112,96,255,.22); box-shadow: inset 0 0 0 2px rgba(112,96,255,.25); }
-    60%  { background: rgba(112,96,255,.10); }
-    100% { background: transparent; box-shadow: none; }
+    0% {
+      background: rgba(112, 96, 255, .22);
+      box-shadow: inset 0 0 0 2px rgba(112, 96, 255, .25);
+    }
+    60% {
+      background: rgba(112, 96, 255, .10);
+    }
+    100% {
+      background: transparent;
+      box-shadow: none;
+    }
   }
 
-  /* social block (new style) */
-  .pp-socialblock { padding-top: 1.2rem; }
-  .pp-soc-head { margin-bottom: .6rem; }
-  .pp-soc-tabs { display: flex; gap: .5rem; margin-bottom: .6rem; }
-  .pp-soc-tab {
-    background: #f4f4ff;
-    border: none;
-    border-radius: 9999px;
-    padding: .35rem .9rem;
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    font-weight: 600;
-    color: #1b2535;
-    cursor: pointer;
+  .pp-space {
+    block-size: 22px;
   }
-  .pp-soc-tab .pp-pill {
-    background: rgba(112,96,255,.13);
-    color: #7060ff;
-    border-radius: 9999px;
-    padding: .15rem .5rem;
-    font-size: .7rem;
-    font-weight: 700;
-  }
-  .pp-soc-tab.is-on {
-    background: #fff;
-    box-shadow: 0 8px 30px rgba(11,18,56,.08);
-  }
-  .pp-soc-panelwrap {
-    border: 1px solid rgba(0,0,0,.03);
-    border-radius: 1rem;
-    background: #fafbff;
-  }
-  .pp-soc-panel { list-style: none; margin: 0; padding: .3rem 0 .4rem; }
-  .pp-socrow {
-    display: flex;
-    gap: .9rem;
-    padding: .45rem .85rem;
-    align-items: flex-start;
-    border-bottom: 1px solid rgba(0,0,0,.03);
-    cursor: pointer;
-  }
-  .pp-socrow:last-child { border-bottom: none; }
-  .pp-socrow-time { min-width: 4.2rem; text-align: left; }
-  .pp-socrow-h { display: block; font-weight: 600; color: #273043; }
-  .pp-socrow-d { display: block; font-size: .63rem; color: #8892a3; }
-  .pp-socrow-body { flex: 1; }
-  .pp-socrow-title { font-weight: 600; color: #1b202f; }
-  .pp-socrow-note { font-size: .66rem; color: #757f92; margin-top: .15rem; }
-  .pp-soc-hint { margin-top: .4rem; font-size: .62rem; color: #99a3b7; }
-
-  /* camera buttons (semi transparent) — harmless if not rendered */
-  .pp-editbtn {
-    background: rgba(255,255,255,.6);
-    border: none;
-    border-radius: 9999px;
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    box-shadow: 0 8px 20px rgba(0,0,0,.04);
-  }
-  .pp-editbtn--cover { position: absolute; top: 16px; left: 16px; }
-  .pp-editbtn--avatar-mark { position: absolute; top: -12px; right: -12px; width: 38px; height: 38px; }
-
-  .pp-space { block-size: 22px; }
 
   /* topbar title tweak */
   .topbar .title {
@@ -422,83 +455,198 @@ body[data-view="profile"] {
   }
 
   @media (min-width: 430px) {
-    .profile-page.o-wrap { inline-size: min(480px, 100vw); }
+    .profile-page.o-wrap {
+      inline-size: min(480px, 100vw);
+    }
   }
 }
 
 /* --- Social Activity (dropdowns) --- */
-.pp-socialcard { padding-top: 14px; }
-.pp-socialcard .pp-h3 { margin: 0 0 8px; }
+.pp-socialcard {
+  padding-top: 14px;
+}
+.pp-socialcard .pp-h3 {
+  margin: 0 0 8px;
+}
 
-.pp-acc { background: #fff; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
-.pp-acc + .pp-acc { margin-top: 12px; }
+.pp-acc {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+}
+.pp-acc + .pp-acc {
+  margin-top: 12px;
+}
 
 .pp-acc-btn {
-  list-style: none; display: flex; align-items: center; justify-content: space-between;
-  width: 100%; padding: 14px 16px; font-weight: 600; cursor: pointer; border-radius: 16px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 16px;
 }
-.pp-acc-btn::-webkit-details-marker { display: none; }
-.pp-acc[open] .pp-acc-btn { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.pp-acc-btn::-webkit-details-marker {
+  display: none;
+}
+.pp-acc[open] .pp-acc-btn {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
 
 .pp-acc-count {
-  min-width: 2.1em; text-align: center; font-weight: 700; border-radius: 999px;
-  background: #f2f2f2; padding: .12em .6em;
+  min-width: 2.1em;
+  text-align: center;
+  font-weight: 700;
+  border-radius: 999px;
+  background: #f2f2f2;
+  padding: .12em .6em;
 }
 
-.pp-soc-list { margin: 0; padding: 8px 12px 14px; }
-.pp-soc-card { display: flex; gap: 12px; align-items: flex-start; padding: 10px 4px; border-top: 1px solid rgba(0,0,0,.06); cursor: pointer; }
-.pp-soc-card:first-child { border-top: 0; }
+.pp-soc-list {
+  margin: 0;
+  padding: 8px 12px 14px;
+}
+.pp-soc-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 6px;
+  border-top: 1px solid rgba(0, 0, 0, .06);
+  cursor: pointer;
+}
+.pp-soc-card:first-child {
+  border-top: 0;
+}
 
-.pp-soc-card-left { min-width: 70px; text-align: center; }
-.pp-soc-time, .pp-soc-date { font-family: ui-monospace, monospace; font-size: 12px; display:block; }
-.pp-soc-date { opacity: .6; }
+.pp-soc-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.pp-soc-note {
+  font-size: 13px;
+  opacity: .75;
+}
 
-.pp-soc-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-.pp-soc-note { font-size: 13px; opacity: .7; }
+.pp-soc-foot {
+  margin: 10px 4px 0;
+  font-size: 12px;
+  opacity: .7;
+}
 
-.pp-soc-foot { margin: 10px 4px 0; font-size: 12px; opacity: .7; }
+/* Social date/hour “stamp” */
+.pp-soc-stamp {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 8px 10px;
+  min-width: 86px;
+  border-radius: 12px;
+  background: #f5f5f7;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .04);
+}
+.pp-stamp-time {
+  font: 700 15px ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .2px;
+}
+.pp-stamp-date {
+  margin-top: 2px;
+  font: 600 12.5px ui-monospace, SFMono-Regular, Menlo, monospace;
+  opacity: .7;
+}
 
-/* remove the old pills if styles still exist */
-.pp-soc-switch, .pp-soc-pill { display: none !important; }
+/* kill any legacy blue/azure social widgets */
+.pp-socialcard .pp-soc-switch,
+.pp-socialcard .pp-soc-tabs,
+.pp-socialcard .pp-soc-pill,
+.pp-socialcard .pp-soc-badge,
+.pp-socialcard [data-soc-tab],
+.pp-socialcard .pp-legacy-toggle,
+.pp-socialcard .pp-legacy-track {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
 
 /* === Action buttons micro-animations === */
 .pp-actions .pp-repeat,
 .pp-actions .pp-delperm {
   position: relative;
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, filter .18s ease;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    background .18s ease,
+    filter .18s ease;
   will-change: transform, filter;
 }
 
 /* Busy states */
-.pp-actions .pp-repeat.is-busy {                /* recover spinner */
+.pp-actions .pp-repeat.is-busy { /* recover spinner */
   animation: ppSpin .6s linear infinite;
   box-shadow: 0 0 0 6px rgba(74, 222, 128, .10);
 }
-@keyframes ppSpin { to { transform: rotate(360deg); } }
+@keyframes ppSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
-.pp-actions .pp-delperm.is-busy::before {       /* delete “poof” ring */
+.pp-actions .pp-delperm.is-busy::before { /* delete “poof” ring */
   content: "";
-  position: absolute; inset: 0; margin: auto;
-  width: 72%; height: 72%; border-radius: 12px;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 72%;
+  height: 72%;
+  border-radius: 12px;
   background: rgba(244, 63, 94, .20);
   animation: ppPoof .34s ease-out forwards;
 }
 @keyframes ppPoof {
-  from { transform: scale(.7); opacity: .95; }
-  to   { transform: scale(1.45); opacity: 0; }
+  from {
+    transform: scale(.7);
+    opacity: .95;
+  }
+  to {
+    transform: scale(1.45);
+    opacity: 0;
+  }
 }
 
 /* Success overlay ✓ (common) */
 .pp-actions .pp-repeat.is-done::after,
 .pp-actions .pp-delperm.is-done::after {
   content: "✓";
-  position: absolute; inset: 0; display: grid; place-items: center;
-  font-weight: 800; font-size: 14px; opacity: 0; transform: scale(.6);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  opacity: 0;
+  transform: scale(.6);
   animation: ppCheckPop .42s cubic-bezier(.2, .8, .2, 1) forwards;
 }
 @keyframes ppCheckPop {
-  25%  { opacity: 1; transform: scale(1.2); }
-  100% { opacity: 1; transform: scale(1); }
+  25% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Final look after success */
@@ -519,58 +667,218 @@ body[data-view="profile"] {
   backface-visibility: hidden;
   transform-style: preserve-3d;
 }
-@keyframes ppFlip { from { transform: rotateY(0); } to { transform: rotateY(180deg); } }
-
-/* List item transitions — clearer and quick */
-.pp-taskli--vanish { animation: ppVanish .34s ease forwards; } /* defined above */
-
-/* ——— Social list: turn rows into body + stamp ——— */
-.pp-soc-list { margin: 0; padding: 8px 12px 14px; }
-.pp-soc-card {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 6px;
-  border-top: 1px solid rgba(0,0,0,.06);
-  cursor: pointer;
-}
-.pp-soc-card:first-child { border-top: 0; }
-
-.pp-soc-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
-.pp-soc-note  { font-size: 13px; opacity: .75; }
-
-/* ——— The new date/hour “stamp” ——— */
-.pp-soc-stamp {
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  padding: 8px 10px;
-  min-width: 86px;
-  border-radius: 12px;
-  background: #f5f5f7;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04);
-}
-.pp-stamp-time { font: 700 15px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .2px; }
-.pp-stamp-date { margin-top: 2px; font: 600 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; opacity: .7; }
-
-/* ——— KILL any legacy blue/azure widget inside social card ——— */
-.pp-socialcard .pp-soc-switch,
-.pp-socialcard .pp-soc-tabs,
-.pp-socialcard .pp-soc-pill,
-.pp-socialcard .pp-soc-badge,
-.pp-socialcard [data-soc-tab],
-.pp-socialcard .pp-legacy-toggle,
-.pp-socialcard .pp-legacy-track {
-  display: none !important;
-  width: 0 !important; height: 0 !important; padding: 0 !important; margin: 0 !important;
-  overflow: hidden !important; border: 0 !important; box-shadow: none !important; background: transparent !important;
+@keyframes ppFlip {
+  from {
+    transform: rotateY(0);
+  }
+  to {
+    transform: rotateY(180deg);
+  }
 }
 
 /* make the 3D flip crisp on the recover button */
-.pp-actions .pp-repeat { backface-visibility: hidden; transform-style: preserve-3d; }
+.pp-actions .pp-repeat {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
 
-/* hard kill any lingering legacy pills (safety) */
-.pp-socialcard .pp-soc-switch,
-.pp-socialcard .pp-soc-pill,
-.pp-socialcard .pp-soc-badge { display: none !important; }
+/* FOLLOWERS / FOLLOWING DROPDOWN */
+
+/* hide when [hidden] is on */
+.pp-followpanel[hidden] {
+  display: none;
+}
+
+/* inline dropdown under the counters */
+.pp-followpanel {
+  position: static;
+  inset: auto;
+  margin-top: .75rem;
+  margin-inline: auto;
+  max-width: 100%;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  pointer-events: auto;
+}
+
+/* no fullscreen backdrop in dropdown mode */
+.pp-followpanel__backdrop {
+  display: none;
+}
+
+/* white rounded card */
+.pp-followpanel__card {
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow:
+    0 12px 26px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(226, 232, 240, 0.9);
+  padding: .75rem 1rem .9rem;
+}
+
+/* header row: title + tiny close button */
+.pp-followpanel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .35rem;
+}
+
+.pp-followpanel__title {
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: .9rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.pp-followpanel__close {
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: .8rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* scrollable list area */
+.pp-followpanel__body {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-top: .15rem;
+}
+
+/* empty state */
+.pp-followpanel__empty {
+  font-size: .8rem;
+  color: #6b7280;
+  text-align: center;
+  padding: .4rem 0 .1rem;
+}
+
+/* list & chips */
+.pp-followlist {
+  list-style: none;
+  margin: 0;
+  padding: .1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: .28rem;
+}
+
+.pp-followchip {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: .35rem .6rem;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  text-align: right;
+  cursor: pointer;
+}
+
+.pp-followchip__avatar {
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5f2ff;
+}
+
+.pp-followchip__avatar img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pp-followchip__fallback {
+  font-size: .84rem;
+  font-weight: 800;
+  color: #226F54;
+}
+
+.pp-followchip__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.pp-followchip__name {
+  font-size: .85rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pp-followchip__handle {
+  font-size: .75rem;
+  color: #6b7280;
+}
+
+/* hover / focus */
+.pp-followchip:hover,
+.pp-followchip:focus-visible {
+  background: rgba(247, 209, 89, 0.08);
+  border-color: #facc15;
+  outline: none;
+}
+
+/* DARK MODE */
+:is(html, body).is-dark .pp-followpanel__card {
+  background: #020617;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(30, 64, 175, 0.6);
+}
+
+:is(html, body).is-dark .pp-followpanel__title {
+  color: #e5edff;
+}
+
+:is(html, body).is-dark .pp-followpanel__close {
+  background: #020617;
+  border-color: #334155;
+  color: #9ca3af;
+}
+
+:is(html, body).is-dark .pp-followchip {
+  background: #020617;
+  border-color: #1f2937;
+}
+
+:is(html, body).is-dark .pp-followchip__avatar {
+  background: #0b1120;
+}
+
+:is(html, body).is-dark .pp-followchip__name {
+  color: #e5edff;
+}
+
+:is(html, body).is-dark .pp-followchip__handle,
+:is(html, body).is-dark .pp-followpanel__empty {
+  color: #9ca3af;
+}
+/* Make the followers/following dropdown fill the pp-card width */
+.pp-head .pp-followpanel {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.pp-head .pp-followpanel__card {
+  width: 100%;
+  max-width: none;
+  border-radius: 18px;
+}

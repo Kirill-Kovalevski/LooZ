@@ -1,33 +1,53 @@
-// src/pages/home.js
+// /src/pages/home.js
 // NOTE: make sure vite.config.js has:  export default defineConfig({ base: '/LooZ/' })
 import logoLight from '../icons/main-logo.png';
 import logoDark  from '../icons/dark-logo.png';
 import lemonIcon from '../icons/lemon-icon.png';
 import { openCreateModal } from '../components/create.js';
 import { initTaskFX } from '../utils/effects.js';
-import { auth } from '../core/firebase.js';
-import { getUser } from '../services/auth.service.js';
+import { auth, db } from '../core/firebase.js';
+import { doc, getDoc } from 'firebase/firestore';
+import { searchUsersByPrefix } from '../services/userSearch.service.js';
 
 if (!window.__taskFxInit) {
   window.__taskFxInit = true;
   if (document.readyState !== 'loading') {
     initTaskFX(document);
   } else {
-    document.addEventListener('DOMContentLoaded', () => initTaskFX(document), { once: true });
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => initTaskFX(document),
+      { once: true }
+    );
   }
 }
 
-// app background: user asked for whitesmoke
+// app background base tone (under gradients)
 const APP_BG = '#F5F5F5';
 
-// per-user LS helpers
+// per-user LS helpers (scoped by *logged in* UID)
 const LS_PREFIX = 'looz';
 const curUid = () =>
-  auth.currentUser?.uid ||
-  (getUser?.() && getUser().uid) ||
+  (auth.currentUser && auth.currentUser.uid) ||
   'guest';
+
 const scopedKey = (k) => `${LS_PREFIX}:${curUid()}:${k}`;
 const lsScopedGet = (k) => localStorage.getItem(scopedKey(k));
+
+// name cache (per UID, in-memory + LS)
+let cachedNamePieces = null;
+const nameKeyFirst = () => scopedKey('name.first');
+const nameKeyLast  = () => scopedKey('name.last');
+
+function setCachedNamePieces(first, last) {
+  cachedNamePieces = { first: first || '', last: last || '' };
+  try {
+    localStorage.setItem(nameKeyFirst(), cachedNamePieces.first);
+    localStorage.setItem(nameKeyLast(),  cachedNamePieces.last);
+  } catch {
+    // ignore LS issues (private mode etc.)
+  }
+}
 
 let headerCursor = new Date();
 let currentView  = 'month';
@@ -38,57 +58,91 @@ const viewModules = import.meta.glob('./{day,week,month}.js');
 const pageModules = import.meta.glob('./{settings,profile,social}.js');
 
 /* ─────────────────────────────────────────
-   NAME helpers
+   NAME helpers (home greeting)
 ────────────────────────────────────────── */
 function getRuntimeUser() {
-  return auth.currentUser || getUser?.() || null;
+  // Firebase Auth is the single source of truth.
+  return auth.currentUser || null;
 }
 
+/**
+ * Pull cached / LS / runtime name pieces (first + last).
+ * Preference order:
+ *  1) cachedNamePieces (in memory)
+ *  2) LS for this uid (name.first / name.last set by Firestore hydrate)
+ *  3) auth.displayName split to first + last
+ *  4) email prefix as a very last fallback
+ */
 function getUserNamePieces() {
-  const fLS = lsScopedGet('firstName');
-  const lLS = lsScopedGet('lastName');
+  if (cachedNamePieces) return cachedNamePieces;
 
-  const fGlobal = localStorage.getItem('firstName');
-  const lGlobal = localStorage.getItem('lastName');
-
-  const runtime = getRuntimeUser();
-  let rtFirst = '';
-  let rtLast  = '';
-
-  if (runtime?.displayName) {
-    const parts = runtime.displayName.split(' ').filter(Boolean);
-    rtFirst = parts[0] || '';
-    rtLast  = parts[1] || '';
-  } else if (runtime?.email) {
-    rtFirst = runtime.email.split('@')[0];
+  // 1) LS for this uid (set from Firestore)
+  try {
+    const f = localStorage.getItem(nameKeyFirst()) || '';
+    const l = localStorage.getItem(nameKeyLast())  || '';
+    if (f || l) {
+      cachedNamePieces = { first: f, last: l };
+      return cachedNamePieces;
+    }
+  } catch {
+    // ignore
   }
 
-  const first = fLS || fGlobal || rtFirst || '';
-  const last  = lLS || lGlobal || rtLast  || '';
+  // 2) runtime auth info (if no Firestore yet)
+  const runtime = getRuntimeUser();
 
-  return { first, last };
+  if (runtime?.displayName) {
+    const parts = runtime.displayName.trim().split(/\s+/);
+    const first = parts[0] || '';
+    const last  = parts.slice(1).join(' ');
+    cachedNamePieces = { first, last };
+    return cachedNamePieces;
+  }
+
+  if (runtime?.email) {
+    const prefix = runtime.email.split('@')[0];
+    cachedNamePieces = { first: prefix, last: '' };
+    return cachedNamePieces;
+  }
+
+  cachedNamePieces = { first: '', last: '' };
+  return cachedNamePieces;
 }
 
-// build display name (no "אורח" here)
+/**
+ * Build the short greeting HTML:
+ *   "דניאלה ג." / "Daniella G."
+ * We still keep separate spans so we can color the name nicely.
+ */
+/**
+ * Build the short greeting HTML:
+ *   "דניאלה ג." / "Daniella G."
+ * Gradient goes over the whole string.
+ */
 function buildDisplayNameHTMLOrEmpty() {
   const { first, last } = getUserNamePieces();
 
   if (!first && !last) return '';
 
+  let label = '';
+
   if (first && !last) {
-    return `<span class="fname" dir="ltr" style="color:#226F54;">${first}</span>`;
+    // only first name
+    label = first;
+  } else {
+    const initial = ([...(last || '')][0] || '').trim();
+    if (initial) {
+      // FIRST + space + INITIAL + dot  → "Daniella G."
+      label = `${first} ${initial}.`;
+    } else {
+      label = first;
+    }
   }
 
-  const initial = last ? last[0] : '';
-  const initialHTML = initial
-    ? `<span class="lname-initial" dir="ltr" style="color:#226F54;">${initial}.</span>`
-    : '';
-
-  return `
-    <span class="fname" dir="ltr" style="color:#226F54;">${first}</span>
-    ${initialHTML}
-  `;
+  const safe = String(label);
+  return `<span class="c-greet-nameinner" dir="auto">${safe}</span>`;
 }
+
 
 // boom animation trigger
 function runNameBoom() {
@@ -121,12 +175,43 @@ function applyGreetingName(initial = false) {
   }
 }
 
+/**
+ * Hydrate firstName + lastName from Firestore "users" document
+ * and cache them for greeting (per uid).
+ */
+async function hydrateNameFromFirestore() {
+  const u = getRuntimeUser();
+  if (!u || !u.uid || !db) return;
+
+  try {
+    const ref  = doc(db, 'users', u.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+
+    const data  = snap.data() || {};
+    const first = (data.firstName || '').trim();
+    const last  = (data.lastName  || '').trim();
+
+    if (!first && !last) return;
+
+    setCachedNamePieces(first, last);
+    applyGreetingName(false);
+  } catch (err) {
+    console.warn('[home] hydrateNameFromFirestore failed', err);
+  }
+}
+
 /* ─────────────────────────────────────────
    DATE header
 ────────────────────────────────────────── */
 function startTodayTicker() {
   const now  = new Date();
-  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
+  const next = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    0, 0, 2
+  );
   const ms   = next.getTime() - now.getTime();
   setTimeout(() => {
     setHeaderDate(new Date());
@@ -179,13 +264,19 @@ function toHebrewYear(yearNumber) {
   let y = Number(yearNumber) || 0;
   if (y >= 5000) { result += 'ה'; y = y % 1000; }
   const hundreds = { 400: 'ת', 300: 'ש', 200: 'ר', 100: 'ק' };
-  for (const h of [400, 300, 200, 100]) { while (y >= h) { result += hundreds[h]; y -= h; } }
+  for (const h of [400, 300, 200, 100]) {
+    while (y >= h) { result += hundreds[h]; y -= h; }
+  }
   if (y === 15) return insertGershayim(result + 'טו');
   if (y === 16) return insertGershayim(result + 'טז');
   const tens = { 90:'צ',80:'פ',70:'ע',60:'ס',50:'נ',40:'מ',30:'ל',20:'כ',10:'י' };
   const ones = { 9:'ט',8:'ח',7:'ז',6:'ו',5:'ה',4:'ד',3:'ג',2:'ב',1:'א' };
-  for (const t of [90,80,70,60,50,40,30,20,10]) { while (y >= t) { result += tens[t]; y -= t; } }
-  for (const o of [9,8,7,6,5,4,3,2,1]) { if (y === o) { result += ones[o]; y = 0; break; } }
+  for (const t of [90,80,70,60,50,40,30,20,10]) {
+    while (y >= t) { result += tens[t]; y -= t; }
+  }
+  for (const o of [9,8,7,6,5,4,3,2,1]) {
+    if (y === o) { result += ones[o]; y = 0; break; }
+  }
   return insertGershayim(result);
 }
 function insertGershayim(letters) {
@@ -282,7 +373,7 @@ function shellHTML() {
         <!-- Lemon center -->
         <div class="c-lemon-area">
           <button id="lemonToggle"
-                  class="c-lemonbtn"
+                  class="c-lemonbtn c-lemonbtn--wink"
                   type="button"
                   aria-label="סרגל מהיר"
                   aria-expanded="false">
@@ -300,7 +391,7 @@ function shellHTML() {
               </svg>
             </button>
             <label class="c-dock__search" for="lemonSearch">
-              <input id="lemonSearch" type="search" inputmode="search" placeholder="חפש פעילויות…" autocomplete="off" />
+              <input id="lemonSearch" type="search" inputmode="search" placeholder="חפש פעילויות… או משתמשים…" autocomplete="off" />
             </label>
             <button class="c-dock__side c-dock__right" aria-label="חבר׳ה" title="חבר׳ה">
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
@@ -348,52 +439,6 @@ function shellHTML() {
 }
 
 /* ─────────────────────────────────────────
-   Aggressive recolor of lemon PNG
-────────────────────────────────────────── */
-async function recolorLemonPNG(imgEl) {
-  if (!imgEl) return;
-  try {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = lemonIcon;
-    await img.decode();
-
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imgData.data;
-
-    // target = #f5f5f5
-    const targetR = 0xF5;
-    const targetG = 0xF5;
-    const targetB = 0xF5;
-
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const a = data[i + 3];
-
-      // repaint very light pixels to exact bg
-      if (r > 232 && g > 232 && b > 232 && a > 10) {
-        data[i]     = targetR;
-        data[i + 1] = targetG;
-        data[i + 2] = targetB;
-      }
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-    imgEl.src = canvas.toDataURL('image/png');
-  } catch (err) {
-    console.warn('lemon recolor failed', err);
-  }
-}
-
-/* ─────────────────────────────────────────
    disable weather → remove meteorological cards
 ────────────────────────────────────────── */
 function disableWeatherEverywhere() {
@@ -409,6 +454,89 @@ function disableWeatherEverywhere() {
   document.dispatchEvent(new CustomEvent('weather-pref-changed', {
     detail: { enabled: false, layout: 'plain' }
   }));
+}
+
+/* ─────────────────────────────────────────
+   USER SEARCH helpers (for lemon dock)
+────────────────────────────────────────── */
+
+// simple debounce
+function debounce(fn, delay = 200) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), delay);
+  };
+}
+
+function createResultsBox(dockEl) {
+  let box = dockEl.querySelector('.c-dock__results');
+  if (!box) {
+    box = document.createElement('div');
+    box.className = 'c-dock__results';
+    box.hidden = true;
+    dockEl.appendChild(box);
+  }
+  return box;
+}
+
+function renderUserResults(container, users) {
+  if (!container) return;
+
+  const items = users
+    .map((u) => {
+      const uid =
+        u.uid ||
+        u.id ||
+        u.userId ||
+        u.userID ||
+        u.docId ||
+        u.refId;
+
+      if (!uid) return '';
+
+      const displayName = u.displayName || u.name || uid;
+      const username    = u.username || u.handle || '';
+
+      return `
+        <button class="c-dock__result" type="button" data-user-id="${uid}">
+          <span class="c-dock__avatar">
+            ${
+              u.photoURL
+                ? `<img src="${u.photoURL}" alt="" />`
+                : `<span class="c-dock__avatar-fallback">${displayName
+                    .trim()
+                    .charAt(0)
+                    .toUpperCase()}</span>`
+            }
+          </span>
+          <span class="c-dock__meta">
+            <span class="c-dock__name">${displayName}</span>
+            ${
+              username
+                ? `<span class="c-dock__username">@${username}</span>`
+                : ''
+            }
+          </span>
+        </button>
+      `;
+    })
+    .filter(Boolean)
+    .join('');
+
+  if (!items) {
+    container.innerHTML = `<div class="c-dock__empty">לא נמצאו משתמשים</div>`;
+    container.hidden = false;
+    return;
+  }
+
+  container.innerHTML = items;
+  container.hidden = false;
+}
+
+function hideUserResults(container) {
+  if (!container) return;
+  container.hidden = true;
 }
 
 /* ─────────────────────────────────────────
@@ -436,11 +564,52 @@ function wireShell(root) {
   const lemonBtn   = root.querySelector('#lemonToggle');
   const dock       = root.querySelector('#quickDock');
   const search     = root.querySelector('#lemonSearch');
-  const lemonImg   = root.querySelector('.c-lemonbtn__img');
   const profileBtn = root.querySelector('.c-topbtn--profile');
 
-  recolorLemonPNG(lemonImg);
+  let resultsBox = null;
 
+  // search: find users (inside dock)
+  if (dock && search) {
+    resultsBox = createResultsBox(dock);
+
+    const runSearch = debounce(async (value) => {
+      const term = String(value || '').trim();
+      if (!term) {
+        hideUserResults(resultsBox);
+        return;
+      }
+      const users = await searchUsersByPrefix(term);
+      renderUserResults(resultsBox, users);
+    }, 220);
+
+    search.addEventListener('input', (e) => {
+      runSearch(e.target.value);
+    });
+
+    // click on a user result → open that user's profile page
+    dock.addEventListener('click', (e) => {
+      const btn = e.target.closest('.c-dock__result');
+      if (!btn) return;
+
+      const rawUid = btn.getAttribute('data-user-id');
+      const uid = rawUid && rawUid !== 'undefined' && rawUid !== 'null'
+        ? rawUid
+        : null;
+
+      if (!uid) return;
+
+      e.stopPropagation();
+      openProfile(uid);
+      hideUserResults(resultsBox);
+    });
+
+    // blur → hide results after small delay (let click register)
+    search.addEventListener('blur', () => {
+      setTimeout(() => hideUserResults(resultsBox), 180);
+    });
+  }
+
+  // lemon toggle behaviour
   if (lemonBtn && dock) {
     const openDock  = () => {
       lemonBtn.setAttribute('aria-expanded', 'true');
@@ -456,6 +625,7 @@ function wireShell(root) {
       dock.classList.remove('is-open');
       dock.setAttribute('aria-hidden', 'true');
       setTimeout(() => { dock.hidden = true; }, 180);
+      if (resultsBox) hideUserResults(resultsBox);
     };
 
     // small tilt on load
@@ -489,7 +659,7 @@ function wireShell(root) {
     });
   }
 
-  // make lemon same size as profile/settings, but inner is smaller+transparent
+  // make lemon the same outer size as profile/settings
   if (profileBtn && lemonBtn) {
     requestAnimationFrame(() => {
       const w = profileBtn.offsetWidth;
@@ -499,36 +669,18 @@ function wireShell(root) {
         lemonBtn.style.height = h + 'px';
         lemonBtn.style.borderRadius =
           getComputedStyle(profileBtn).borderRadius || '9999px';
-
-        const mask  = root.querySelector('.c-lemonbtn__mask');
-        const inner = root.querySelector('.c-lemonbtn__inner');
-        const img   = root.querySelector('.c-lemonbtn__img');
-
-        if (mask) {
-          mask.style.width  = '100%';
-          mask.style.height = '100%';
-        }
-        if (inner) {
-          // here's your change: smaller + transparent
-          inner.style.width  = '70%';
-          inner.style.height = '70%';
-          inner.style.background = 'transparent';
-          inner.style.display = 'flex';
-          inner.style.alignItems = 'center';
-          inner.style.justifyContent = 'center';
-        }
-        if (img) {
-          img.style.width = '100%';
-          img.style.height = 'auto';
-          img.style.display = 'block';
-        }
       }
     });
   }
 
-  root.querySelector('.c-topbtn--profile') ?.addEventListener('click', openProfile);
+  // profile icon → current user's profile
+  const profileIconBtn = root.querySelector('.c-topbtn--profile');
+  if (profileIconBtn) {
+    profileIconBtn.addEventListener('click', () => openProfile());
+  }
   root.querySelector('.c-topbtn--settings')?.addEventListener('click', openSettings);
 
+  // create orb button
   root.addEventListener('click', (e) => {
     if (document.body.getAttribute('data-view') === 'social') return;
     const btn = e.target.closest('.btn-create-orb');
@@ -553,9 +705,12 @@ function wireShell(root) {
   // first fill — no guest
   applyGreetingName(true);
 
-  // fill again when auth resolves
+  // fill again when auth resolves, then hydrate from Firestore
   if (typeof auth?.onAuthStateChanged === 'function') {
-    auth.onAuthStateChanged(() => applyGreetingName(false));
+    auth.onAuthStateChanged(async () => {
+      applyGreetingName(false);    // quick fallback (displayName / email)
+      await hydrateNameFromFirestore(); // overwrite with Firestore first+last if present
+    });
   } else {
     setTimeout(() => applyGreetingName(false), 1200);
   }
@@ -574,22 +729,39 @@ async function openSettings() {
     const mod = await loader();
     const mountSettings = mod.default || mod.mount;
     if (typeof mountSettings === 'function') mountSettings();
-  } catch (err) { console.error('Failed to open settings:', err); }
+  } catch (err) {
+    console.error('Failed to open settings:', err);
+  }
 }
 
-async function openProfile() {
+async function openProfile(targetUid) {
   try {
-    if (location.hash !== '#/profile') {
-      history.pushState({ page: 'profile' }, '', '#/profile');
+    const baseHash = '#/profile';
+    const suffix   = targetUid ? `?uid=${encodeURIComponent(targetUid)}` : '';
+    const newHash  = `${baseHash}${suffix}`;
+
+    if (location.hash !== newHash) {
+      history.pushState({ page: 'profile' }, '', newHash);
     }
+
+    ensureHomeShell();
+
     const loader = pageModules['./profile.js'];
     if (!loader) { console.error('profile.js not found'); return; }
     const mod = await loader();
     const mountProfile = mod.default?.mount || mod.mount || mod.default;
-    if (typeof mountProfile === 'function') mountProfile();
-  } catch (err) { console.error('Failed to open profile:', err); }
+
+    if (typeof mountProfile === 'function') {
+      mountProfile(targetUid || null);
+    }
+  } catch (err) {
+    console.error('Failed to open profile:', err);
+  }
 }
 
+/* ─────────────────────────────────────────
+   shell bootstrap + routing
+────────────────────────────────────────── */
 function ensureHomeShell() {
   const hasShell = document.querySelector('.o-page');
   if (!hasShell) {
@@ -599,15 +771,22 @@ function ensureHomeShell() {
 }
 
 window.addEventListener('popstate', async () => {
-  if (location.hash === '#/settings') {
+  const hashBase = location.hash.replace(/\?.*$/, '');
+
+  if (hashBase === '#/settings') {
     ensureHomeShell();
     const mod = await pageModules['./settings.js']();
     (mod.default || mod.mount)?.();
-  } else if (location.hash === '#/profile') {
+  } else if (hashBase === '#/profile') {
     ensureHomeShell();
     const mod = await pageModules['./profile.js']();
-    (mod.default?.mount || mod.mount || mod.default)?.();
-  } else if (location.hash === '#/social') {
+
+    const query  = location.hash.split('?')[1] || '';
+    const params = new URLSearchParams(query);
+    const uid    = params.get('uid');
+
+    (mod.default?.mount || mod.mount || mod.default)?.(uid || null);
+  } else if (hashBase === '#/social') {
     ensureHomeShell();
     const mod = await pageModules['./social.js']();
     (mod.default?.mount || mod.mount || mod.default)?.(document.getElementById('app'));
@@ -625,12 +804,12 @@ export function mount(root) {
   document.body.setAttribute('data-view', 'home');
   root.innerHTML = shellHTML();
 
-  // inject style once
+  // inject minimal inline style once (greeting FX)
   const styleId = 'home-inline-style';
   if (!document.getElementById(styleId)) {
     const st = document.createElement('style');
     st.id = styleId;
-    st.textContent = `
+       st.textContent = `
       :root,
       body,
       .o-page,
@@ -641,69 +820,46 @@ export function mount(root) {
       .looz-logo {
         background-color: ${APP_BG};
       }
-      .c-lemonbtn {
-        border:0;
-        outline:0;
-        background:inherit;
-        border-radius:9999px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        transform-origin:center;
+
+      .c-meta-block {
+        margin-top: 0.05rem;
       }
-      .c-lemonbtn__mask {
-        width:100%;
-        height:100%;
-        background:transparent;
-        border-radius:9999px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-      }
-      .c-lemonbtn__inner {
-        background:transparent;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-      }
-      .c-lemonbtn.is-stretch {
-        animation: lemonStretch 0.7s ease-out;
-      }
-      .c-lemonbtn.is-flip {
-        animation: lemonFlip 0.55s ease-out;
-      }
-      @keyframes lemonStretch {
-        0% { transform: rotateZ(0deg); }
-        40% { transform: rotateZ(-11deg) scale(1.02, 0.99); }
-        100% { transform: rotateZ(0deg) scale(1,1); }
-      }
-      @keyframes lemonFlip {
-        0% { transform: rotateY(0deg); }
-        100% { transform: rotateY(180deg); }
+      /* more space between date and greeting */
+      .c-meta-block .c-date {
+        margin-bottom: 0.55rem;
       }
 
-      .c-meta-block .c-date {
-        margin-bottom: 1rem;
-      }
+      /* first greeting line */
       .c-greet {
-        margin:0;
-        font-weight:800;
-        font-size:.92rem;
-        line-height:1.1;
-        color:#568EA3;
-        display:inline-flex;
-        gap:.35rem;
-        align-items:center;
-        justify-content:center;
+        margin: 0;
+        font-weight: 800;
+        font-size: .92rem;
+        line-height: 1.1;
+        color: #568EA3;
+        display: inline-flex;
+        gap: .35rem;
+        align-items: center;
+        justify-content: center;
       }
+
+      /* second greeting line – same style as first */
+      .c-subgreet {
+        margin: 0.10rem 0 0;
+        font-weight: 800;
+        font-size: .92rem;
+        line-height: 1.1;
+        color: #568EA3;
+      }
+
       .c-greet-name {
-        position:relative;
-        display:inline-flex;
-        gap:.3rem;
-        align-items:center;
-        color:#226F54;
-        font-weight:800;
+        position: relative;
+        display: inline-flex;
+        gap: .3rem;
+        align-items: center;
+        font-weight: 800;
       }
+
+      /* boom FX container */
       .c-greet-name.is-boom {
         animation: namePop_2025 0.22s ease-out;
       }
@@ -756,13 +912,6 @@ export function mount(root) {
           animation: none !important;
         }
       }
-      .c-subgreet {
-        margin-top:.28rem;
-        margin-bottom:0;
-        font-weight:800;
-        font-size:.9rem;
-        color:#568EA3;
-      }
     `;
     document.head.appendChild(st);
   }
@@ -813,7 +962,7 @@ document.addEventListener('default-view-changed', (e) => {
   renderView(view);
 });
 
-// hash router
+// hash router for #/day /#/week /#/month shortcuts
 window.addEventListener('hashchange', () => {
   const h = location.hash.replace(/^#\//, '');
   if (h === 'day' || h === 'week' || h === 'month') {

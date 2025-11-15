@@ -1,7 +1,8 @@
 // /src/pages/social.js
 // Social feed hooked to Firestore social.service.js
-// Now also logs likes/comments into localStorage so the profile page
-// can show a history, and supports focusing a post from the profile.
+// + logs likes/comments to localStorage (for profile history)
+// + supports focusing a post from the profile.
+// + supports viewing another user's feed when search sets social.viewUid/social.viewName.
 
 import '../styles/views/_social.scss';
 import {
@@ -20,21 +21,61 @@ const LIMITS = {
   IMAGES_MAX: 3,
 };
 
-const $ = (s, r = document) => r.querySelector(s);
+const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) =>
-  String(s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  String(s).replace(/[&<>"']/g, (m) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]
+  ));
 
 const pad2 = (n) => String(n).padStart(2, '0');
 
 // we keep latest posts here so profile page can read them
 let _latestPosts = [];
 
-// and we keep the current user's app profile here
+// and we keep the current user's app profile here (authoring profile)
 let _profile = {
   name: 'אורח',
   avatar: '',
 };
+
+/* -----------------------------------------------
+   View context – whose feed are we looking at?
+   "all"  => community feed (your original behaviour)
+   "user" => only posts of a specific user (from search)
+----------------------------------------------- */
+let _viewMode = 'all';
+let _viewTargetUid = null;
+let _viewTargetName = '';
+let _viewTargetAvatar = '';
+
+const VIEW_USER_KEY_UID    = 'social.viewUid';
+const VIEW_USER_KEY_NAME   = 'social.viewName';
+const VIEW_USER_KEY_AVATAR = 'social.viewAvatar';
+
+function initViewContext() {
+  const viewerUid = auth.currentUser?.uid || null;
+  const lsUid     = localStorage.getItem(VIEW_USER_KEY_UID);
+  const lsName    = localStorage.getItem(VIEW_USER_KEY_NAME) || '';
+  const lsAvatar  = localStorage.getItem(VIEW_USER_KEY_AVATAR) || '';
+
+  if (lsUid && (!viewerUid || lsUid !== viewerUid)) {
+    _viewMode        = 'user';
+    _viewTargetUid   = lsUid;
+    _viewTargetName  = lsName;
+    _viewTargetAvatar = lsAvatar;
+  } else {
+    _viewMode        = 'all';
+    _viewTargetUid   = null;
+    _viewTargetName  = '';
+    _viewTargetAvatar = '';
+  }
+
+  // clear one-shot navigation info so it doesn't leak to future visits
+  localStorage.removeItem(VIEW_USER_KEY_UID);
+  localStorage.removeItem(VIEW_USER_KEY_NAME);
+  localStorage.removeItem(VIEW_USER_KEY_AVATAR);
+}
 
 /* -----------------------------------------------
    Activity storage – so profile can show history
@@ -78,6 +119,7 @@ function readProfileFromLS() {
 
 /* -------------------------------------------------------------
    2. try to fetch users/{uid} from Firestore to get avatarUrl
+   (this is YOUR profile, not the viewed user)
 ------------------------------------------------------------- */
 async function readProfileFromFirestore() {
   const u = auth.currentUser;
@@ -145,6 +187,9 @@ function viewShell() {
     <section class="p-social" dir="rtl">
       <header class="soc-head">
         <h1 class="soc-title">חבר׳ה ✨</h1>
+        <div class="soc-headline">
+          <span class="soc-headline__who" data-role="soc-view-label"></span>
+        </div>
         <div class="soc-tabs" role="tablist">
           <button class="soc-tab is-on" data-tab="feed" role="tab" aria-selected="true">פיד</button>
           <button class="soc-tab" data-tab="mine" role="tab" aria-selected="false">הפרסומים שלי</button>
@@ -220,8 +265,9 @@ function cardHTML(p, profileAvatar = '') {
   const ts = p.createdAt?.seconds ? p.createdAt.seconds * 1000 : p.createdAt || Date.now();
   const when = fmtFullDate(new Date(ts));
   const displayAvatar = p.avatar || profileAvatar || '';
+  const ownerUidAttr = p.authorUid ? ` data-owner-uid="${esc(p.authorUid)}"` : '';
   return `
-    <article class="soc-card" role="listitem" data-id="${p.id}">
+    <article class="soc-card" role="listitem" data-id="${p.id}"${ownerUidAttr}>
       <header class="soc-card__head">
         <div class="soc-author">
           <img class="soc-ava" src="${displayAvatar}" alt="">
@@ -256,16 +302,38 @@ function normalizeMine(list, profile) {
   });
 }
 
-function renderList(root, posts, tab = 'feed', profile = _profile) {
+function renderList(
+  root,
+  posts,
+  tab = 'feed',
+  profile = _profile,
+  viewMode = _viewMode,
+  targetUid = _viewTargetUid
+) {
   const host = root.querySelector('.soc-list');
+  if (!host) return;
+
   let list = normalizeMine(posts, profile).slice().sort((a, b) => {
     const ta = a.createdAt?.seconds ? a.createdAt.seconds : a.createdAt || 0;
     const tb = b.createdAt?.seconds ? b.createdAt.seconds : b.createdAt || 0;
     return tb - ta;
   });
-  if (tab === 'mine') {
-    list = list.filter((p) => p.author === profile.name);
+
+  // If we're in "view this user's feed" mode, filter by authorUid
+  if (viewMode === 'user' && targetUid) {
+    list = list.filter((p) => p.authorUid === targetUid);
   }
+
+  // "mine" tab still means "my posts"
+  if (tab === 'mine') {
+    const viewerUid = auth.currentUser?.uid || null;
+    if (viewerUid) {
+      list = list.filter((p) => p.authorUid === viewerUid || p.author === profile.name);
+    } else {
+      list = list.filter((p) => p.author === profile.name);
+    }
+  }
+
   host.innerHTML = list.length
     ? list.map((p) => cardHTML(p, profile.avatar)).join('')
     : `<div class="soc-empty">עוד אין פרסומים. הקליקו על העיפרון כדי לפרסם!</div>`;
@@ -280,16 +348,26 @@ function hydrateMini(root, profile) {
 }
 
 /* ------------------------------------------------------------- */
-function wireFabAndMini(root) {
-  const fab = root.querySelector('.soc-fab');
-  const mini = root.querySelector('.soc-mini');
-  const closeBtn = root.querySelector('[data-mini="close"]');
+function wireFabAndMini(root, disabled = false) {
+  const fabWrap   = root.querySelector('.soc-fabwrap');
+  const fab       = root.querySelector('.soc-fab');
+  const mini      = root.querySelector('.soc-mini');
+  const closeBtn  = root.querySelector('[data-mini="close"]');
   const publishBtn = root.querySelector('[data-mini="publish"]');
-  const title = root.querySelector('.soc-mini__title');
-  const text = root.querySelector('.soc-mini__text');
-  const file = root.querySelector('.soc-mini__file');
-  const prevWrap = root.querySelector('.soc-mini__preview');
-  const grid = prevWrap.querySelector('.soc-grid');
+  const title     = root.querySelector('.soc-mini__title');
+  const text      = root.querySelector('.soc-mini__text');
+  const file      = root.querySelector('.soc-mini__file');
+  const prevWrap  = root.querySelector('.soc-mini__preview');
+  const grid      = prevWrap ? prevWrap.querySelector('.soc-grid') : null;
+
+  if (disabled) {
+    if (fabWrap) fabWrap.style.display = 'none';
+    return;
+  }
+
+  if (!fab || !mini || !closeBtn || !publishBtn || !title || !text || !file || !prevWrap || !grid) {
+    return;
+  }
 
   let images = [];
 
@@ -354,6 +432,7 @@ function wireFabAndMini(root) {
       images,
       author: _profile.name,
       avatar: _profile.avatar,
+      authorUid: auth.currentUser?.uid || null,   // pass owner uid
     });
 
     closeMini();
@@ -367,6 +446,7 @@ function wireActions(root) {
     const act = e.target.closest('[data-act]');
     if (!card || !act) return;
     const id = card.getAttribute('data-id');
+    const ownerUid = card.getAttribute('data-owner-uid') || '';
     const action = act.getAttribute('data-act');
 
     const cardTitle =
@@ -377,22 +457,18 @@ function wireActions(root) {
     if (action === 'cheer') {
       await toggleCheerOnPost(id);
 
-      // log like in localStorage (with basic dedupe to avoid 4 equal rows)
+      // ---- local activity (for Profile LTR pill) ----
       const state = loadSocialActivity();
       const now = new Date();
-      const time = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
       const dateKey = `${pad2(now.getDate())}.${pad2(now.getMonth() + 1)}.${now.getFullYear()}`;
       const last = state.likes[0];
       if (!last || last.postId !== id || last.time !== time) {
-        state.likes.unshift({
-          postId: id,
-          title: cardTitle,
-          time,
-          dateKey,
-        });
+        state.likes.unshift({ postId: id, title: cardTitle, time, dateKey });
         state.likes = state.likes.slice(0, 40);
         saveSocialActivity(state);
       }
+
       return;
     }
 
@@ -412,6 +488,7 @@ function wireActions(root) {
 
     if (action === 'share') {
       try {
+        // simple share: copy base social URL (you can upgrade this later)
         const url = location.href.replace(/#.*$/, '#/social');
         await navigator.clipboard.writeText(url);
         act.classList.add('is-done');
@@ -431,18 +508,12 @@ function wireActions(root) {
       });
       ta.value = '';
 
-      // log comment too
+      // ---- local activity
       const state = loadSocialActivity();
       const now = new Date();
-      const time = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
       const dateKey = `${pad2(now.getDate())}.${pad2(now.getMonth() + 1)}.${now.getFullYear()}`;
-      state.comments.unshift({
-        postId: id,
-        title: cardTitle,
-        text: txt,
-        time,
-        dateKey,
-      });
+      state.comments.unshift({ postId: id, title: cardTitle, text: txt, time, dateKey });
       state.comments = state.comments.slice(0, 40);
       saveSocialActivity(state);
 
@@ -460,7 +531,7 @@ function wireTabs(root, postsRef) {
         b.classList.toggle('is-on', on);
         b.setAttribute('aria-selected', String(on));
       });
-      renderList(root, postsRef.current, btn.dataset.tab, _profile);
+      renderList(root, postsRef.current, btn.dataset.tab, _profile, _viewMode, _viewTargetUid);
     });
   });
 }
@@ -476,7 +547,22 @@ export function mount(appOrRoot) {
   document.body.setAttribute('data-view', 'social');
   viewRoot.innerHTML = viewShell();
 
-  // initial profile from LS / auth
+  // decide whose feed we're viewing (community vs specific user from search)
+  initViewContext();
+
+  // set headline label
+  const labelEl = viewRoot.querySelector('[data-role="soc-view-label"]');
+  if (labelEl) {
+    if (_viewMode === 'user' && (_viewTargetName || _viewTargetUid)) {
+      labelEl.textContent = _viewTargetName
+        ? `הפיד של ${_viewTargetName}`
+        : 'פיד משתמש';
+    } else {
+      labelEl.textContent = 'פיד קהילתי';
+    }
+  }
+
+  // initial profile from LS / auth (this is YOUR profile, for posting / activity logs)
   const lsProf = readProfileFromLS();
   _profile = lsProf.avatar || lsProf.name !== 'אורח'
     ? lsProf
@@ -485,7 +571,7 @@ export function mount(appOrRoot) {
         : lsProf);
   hydrateMini(viewRoot, _profile);
 
-  // then try to override with Firestore profile (this is where your uploaded pic lives)
+  // then try to override with Firestore profile (where your uploaded pic lives)
   (async () => {
     const fsProf = await readProfileFromFirestore();
     if (fsProf && (fsProf.avatar || fsProf.name)) {
@@ -498,7 +584,9 @@ export function mount(appOrRoot) {
         viewRoot,
         _latestPosts,
         viewRoot.querySelector('.soc-tab.is-on')?.dataset.tab || 'feed',
-        _profile
+        _profile,
+        _viewMode,
+        _viewTargetUid
       );
     }
   })();
@@ -515,7 +603,7 @@ export function mount(appOrRoot) {
     } catch {}
 
     const tab = viewRoot.querySelector('.soc-tab.is-on')?.dataset.tab || 'feed';
-    renderList(viewRoot, postsRef.current, tab, _profile);
+    renderList(viewRoot, postsRef.current, tab, _profile, _viewMode, _viewTargetUid);
 
     // if profile asked to focus a specific post
     const focusId = localStorage.getItem('social.focusPostId');
@@ -531,7 +619,12 @@ export function mount(appOrRoot) {
   });
 
   wireTabs(viewRoot, postsRef);
-  wireFabAndMini(viewRoot);
+
+  const viewerUid = auth.currentUser?.uid || null;
+  const disableComposer =
+    _viewMode === 'user' && _viewTargetUid && _viewTargetUid !== viewerUid;
+
+  wireFabAndMini(viewRoot, disableComposer);
   wireActions(viewRoot);
 }
 
