@@ -215,15 +215,13 @@ body { min-height: 100vh; }
   inline-size: 100%;
   display: grid;
   place-items: center;
-
-  /* pull date closer to the lemon */
-  margin-bottom: -0.65rem; /* almost touching */
+  margin-bottom: -0.65rem; /* pull date closer to the lemon */
 }
 
 .c-lemonbtn{
-  /* same size as .c-topbtn */
-  inline-size:44px;
-  block-size:44px;
+  /* bigger than header buttons for a “main toggle” feel */
+  inline-size:59px;
+  block-size:59px;
   border-radius:999px;
 
   background: transparent;
@@ -249,10 +247,14 @@ body { min-height: 100vh; }
   background: transparent;
 }
 
-.c-lemonbtn__img{
-  inline-size: 82%;
-  block-size: auto;
+/* lemon graphic fills the button */
+.c-lemonbtn__img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   display: block;
+  object-fit: contain;
 }
 
 /* small motion when "on" (JS toggles class) */
@@ -497,8 +499,7 @@ body { min-height: 100vh; }
   font-weight:800;
 }
 
-/* multi-color name text – overrides inline color with !important */
-/* multi-color name text – whole string "דניאלה ג." gets the gradient */
+/* multi-color name text */
 .c-greet-nameinner{
   font-weight: 800;
   background: linear-gradient(
@@ -514,7 +515,6 @@ body { min-height: 100vh; }
   color: transparent !important;
   animation: nameGradientFlow 6s ease-in-out infinite alternate;
 }
-
 
 /* subtle gradient shimmer */
 @keyframes nameGradientFlow{
@@ -587,30 +587,24 @@ body { min-height: 100vh; }
 }
 
 /* ===================== SCROLL CONTAINER / VIEW ROOT ===================== */
-/* both #viewRoot and .o-viewroot must get this styling */
 .o-viewroot,
 #viewRoot {
   position: relative;
   display: block;
 
-  /* width discipline (iPhone 12 Pro first) */
   inline-size: 100%;
   max-inline-size: 390px;
   margin-inline: auto;
 
-  /* scrolling */
-  min-block-size: 0;      /* allows it to shrink inside grid row */
+  min-block-size: 0;
   max-block-size: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 
-  /* padding so bottom content never hides behind iOS home bar
-     and doesn't collide with the floating lemon/dock CTA zone */
   padding-inline: clamp(8px, 2vw, 12px);
   padding-block-end: calc(88px + env(safe-area-inset-bottom, 0px));
 
-  /* lets the very last content “lock” just above the iOS home bar */
   scroll-padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
 }
 .o-viewroot::-webkit-scrollbar,
@@ -648,14 +642,7 @@ body { min-height: 100vh; }
   .c-dock{ inline-size: 400px; }
 }
 
-/* Force lemon graphic to fill the 44×44 button */
-.c-lemonbtn__img {
-  width: 44px;
-  height: 44px;
-  max-width: 44px;
-  max-height: 44px;
-  display: block;
-}
+/* last-name initial dot in greeting */
 .lname-initial::after{
   content: ".";
 }

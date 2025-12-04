@@ -112,12 +112,6 @@ function getUserNamePieces() {
 /**
  * Build the short greeting HTML:
  *   "דניאלה ג." / "Daniella G."
- * We still keep separate spans so we can color the name nicely.
- */
-/**
- * Build the short greeting HTML:
- *   "דניאלה ג." / "Daniella G."
- * Gradient goes over the whole string.
  */
 function buildDisplayNameHTMLOrEmpty() {
   const { first, last } = getUserNamePieces();
@@ -127,12 +121,10 @@ function buildDisplayNameHTMLOrEmpty() {
   let label = '';
 
   if (first && !last) {
-    // only first name
     label = first;
   } else {
     const initial = ([...(last || '')][0] || '').trim();
     if (initial) {
-      // FIRST + space + INITIAL + dot  → "Daniella G."
       label = `${first} ${initial}.`;
     } else {
       label = first;
@@ -142,7 +134,6 @@ function buildDisplayNameHTMLOrEmpty() {
   const safe = String(label);
   return `<span class="c-greet-nameinner" dir="auto">${safe}</span>`;
 }
-
 
 // boom animation trigger
 function runNameBoom() {
@@ -352,53 +343,75 @@ function shellHTML() {
       <section class="o-phone o-inner">
 
         <header class="o-header">
+          <!-- left yellow button (profile / menu) -->
           <button class="c-topbtn c-topbtn--accent c-topbtn--profile" aria-label="פרופיל" title="פרופיל">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z" fill="currentColor"/>
             </svg>
           </button>
 
-          <a class="looz-logo" aria-label="LooZ">
-            <img class="brand-logo brand-logo--light" src="${logoLight}" alt="LooZ">
-            <img class="brand-logo brand-logo--dark"  src="${logoDark}"  alt="LooZ">
-          </a>
+          <!-- center: logo (stays in place, dock overlays it) -->
+          <div class="o-header-center">
+            <a class="looz-logo" aria-label="LooZ">
+              <img class="brand-logo brand-logo--light" src="${logoLight}" alt="LooZ">
+              <img class="brand-logo brand-logo--dark"  src="${logoDark}"  alt="LooZ">
+            </a>
+          </div>
 
+          <!-- right yellow button (settings) -->
           <button class="c-topbtn c-topbtn--accent c-topbtn--settings" aria-label="הגדרות" title="הגדרות">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path d="M5 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="currentColor"/>
+              <path d="M12 8a4 4 0 1 1-4 4 4 4 0 0 1 4-4Zm9 4a1 1 0 0 0-.76-1l-2.06-.57a6.93 6.93 0 0 0-.57-1.38l1.2-1.86a1 1 0 0 0-.12-1.26l-1.42-1.42a1 1 0 0 0-1.26-.12l-1.86 1.2a6.93 6.93 0 0 0-1.38-.57L13 3.76A1 1 0 0 0 12 3h-2a1 1 0 0 0-1 .76l-.57 2.06a6.93 6.93 0 0 0-1.38.57l-1.86-1.2a1 1 0 0 0-1.26.12L2.53 7.53a1 1 0 0 0-.12 1.26l1.2 1.86a6.93 6.93 0 0 0-.57 1.38L1 13a1 1 0 0 0-1 1v2a1 1 0 0 0 .76 1l2.06.57a6.93 6.93 0 0 0 .57 1.38l-1.2 1.86a1 1 0 0 0 .12 1.26l1.42 1.42a1 1 0 0 0 1.26.12l1.86-1.2a6.93 6.93 0 0 0 1.38.57L9 23a1 1 0 0 0 1 1h2a1 1 0 0 0 1-.76l.57-2.06a6.93 6.93 0 0 0 1.38-.57l1.86 1.2a1 1 0 0 0 1.26-.12l1.42-1.42a1 1 0 0 0 .12-1.26l-1.2-1.86a6.93 6.93 0 0 0 .57-1.38L23 15a1 1 0 0 0 1-1v-2Z" fill="currentColor"/>
             </svg>
           </button>
+
+          <!-- search dock overlay: full width, translucent, with category + social -->
+          <div
+            id="quickDock"
+            class="c-dock"
+            data-role="searchbar"
+            hidden
+            aria-hidden="true"
+          >
+            <button class="c-dock__side c-dock__left" aria-label="קטגוריות" title="קטגוריות">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z" fill="currentColor"/>
+              </svg>
+            </button>
+
+            <label class="c-dock__search" for="lemonSearch">
+              <input
+                id="lemonSearch"
+                type="search"
+                inputmode="search"
+                placeholder="חפש פעילויות… או משתמשים…"
+                autocomplete="off"
+              />
+            </label>
+
+            <button class="c-dock__side c-dock__right" aria-label="חבר׳ה" title="חבר׳ה">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-3.31 0-6 1.79-6 4v1h12v-1c0-2.21-2.69-4-6-4Zm7-2a2.5 2.5 0 1 0-2.5-2.5A2.5 2.5 0 0 0 19 12Zm0 2c-1.61 0-3.05.48-4.12 1.28A4.34 4.34 0 0 1 16 18v1h6v-1c0-2.21-2.02-4-3-4ZM5 12a2.5 2.5 0 1 0-2.5-2.5A2.5 2.5 0 0 0 5 12Zm0 2c.98 0 3 1.79 3 4v1H2v-1c0-2.21 1.39-4 3-4Z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
         </header>
 
-        <!-- Lemon center -->
+        <!-- Lemon center (toggle) -->
         <div class="c-lemon-area">
-          <button id="lemonToggle"
-                  class="c-lemonbtn c-lemonbtn--wink"
-                  type="button"
-                  aria-label="סרגל מהיר"
-                  aria-expanded="false">
+          <button
+            id="lemonToggle"
+            class="c-lemonbtn c-lemonbtn--wink"
+            type="button"
+            aria-label="סרגל מהיר"
+            aria-expanded="false"
+          >
             <span class="c-lemonbtn__mask">
               <span class="c-lemonbtn__inner">
                 <img src="${lemonIcon}" alt="" class="c-lemonbtn__img" />
               </span>
             </span>
           </button>
-
-          <div id="quickDock" class="c-dock" data-role="searchbar" hidden aria-hidden="true">
-            <button class="c-dock__side c-dock__left" aria-label="קטגוריות" title="קטגוריות">
-              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z" fill="currentColor"/>
-              </svg>
-            </button>
-            <label class="c-dock__search" for="lemonSearch">
-              <input id="lemonSearch" type="search" inputmode="search" placeholder="חפש פעילויות… או משתמשים…" autocomplete="off" />
-            </label>
-            <button class="c-dock__side c-dock__right" aria-label="חבר׳ה" title="חבר׳ה">
-              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 5h16v2.5c0 3-2.2 5.5-5 5.5h-1l-2 3-2-3H9C6.2 13 4 10.5 4 7.5V5Zm0 13h16v2H4v-2Z" fill="currentColor"/>
-              </svg>
-            </button>
-          </div>
         </div>
 
         <!-- date + greeting -->
@@ -436,24 +449,6 @@ function shellHTML() {
       </section>
     </main>
   `;
-}
-
-/* ─────────────────────────────────────────
-   disable weather → remove meteorological cards
-────────────────────────────────────────── */
-function disableWeatherEverywhere() {
-  const weatherKeys = [
-    'weatherEnabled',
-    'weatherOn',
-    'showWeather',
-    'monthWeather',
-    'monthWeatherLayout'
-  ];
-  weatherKeys.forEach(k => localStorage.setItem(k, '0'));
-  localStorage.setItem('monthWeatherLayout', 'plain');
-  document.dispatchEvent(new CustomEvent('weather-pref-changed', {
-    detail: { enabled: false, layout: 'plain' }
-  }));
 }
 
 /* ─────────────────────────────────────────
@@ -556,17 +551,33 @@ function wireShell(root) {
   root.querySelector('[data-next]') ?.addEventListener('click', () => navPeriod('next'));
   root.querySelector('[data-today]')?.addEventListener('click', () => navPeriod('today'));
 
-  const leftBtn  = root.querySelector('.c-dock__left');
-  const rightBtn = root.querySelector('.c-dock__right');
-  leftBtn ?.addEventListener('click',  (e) => { e.stopPropagation(); location.hash = '#/categories'; });
-  rightBtn?.addEventListener('click', (e) => { e.stopPropagation(); location.hash = '#/social'; });
-
-  const lemonBtn   = root.querySelector('#lemonToggle');
-  const dock       = root.querySelector('#quickDock');
-  const search     = root.querySelector('#lemonSearch');
+  const leftBtn   = root.querySelector('.c-dock__left');
+  const rightBtn  = root.querySelector('.c-dock__right');
+  const lemonBtn  = root.querySelector('#lemonToggle');
+  const dock      = root.querySelector('#quickDock');
+  const search    = root.querySelector('#lemonSearch');
   const profileBtn = root.querySelector('.c-topbtn--profile');
+  const headerEl   = root.querySelector('.o-header');
 
   let resultsBox = null;
+
+  leftBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    location.hash = '#/categories';
+  });
+  rightBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    location.hash = '#/social';
+  });
+
+  // remember lemon base styles so we can keep them even when open
+  let lemonBaseBg = '';
+  let lemonBaseShadow = '';
+  if (lemonBtn) {
+    const cs = getComputedStyle(lemonBtn);
+    lemonBaseBg = cs.backgroundColor;
+    lemonBaseShadow = cs.boxShadow;
+  }
 
   // search: find users (inside dock)
   if (dock && search) {
@@ -613,18 +624,40 @@ function wireShell(root) {
   if (lemonBtn && dock) {
     const openDock  = () => {
       lemonBtn.setAttribute('aria-expanded', 'true');
+      headerEl?.classList.add('has-search-open');
+      document.body.classList.add('has-search-open');
+
+      // keep lemon background stable
+      if (lemonBaseBg) lemonBtn.style.backgroundColor = lemonBaseBg;
+      if (lemonBaseShadow) lemonBtn.style.boxShadow = lemonBaseShadow;
+
       dock.hidden = false;
+      dock.style.display = 'flex';
+
       requestAnimationFrame(() => {
         dock.classList.add('is-open');
         dock.setAttribute('aria-hidden', 'false');
       });
+
       search?.focus({ preventScroll: true });
     };
+
     const closeDock = () => {
       lemonBtn.setAttribute('aria-expanded', 'false');
+      headerEl?.classList.remove('has-search-open');
+      document.body.classList.remove('has-search-open');
+
+      if (lemonBaseBg) lemonBtn.style.backgroundColor = lemonBaseBg;
+      if (lemonBaseShadow) lemonBtn.style.boxShadow = lemonBaseShadow;
+
       dock.classList.remove('is-open');
       dock.setAttribute('aria-hidden', 'true');
-      setTimeout(() => { dock.hidden = true; }, 180);
+
+      setTimeout(() => {
+        dock.hidden = true;
+        dock.style.display = '';
+      }, 180);
+
       if (resultsBox) hideUserResults(resultsBox);
     };
 
@@ -645,33 +678,27 @@ function wireShell(root) {
       lemonBtn.classList.remove('is-flip');
       void lemonBtn.offsetWidth;
       lemonBtn.classList.add('is-flip');
+
       const open = lemonBtn.getAttribute('aria-expanded') === 'true';
       open ? closeDock() : openDock();
     });
 
     dock.addEventListener('click', (e) => e.stopPropagation());
+
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && lemonBtn.getAttribute('aria-expanded') === 'true') closeDock();
+      if (e.key === 'Escape' && lemonBtn.getAttribute('aria-expanded') === 'true') {
+        closeDock();
+      }
     });
+
     document.addEventListener('click', (e) => {
       if (!dock || dock.hidden) return;
-      if (!dock.contains(e.target) && !lemonBtn.contains(e.target)) closeDock();
-    });
-  }
-
-  // make lemon the same outer size as profile/settings
-  if (profileBtn && lemonBtn) {
-    requestAnimationFrame(() => {
-      const w = profileBtn.offsetWidth;
-      const h = profileBtn.offsetHeight;
-      if (w && h) {
-        lemonBtn.style.width  = w + 'px';
-        lemonBtn.style.height = h + 'px';
-        lemonBtn.style.borderRadius =
-          getComputedStyle(profileBtn).borderRadius || '9999px';
+      if (!dock.contains(e.target) && !lemonBtn.contains(e.target)) {
+        closeDock();
       }
     });
   }
+
 
   // profile icon → current user's profile
   const profileIconBtn = root.querySelector('.c-topbtn--profile');
@@ -719,18 +746,11 @@ function wireShell(root) {
 /* ─────────────────────────────────────────
    settings / profile
 ────────────────────────────────────────── */
-async function openSettings() {
-  try {
-    if (location.hash !== '#/settings') {
-      history.pushState({ page: 'settings' }, '', '#/settings');
-    }
-    const loader = pageModules['./settings.js'];
-    if (!loader) { console.error('settings.js not found'); return; }
-    const mod = await loader();
-    const mountSettings = mod.default || mod.mount;
-    if (typeof mountSettings === 'function') mountSettings();
-  } catch (err) {
-    console.error('Failed to open settings:', err);
+
+// settings now goes through the router (full page, no shell around it)
+function openSettings() {
+  if (location.hash !== '#/settings') {
+    location.hash = '#/settings';
   }
 }
 
@@ -773,10 +793,9 @@ function ensureHomeShell() {
 window.addEventListener('popstate', async () => {
   const hashBase = location.hash.replace(/\?.*$/, '');
 
+  // let the main router own the /settings route completely
   if (hashBase === '#/settings') {
-    ensureHomeShell();
-    const mod = await pageModules['./settings.js']();
-    (mod.default || mod.mount)?.();
+    return;
   } else if (hashBase === '#/profile') {
     ensureHomeShell();
     const mod = await pageModules['./profile.js']();
@@ -804,12 +823,12 @@ export function mount(root) {
   document.body.setAttribute('data-view', 'home');
   root.innerHTML = shellHTML();
 
-  // inject minimal inline style once (greeting FX)
-  const styleId = 'home-inline-style';
-  if (!document.getElementById(styleId)) {
+  // inject minimal inline style once (greeting FX + header search layout)
+  const styleId = 'home-inline-style-v2';
+     if (!document.getElementById(styleId)) {
     const st = document.createElement('style');
     st.id = styleId;
-       st.textContent = `
+    st.textContent = `
       :root,
       body,
       .o-page,
@@ -821,15 +840,193 @@ export function mount(root) {
         background-color: ${APP_BG};
       }
 
-      .c-meta-block {
-        margin-top: 0.05rem;
-      }
-      /* more space between date and greeting */
-      .c-meta-block .c-date {
-        margin-bottom: 0.55rem;
+      .o-header {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        padding-inline: 0.6rem;
+        padding-top: 0.55rem;
+        padding-bottom: 0.4rem;
+        column-gap: 0.55rem;
       }
 
-      /* first greeting line */
+      .looz-logo {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: auto;
+      }
+
+      .brand-logo {
+        height: 26px;
+        display: block;
+      }
+      .brand-logo--dark { display: none; }
+      body[data-theme="dark"] .brand-logo--light { display: none; }
+      body[data-theme="dark"] .brand-logo--dark  { display: block; }
+
+      /* ─────────────────────────────
+         SEARCH DOCK (overlays header)
+         ───────────────────────────── */
+     .o-header .c-dock {
+  position: absolute;
+
+  /* cover the whole phone width (iPhone 12 Pro first) */
+  inset-block-start: 0.25rem;
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: 100%;
+  max-inline-size: 100%;
+
+  z-index: 40;
+
+  /* glassy + transparent */
+  transform: translateY(-4px) scale(.97);
+  opacity: 0;
+  pointer-events: none;
+
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);   /* overrides gradient from home.scss */
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 16px 42px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.70);
+}
+.o-header .c-dock.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+
+
+   .o-header .c-dock.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+
+      body[data-theme="dark"] .o-header .c-dock {
+        background-color: rgba(18,18,18,0.58);
+        box-shadow:
+          0 12px 28px rgba(0,0,0,0.5),
+          0 0 0 1px rgba(255,255,255,0.18);
+      }
+
+   .c-dock__side {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* semi-transparent so buttons under it are visible */
+  background: rgba(255,255,255,0.55);
+  box-shadow: 0 2px 6px rgba(15,23,42,0.06);
+}
+
+      body[data-theme="dark"] .c-dock__side {
+        background: rgba(26,26,26,0.9);
+      }
+
+      .c-dock__search {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .c-dock__search input {
+        width: 100%;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.65);
+        padding: 0.4rem 0.9rem;
+        font-size: 0.82rem;
+        background-color: rgba(255,255,255,0.14);  /* more see-through */
+        color: #4b5b73;
+        outline: none;
+      }
+
+      .c-dock__search input::placeholder {
+        color: rgba(75,91,115,0.85);
+      }
+
+      body[data-theme="dark"] .c-dock__search input {
+        border-color: rgba(255,255,255,0.22);
+        background-color: rgba(0,0,0,0.28);
+        color: #f5f5f5;
+      }
+
+      /* header elements stay visible but not clickable */
+      .o-header.has-search-open > *:not(#quickDock) {
+        pointer-events: none;
+        filter: saturate(0.95) opacity(0.95);
+      }
+
+      .o-header.has-search-open .looz-logo img {
+        opacity: 0.85;
+      }
+.o-header.has-search-open > *:not(#quickDock) {
+  pointer-events: none;
+  filter: opacity(0.92);
+}
+
+      /* ─────────────────────────────
+         LEMON AREA & ICON
+         ───────────────────────────── */
+      .c-lemon-area {
+        margin-top: 0.25rem;   /* closer to logo */
+        display: flex;
+        justify-content: center;
+        transition: margin-top 0.22s ease;
+      }
+
+   /* background NEVER changes – even when clicked/animated */
+body .c-lemonbtn,
+body .c-lemonbtn--wink,
+body .c-lemonbtn.c-lemonbtn--wink,
+body[data-theme="dark"] .c-lemonbtn,
+body[data-theme="dark"] .c-lemonbtn--wink,
+.c-lemonbtn:is(:hover,:active),
+.c-lemonbtn.is-flip,
+.c-lemonbtn.is-on,
+.c-lemonbtn[aria-expanded="true"] {
+  background-color: ${APP_BG} !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+
+      /* make inner lemon icon bigger */
+      .c-lemonbtn__inner {
+        transform: scale(1.05);
+      }
+/* lemon stays visually above content, but under the search results */
+.c-lemonbtn {
+  z-index: 10 !important;
+}
+
+/* results themselves sit on top of everything in the header */
+.c-dock__results {
+  z-index: 999;
+}
+
+ 
+
+      /* ─────────────────────────────
+         META BLOCK (pulled up a bit)
+         ───────────────────────────── */
+      .c-meta-block {
+        margin-top: 0.3rem;
+      }
+
+      .c-meta-block .c-date {
+        margin-bottom: 0.35rem;
+      }
+
       .c-greet {
         margin: 0;
         font-weight: 800;
@@ -842,7 +1039,6 @@ export function mount(root) {
         justify-content: center;
       }
 
-      /* second greeting line – same style as first */
       .c-subgreet {
         margin: 0.10rem 0 0;
         font-weight: 800;
@@ -859,7 +1055,6 @@ export function mount(root) {
         font-weight: 800;
       }
 
-      /* boom FX container */
       .c-greet-name.is-boom {
         animation: namePop_2025 0.22s ease-out;
       }
@@ -916,10 +1111,8 @@ export function mount(root) {
     document.head.appendChild(st);
   }
 
-  wireShell(root);
 
-  // remove meteorological data
-  disableWeatherEverywhere();
+  wireShell(root);
 
   const boot = localStorage.getItem('defaultView') || 'month';
   renderView(boot);

@@ -199,3 +199,31 @@
   justify-self: center;   /* dead center */
   margin-top:8px;
 }
+/* month / week editor sections */
+.palettes--month,
+.palettes--week {
+  border-top: 1px solid var(--line);
+}
+
+.month-section-title{
+  padding: 4px 14px 6px;
+  font: 800 13px/1 'Rubik', system-ui;
+  color: var(--muted);
+}
+
+.month-grid,
+.week-grid{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.month-grid,
+.week-grid{
+  padding: 6px 0 4px;
+}
+
+.month-chip,
+.week-chip{
+  width: 100%;
+}

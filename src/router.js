@@ -17,9 +17,10 @@ const PROTECTED = new Set([
   'social'
 ]);
 
+// ✅ settings is *not* inside the home shell anymore
 const IN_SHELL = new Set([
   // routes that render inside the Home shell
-  'day','week','month','settings','profile','categories','social'
+  'day','week','month','profile','categories','social'
 ]);
 
 const $app = () => document.getElementById(APP_EL_ID) || document.body;
@@ -60,7 +61,6 @@ async function showInsideShell(child /* 'day'|'week'|'month'|etc. */) {
     case 'day':        return mountPage(import('./pages/day.js'));
     case 'week':       return mountPage(import('./pages/week.js'));
     case 'month':      return mountPage(import('./pages/month.js'));
-    case 'settings':   return mountPage(import('./pages/settings.js'));
     case 'profile':    return mountPage(import('./pages/profile.js'));
     case 'categories': return mountPage(import('./pages/categories.js'));
     case 'social':     return mountPage(import('./pages/social.js'));
@@ -72,9 +72,16 @@ async function show(name) {
   if (name === 'login') {
     return mountPage(import('./pages/login.js'));
   }
+
+  // ✅ settings: full-page, no home shell (so no יום/שבוע/חודש, no month view behind it)
+  if (name === 'settings') {
+    return mountPage(import('./pages/settings.js'));
+  }
+
   if (IN_SHELL.has(name)) {
     return showInsideShell(name);
   }
+
   // fallback
   return showInsideShell('month');
 }

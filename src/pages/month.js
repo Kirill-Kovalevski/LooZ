@@ -58,16 +58,34 @@ function themeForMonth(m) {
 
 function setMonthCSSVars(dateLike) {
   const d = new Date(dateLike);
-  const th = themeForMonth(d.getMonth());
+  let th = themeForMonth(d.getMonth());
+
+  // check for user overrides from Settings
+  try {
+    const top = localStorage.getItem('monthTop');
+    const mid = localStorage.getItem('monthMid');
+    const bot = localStorage.getItem('monthBot');
+    const accent = localStorage.getItem('monthAccent');
+
+    if (top && mid && bot) {
+      th = {
+        wash: [top, mid, bot, accent || th.wash[3]],
+        strokes: th.strokes,
+      };
+    }
+  } catch {}
+
   const r = document.documentElement.style;
-  r.setProperty('--m-top',    th.wash[0]);
-  r.setProperty('--m-mid',    th.wash[1]);
-  r.setProperty('--m-bot',    th.wash[2]);
-  r.setProperty('--m-accent', th.wash[3]);
+  r.setProperty('--m-top',     th.wash[0]);
+  r.setProperty('--m-mid',     th.wash[1]);
+  r.setProperty('--m-bot',     th.wash[2]);
+  r.setProperty('--m-accent',  th.wash[3]);
   r.setProperty('--m-stroke1', th.strokes[0]);
   r.setProperty('--m-stroke2', th.strokes[1]);
   r.setProperty('--m-stroke3', th.strokes[2]);
 }
+
+
 
 /* ---------- helpers ---------- */
 function pad2(n) { return String(n).padStart(2, '0'); }
@@ -278,7 +296,6 @@ function render(host) {
     if (!btn) return;
     const dk = btn.getAttribute('data-date');
     if (!dk) return;
-    // this goes to home.js → day view, and day view shows that date
     localStorage.setItem('selectedDate', dk);
     document.dispatchEvent(new CustomEvent('go-day', { detail: dk }));
   });
@@ -333,6 +350,9 @@ export function mount(root) {
 
   const onWeatherPref = (e) => {
     weatherOn = !!e.detail?.enabled;
+    const isMonthView = document.body.getAttribute('data-view') === 'month';
+    if (!isMonthView) return;
+
     if (weatherOn) {
       render(host);
       fetchWeatherAndRender(host);

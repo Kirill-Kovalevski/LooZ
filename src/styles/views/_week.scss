@@ -133,3 +133,8 @@ body[data-view="week"] {
     .w-count    { inline-size: 34px; block-size: 34px; }
   }
 }
+/* somewhere in _week.scss */
+.w-card {
+  background: var(--week-card-bg, #f9fafb);
+  border: 1px solid var(--week-card-border, #e5e7eb);
+}
