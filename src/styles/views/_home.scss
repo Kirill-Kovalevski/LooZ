@@ -119,7 +119,7 @@ body { min-height: 100vh; }
     1fr    /* #viewRoot / .o-viewroot scroll container */
     auto;  /* orb spacer + floating orb */
 
-  gap: .75rem;
+  gap: .48em;
   padding: .75rem .75rem 1rem;
   direction: rtl;
   box-sizing: border-box;
@@ -215,11 +215,12 @@ body { min-height: 100vh; }
   inline-size: 100%;
   display: grid;
   place-items: center;
-  margin-bottom: -0.65rem; /* pull date closer to the lemon */
+  margin-top: -0.8rem;
+  margin-bottom: -0.85rem; /* pull date closer to the lemon */
 }
 
 .c-lemonbtn{
-  /* bigger than header buttons for a “main toggle” feel */
+  /* lemon button container */
   inline-size:59px;
   block-size:59px;
   border-radius:999px;
@@ -234,6 +235,10 @@ body { min-height: 100vh; }
 
   box-shadow: none;
   z-index: 21; /* above dock */
+
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .c-lemonbtn__mask,
@@ -247,7 +252,7 @@ body { min-height: 100vh; }
   background: transparent;
 }
 
-/* lemon graphic fills the button */
+/* lemon graphic size — full 59×59px */
 .c-lemonbtn__img {
   width: 100%;
   height: 100%;
@@ -262,6 +267,46 @@ body { min-height: 100vh; }
   transform: translateY(-1px);
 }
 
+/* modern classy interaction when JS adds .is-flip */
+.c-lemonbtn.is-flip {
+  animation: lemonPortal 0.78s cubic-bezier(.19,1,.22,1);
+}
+
+@keyframes lemonPortal {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    box-shadow: none;
+  }
+  25% {
+    transform: translateY(-3px) scale(1.06) rotate(-4deg);
+    box-shadow: 0 10px 24px rgba(248,210,76,.45);
+  }
+  55% {
+    transform: translateY(-6px) scale(1.09) rotate(3.5deg);
+    box-shadow: 0 18px 32px rgba(248,210,76,.55);
+  }
+  80% {
+    transform: translateY(-2px) scale(1.03) rotate(-1.5deg);
+    box-shadow: 0 10px 22px rgba(15,23,42,.26);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    box-shadow: none;
+  }
+}
+
+/* respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .c-lemonbtn.is-flip {
+    animation: none !important;
+  }
+}
+
+@keyframes fx-ink-draw {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+
 :is(html,body).is-dark .c-lemonbtn__img{
   filter:
     drop-shadow(0 1px 0 rgba(0,0,0,.25))
@@ -269,37 +314,78 @@ body { min-height: 100vh; }
 }
 
 /* Centered dock (RTL/LTR safe) */
-.c-dock{
+.c-dock {
   position: absolute;
   inset-block-start: calc(100% + 10px);
   inset-inline: 0;
   margin-inline: auto;
   inline-size: min(360px, calc(100% - 24px));
   block-size: 56px;
-  z-index: 20;
+  z-index: 40; /* make sure it's above header/lemon */
 
-  display:grid;
+  display: grid;
   grid-template-columns: 56px 1fr 56px;
-  align-items:center;
-  gap:.5rem;
-  padding:.5rem;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem;
 
   border-radius: 999px;
   background: linear-gradient(180deg,#ffffff,#f7f9ff);
-  border:1px solid #e7edff;
+  border: 1px solid #e7edff;
   box-shadow: 0 16px 40px rgba(15,23,42,.14);
 
-  opacity:0;
-  pointer-events:none;
-  transform: translateY(-6px);
-  transition: opacity .18s var(--ease), transform .18s var(--ease);
+  /* --- “pixelated blur into existence” hidden state --- */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-12px) scale(.9);
+  filter: blur(32px) saturate(.3) contrast(.65);
+  backdrop-filter: blur(0);
+  will-change: opacity, transform, filter, backdrop-filter;
+  transition:
+    opacity         .26s var(--ease),
+    transform       .32s var(--ease),
+    filter          .36s var(--ease),
+    backdrop-filter .36s var(--ease);
 
   overflow: visible; /* let results dropdown escape */
 }
-.c-dock.is-open{
-  opacity:1;
-  pointer-events:auto;
-  transform: translateY(0);
+
+.c-dock.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  filter: blur(0) saturate(1) contrast(1);
+  backdrop-filter: blur(18px);
+  animation: dockPixelIn 0.38s cubic-bezier(.19,1,.22,1);
+}
+
+@keyframes dockPixelIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(.92);
+    filter: blur(32px) saturate(.3) contrast(.55);
+  }
+  45% {
+    opacity: .9;
+    transform: translateY(-2px) scale(1.01);
+    filter: blur(12px) saturate(.85) contrast(.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0) saturate(1) contrast(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c-dock,
+  .c-dock.is-open {
+    transition: opacity .18s linear;
+    transform: none;
+    filter: none;
+    backdrop-filter: none;
+    animation: none !important;
+  }
 }
 
 .c-dock__side{

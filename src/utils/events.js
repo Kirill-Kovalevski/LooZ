@@ -20,7 +20,7 @@ export const STATS_CHANGED  = 'stats-changed';
 const pad2 = n => String(n).padStart(2, '0');
 export const keyOf = d => {
   const dt = (d instanceof Date) ? d : new Date(d);
-  return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}`;
+  return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getMonth()+1) === 'NaN' ? '01' : pad2(dt.getDate())}`;
 };
 export const hhmm = d => {
   const dt = (d instanceof Date) ? d : new Date(d);
@@ -52,7 +52,17 @@ function applyRemoteEvents(items) {
   const nextDone    = [];
   const nextRemoved = [];
 
-  for (const it of items) {
+  for (const raw of items) {
+    // normalize description:
+    //  - prefer raw.desc
+    //  - fallback to raw.description (old schema)
+    const it = {
+      ...raw,
+      desc: typeof raw.desc === 'string'
+        ? raw.desc
+        : (typeof raw.description === 'string' ? raw.description : '')
+    };
+
     if (it.removed) nextRemoved.push(it);
     else if (it.done) nextDone.push(it);
     else nextActive.push(it);
@@ -106,7 +116,7 @@ export async function resubscribeEventsForUid() {
 })();
 
 /* ===========================================================
-   PUBLIC API (same names as your original file)
+   PUBLIC API
    =========================================================== */
 
 // ---------- ACTIVE ----------
@@ -118,33 +128,53 @@ export function getAllEvents() {
 export function getEventsByDate(dateKey) {
   return getAllEvents().filter(e => e.date === dateKey);
 }
-export async function addEvent({ id, date, time='00:00', title='', done=false }) {
+
+// IMPORTANT: addEvent fully supports `desc` and makes sure it is stored
+export async function addEvent({ id, date, time='00:00', title='', desc = '', done=false }) {
   await authReady;
   const user = auth.currentUser;
   const dk   = typeof date === 'string' ? date : keyOf(date);
 
+  const safeTitle = String(title ?? '');
+  const safeDesc  = String(desc   ?? '');
+
   // if logged in → write to Firestore
   if (user) {
+    // base event (some implementations of addUserEvent may ignore unknown fields)
     const newId = await addUserEvent(user.uid, {
       id,
       date: dk,
       time,
-      title,
+      title: safeTitle,
       done,
     });
-    // snapshot will update us, so no need to mutate here
+
+    // guarantee the description field exists in Firestore
+    if (safeDesc) {
+      await updateUserEvent(user.uid, newId, { desc: safeDesc });
+    }
+
+    // snapshot will update us, so no need to mutate _active here
     return newId;
   }
 
   // guest → keep your old localStorage behavior
   const list = readJSON(STORE_ACTIVE);
-  const item = { id: id || makeId(), date: dk, time, title: String(title), done: !!done };
+  const item = {
+    id: id || makeId(),
+    date: dk,
+    time,
+    title: safeTitle,
+    desc: safeDesc,
+    done: !!done
+  };
   list.push(item);
   writeJSON(STORE_ACTIVE, list);
   _active = list;
   emit(EVENTS_CHANGED);
   return item.id;
 }
+
 export async function updateEvent(id, patch) {
   await authReady;
   const user = auth.currentUser;

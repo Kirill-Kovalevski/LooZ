@@ -1,16 +1,16 @@
 /* ========= Task action tokens (light & dark) ========= */
 :root{
   /* ✓ OK (light) */
-  --act-ok-bg: #e8f7e4;              /* soft green surface */
-  --act-ok-fg: #1e7a37;              /* readable green text/icon */
+  --act-ok-bg: #e8f7e4;
+  --act-ok-fg: #1e7a37;
   --act-ok-br: color-mix(in oklab, #1e7a37 28%, white);
 
   /* ✕ NO (light) */
-  --act-no-bg: #ffe8e4;              /* soft red surface */
-  --act-no-fg: #b43b2f;              /* readable red text/icon */
+  --act-no-bg: #ffe8e4;
+  --act-no-fg: #b43b2f;
   --act-no-br: color-mix(in oklab, #b43b2f 28%, white);
 
-  /* Task card (light) – keep your existing if already set */
+  /* Task card (light) */
   --task-bg: rgba(255,255,255,.9);
   --task-bd: #e3ecff;
   --task-shadow: 0 8px 24px rgba(15,23,42,.08);
@@ -18,13 +18,13 @@
 
 :is(html,body).is-dark{
   /* ✓ OK (dark) — golden */
-  --act-ok-bg: #342a0d;              /* deep, low-glare base */
-  --act-ok-fg: #f2d971;              /* warm gold glyph */
+  --act-ok-bg: #342a0d;
+  --act-ok-fg: #f2d971;
   --act-ok-br: #b9962a;
 
-  /* ✕ NO (dark) — golden-red (very smooth) */
-  --act-no-bg: #2f1713;              /* muted claret base */
-  --act-no-fg: #ffb8a6;              /* peach-red glyph */
+  /* ✕ NO (dark) — golden-red */
+  --act-no-bg: #2f1713;
+  --act-no-fg: #ffb8a6;
   --act-no-br: #e59a84;
 
   /* Task card (dark) */
@@ -34,36 +34,88 @@
 }
 
 /* ========= Task card base ========= */
-.p-tasklist{ display:grid; gap:.55rem; }
+.p-tasklist{
+  display:grid;
+  gap:.55rem;
+}
 
 .p-datask{
   --h: 54px;
-  display:grid; grid-template-columns: 56px 1fr 68px;
-  align-items:center; min-block-size:var(--h);
+  position: relative;
+  display:grid;
+  grid-template-columns: 56px 1fr 68px; /* actions | title+bar | time */
+  grid-auto-rows: auto;
+  align-items:center;                 /* center time + title vertically */
+  column-gap:.35rem;                  /* small space between title and time */
+  min-block-size:var(--h);
   border:1px solid var(--task-bd);
   background:var(--task-bg);
-  border-radius:14px; padding:.5rem .55rem;
+  border-radius:14px;
+  padding:.5rem .55rem;
   box-shadow:var(--task-shadow);
   backdrop-filter:saturate(110%) blur(2px);
 }
 
-.p-datask.is-done .p-title{ text-decoration:line-through; opacity:.65; }
+.p-datask.is-done .p-title{
+  text-decoration:line-through;
+  opacity:.65;
+}
 
-/* time + title colors (light) */
-.p-time{ justify-self:start; font:600 12px/1 'Rubik',system-ui; color:#334155; inline-size:44px; text-align:left; }
-.p-body .p-title{ font:600 15px/1.2 'Rubik',system-ui; color:#0f172a; }
+/* time cell */
+.p-time{
+  justify-self:start;                 /* start = right in RTL container */
+  font:600 12px/1 'Rubik',system-ui;
+  color:#334155;
+  inline-size:44px;
+  text-align:left;                    /* hh:mm stays LTR */
+}
 
-/* improve legibility in dark mode */
-:is(html,body).is-dark .p-time{ color:#9fb0d8; }
-:is(html,body).is-dark .p-body .p-title{ color:#eaf2ff; }
+:is(html,body).is-dark .p-time{
+  color:#9fb0d8;
+}
+
+/* ========= Middle column: title + mini bar (RTL) ========= */
+
+/* Middle column: title + mini bar (RTL, stuck next to time) */
+.p-body{
+  position: relative;            /* so the mini-bar can be absolute */
+  display:flex;
+  flex-direction:column;
+  justify-content:center;        /* center the title vertically vs time */
+  align-items:flex-end;          /* right edge for Hebrew */
+  direction: rtl;                /* RTL content */
+  text-align:right;
+  width:fit-content;
+  margin-left:auto;              /* push body up against the time */
+}
+
+.p-title{
+  font:600 15px/1 'Rubik',system-ui;
+  color:#0f172a;
+  margin:0;                      /* no extra margin that shifts centering */
+}
+
+:is(html,body).is-dark .p-body .p-title{
+  color:#eaf2ff;
+}
 
 /* ========= Actions (use tokens) ========= */
-.p-actions{ display:grid; grid-auto-flow:column; gap:.45rem; justify-content:end; }
+.p-actions{
+  display:grid;
+  grid-auto-flow:column;
+  gap:.45rem;
+  justify-content:end;
+}
 
 .p-act{
-  inline-size:34px; block-size:30px; min-inline-size:34px;
-  display:grid; place-items:center; border-radius:999px;
-  font:800 14px/1 system-ui; border:1px solid transparent;
+  inline-size:34px;
+  block-size:30px;
+  min-inline-size:34px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  font:800 14px/1 system-ui;
+  border:1px solid transparent;
   box-shadow:0 2px 6px rgba(15,23,42,.08);
 }
 
@@ -72,7 +124,7 @@
   background: var(--act-ok-bg);
   color:      var(--act-ok-fg);
   border-color: var(--act-ok-br);
-  text-shadow: 0 0 0 transparent; /* crisp glyph */
+  text-shadow: 0 0 0 transparent;
 }
 
 /* ✕ NO */
@@ -83,11 +135,12 @@
   text-shadow: 0 0 0 transparent;
 }
 
-/* optional hover (kept subtle) */
+/* optional hover */
 @media (hover:hover){
   .p-act--ok:hover{ filter:brightness(1.06) saturate(1.02); }
   .p-act--no:hover{ filter:brightness(1.06) saturate(1.02); }
 }
+
 /* ===== Pretty day chip in Day view ===== */
 .p-day-head{
   display:flex;
@@ -115,7 +168,7 @@
 .p-when__dow{
   font: 800 15px/1 'Rubik', system-ui, sans-serif;
   letter-spacing:.2px;
-  color:#1e293b; /* slightly darker anchor */
+  color:#1e293b;
 }
 .p-when__dot{
   opacity:.55;
@@ -127,21 +180,203 @@
   background: linear-gradient(180deg, #334155, #0f172a);
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent; /* gradient text */
+  color: transparent;
 }
 
-/* Dark mode */
+/* Dark mode chip */
 :is(html,body).is-dark .p-day-when{
   border-color:#2f3b55;
   background: linear-gradient(180deg, #0f1422, #0b1220);
   box-shadow: 0 10px 26px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
   color:#eaf2ff;
 }
-:is(html,body).is-dark .p-when__dow{ color:#cfe2ff; }
-:is(html,body).is-dark .p-when__dot{ color:#9fb7d8; opacity:.65; }
+:is(html,body).is-dark .p-when__dow{
+  color:#cfe2ff;
+}
+:is(html,body).is-dark .p-when__dot{
+  color:#9fb7d8;
+  opacity:.65;
+}
 :is(html,body).is-dark .p-when__md{
   background: linear-gradient(180deg, #ffffff, #cfe2ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* ========= Description & subtasks ========= */
+
+.p-desc{
+  grid-column: 1 / -1;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    max-height .24s ease,
+    opacity   .18s ease,
+    transform .18s ease,
+    margin-top .18s ease,
+    padding-top .18s ease,
+    border-top .18s ease;
+}
+
+/* when card is open → slide in softly */
+.p-datask.is-open .p-desc{
+  max-height: 320px;
+  margin-top: .35rem;
+  padding-top: .4rem;
+  border-top: 1px dashed rgba(148,163,184,.55);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* placeholder when there's no description */
+.p-desc--empty{
+  font: 400 12px/1.4 'Rubik', system-ui, sans-serif;
+}
+.p-desc-placeholder{
+  opacity: .6;
+}
+
+/* note mode */
+.p-desc--note p{
+  margin: 0;
+  font: 400 13px/1.5 'Rubik', system-ui, sans-serif;
+  color: #475569;
+}
+
+/* bullet-list mode for subtasks */
+.p-desc--list .p-desc-list{
+  margin: 0;
+  padding-inline-start: 0;
+  list-style: none;
+}
+
+/* each sub-task row */
+.p-subtask{
+  display:flex;
+  align-items:flex-start;
+  gap:.4rem;
+  margin-bottom:.18rem;
+  cursor:pointer;
+}
+
+.p-subtask__dot{
+  margin-top:.38rem;
+  inline-size: .42rem;
+  block-size: .42rem;
+  border-radius:999px;
+  border:1px solid rgba(148,163,184,.9);
+  background:#f8fafc;
+  flex-shrink:0;
+}
+
+.p-subtask__text{
+  font: 400 13px/1.5 'Rubik', system-ui, sans-serif;
+  color:#475569;
+}
+
+/* crossed sub-task */
+.p-subtask.is-subdone .p-subtask__text{
+  text-decoration: line-through;
+  opacity:.55;
+}
+.p-subtask.is-subdone .p-subtask__dot{
+  background:#22c55e;
+  border-color:#16a34a;
+}
+
+/* dark mode subtasks */
+:is(html,body).is-dark .p-desc{
+  border-top-color: rgba(148,163,184,.7);
+}
+:is(html,body).is-dark .p-desc-placeholder,
+:is(html,body).is-dark .p-desc--note p,
+:is(html,body).is-dark .p-subtask__text{
+  color:#cbd5f5;
+}
+:is(html,body).is-dark .p-subtask__dot{
+  background:#020617;
+  border-color:#64748b;
+}
+:is(html,body).is-dark .p-subtask.is-subdone .p-subtask__dot{
+  background:#22c55e;
+  border-color:#16a34a;
+}
+
+/* ========= Mini subtask progress bar ========= */
+.p-subbar{
+  position:absolute;
+  inset-inline-end:0;                 /* start exactly at the title’s first letter (RTL) */
+  inset-block-end:-0.30rem;           /* just under the title */
+
+  display:block;
+
+  /* bar width = width of the title column, up to 190px */
+  inline-size: min(190px, 100%);      /* longer, but never wider than the text column */
+  block-size:2px;
+  border-radius:999px;
+  background:rgba(148,163,184,.18);
+  overflow:visible;                   /* keep the glow visible */
+  pointer-events:none;
+}
+
+
+.p-subbar__fill{
+  block-size:100%;
+  inline-size:calc(var(--sub-ratio, 0) * 100%);
+  border-radius:inherit;
+  background:linear-gradient(90deg,#FFE067,#fbbf24,#f59e0b);
+  transition:inline-size .18s ease-out,
+             box-shadow .25s ease-out,
+             filter .25s ease-out;
+}
+
+@keyframes subbar-pulse {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(250,224,120,0.0),
+      0 0 0 rgba(245,158,11,0.0);
+    filter:none;
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px rgba(250,224,120,.9),
+      0 0 20px rgba(245,158,11,.65);
+    filter:drop-shadow(0 0 6px rgba(245,158,11,.5));
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(250,224,120,.85),
+      0 0 10px rgba(245,158,11,.45);
+    filter:drop-shadow(0 0 4px rgba(245,158,11,.35));
+  }
+}
+
+.p-subbar__fill.is-full{
+  box-shadow:
+    0 0 0 1px rgba(250,224,120,.85),
+    0 0 10px rgba(245,158,11,.45);
+  filter:drop-shadow(0 0 4px rgba(245,158,11,.35));
+  animation: subbar-pulse .6s ease-out 1;
+}
+
+/* dark mode */
+:is(html,body).is-dark .p-subbar{
+  background:rgba(30,64,175,.35);
+}
+:is(html,body).is-dark .p-subbar__fill{
+  background:linear-gradient(90deg,#facc15,#fbbf24,#eab308);
+}
+:is(html,body).is-dark .p-subbar__fill.is-full{
+  box-shadow:
+    0 0 0 1px rgba(250,250,180,.9),
+    0 0 10px rgba(234,179,8,.6);
+  filter:drop-shadow(0 0 4px rgba(234,179,8,.45));
+  animation: subbar-pulse .6s ease-out 1;
 }

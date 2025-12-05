@@ -47,11 +47,25 @@ export function openCreateModal(dateKey) {
             <input id="evtDate" name="date" type="date" class="f-input" required />
           </label>
 
+          <!-- Quick date chips -->
+          <div class="quick-row quick-row--date" aria-hidden="false">
+            <button type="button" class="chip" data-qdate="0">היום</button>
+            <button type="button" class="chip" data-qdate="1">מחר</button>
+            <button type="button" class="chip" data-qdate="2">מחרתיים</button>
+          </div>
+
           <!-- שעה -->
           <label class="f-field">
             <span class="f-label">שעה</span>
             <input id="evtTime" name="time" type="time" class="f-input" required />
           </label>
+
+          <!-- Quick time chips -->
+          <div class="quick-row quick-row--time" aria-hidden="false">
+            <button type="button" class="chip" data-qtime="now">עכשיו</button>
+            <button type="button" class="chip" data-qtime="30">+30 דק׳</button>
+            <button type="button" class="chip" data-qtime="60">+1 שעה</button>
+          </div>
 
           <!-- Mic: its own centered row -->
           <div class="create-mic-row">
@@ -81,6 +95,8 @@ export function openCreateModal(dateKey) {
 
     // mic (Web Speech API – fills the *description* textarea)
     wireMic($modal);
+    // quick date/time chips
+    wireQuickPickers($modal);
     // submit/save
     wireSave($modal);
   }
@@ -88,10 +104,17 @@ export function openCreateModal(dateKey) {
   // defaults every time it opens
   const f = $modal.querySelector('#createForm');
   f.reset();
-  f.querySelector('#evtDate').value = picked;
-  f.querySelector('#evtTime').value = hhmm(new Date());
+  const dateInput = f.querySelector('#evtDate');
+  const timeInput = f.querySelector('#evtTime');
 
-  requestAnimationFrame(() => $modal.classList.add('is-open'));
+  dateInput.value = picked;
+  timeInput.value = hhmm(new Date());
+
+  requestAnimationFrame(() => {
+    $modal.classList.add('is-open');
+    const titleInput = f.querySelector('#evtTitle');
+    titleInput?.focus();
+  });
 }
 
 export function closeCreateModal() {
@@ -134,6 +157,38 @@ function wireMic(root){
   btn.addEventListener('click', () => (active ? stop() : start()));
 }
 
+// ---- quick date/time chips ----
+function wireQuickPickers(root){
+  const dateInput = root.querySelector('#evtDate');
+  const timeInput = root.querySelector('#evtTime');
+  if (!dateInput || !timeInput) return;
+
+  // Date chips
+  root.querySelectorAll('[data-qdate]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const offset = parseInt(btn.getAttribute('data-qdate') || '0', 10);
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      dateInput.value = keyOf(d);
+    });
+  });
+
+  // Time chips
+  root.querySelectorAll('[data-qtime]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.getAttribute('data-qtime');
+      const base = new Date();
+      if (v === 'now') {
+        timeInput.value = hhmm(base);
+        return;
+      }
+      const mins = parseInt(v || '0', 10) || 0;
+      base.setMinutes(base.getMinutes() + mins);
+      timeInput.value = hhmm(base);
+    });
+  });
+}
+
 // ---- save wiring ----
 function wireSave(root){
   const form = root.querySelector('#createForm');
@@ -142,9 +197,9 @@ function wireSave(root){
     if (!form.reportValidity()) return;
 
     const data = Object.fromEntries(new FormData(form).entries());
-    const dk = data.date || keyOf(new Date());
-    const tm = data.time || '00:00';
-    const tl = (data.title || '').trim() || 'ללא כותרת';
+    const dk   = data.date || keyOf(new Date());
+    const tm   = data.time || '00:00';
+    const tl   = (data.title || '').trim() || 'ללא כותרת';
     const desc = (data.desc || '').trim();
 
     addEvent({ date: dk, time: tm, title: tl, desc, done: false });

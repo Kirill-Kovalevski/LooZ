@@ -105,3 +105,43 @@
   background:#FFE067; border-color:#f3c340; color:#0b1220;
   box-shadow: 0 10px 26px rgba(0,0,0,.55), 0 0 0 1px rgba(255,239,170,.25) inset;
 }
+.quick-row{
+  display:flex;
+  gap:.4rem;
+  justify-content:flex-start;
+  margin-block: .25rem .65rem;
+}
+
+.quick-row--time{
+  margin-top:.35rem;
+}
+
+.chip{
+  padding:.25rem .7rem;
+  border-radius:999px;
+  border:1px solid rgba(148,163,184,.7);
+  background:#f9fafb;
+  font:500 12px/1 'Rubik', system-ui, sans-serif;
+  cursor:pointer;
+}
+
+.chip:focus-visible{
+  outline:2px solid #fbbf24;
+  outline-offset:2px;
+}
+
+@media (hover:hover){
+  .chip:hover{
+    background:#eef2ff;
+  }
+}
+
+:is(html,body).is-dark .chip{
+  border-color:#475569;
+  background:#020617;
+  color:#e5e7eb;
+}
+
+:is(html,body).is-dark .chip:hover{
+  background:#0f172a;
+}
